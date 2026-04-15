@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>规则星港 | 第1课 控制我的角色</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <div class="grain"></div>
+
+    <main class="shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">AI 伴学式游戏编程平台 · Lesson 01</p>
+          <h1>控制我的角色</h1>
+          <p class="hero-copy">
+            先试玩一个“坏掉”的游戏，再用规则修好它。你选择喜欢的游戏类型，平台把同一个编程概念映射到不同玩法里。
+          </p>
+        </div>
+        <aside class="mentor-card" aria-label="AI伴学教练">
+          <div class="mentor-orb"></div>
+          <div>
+            <span>AI 伴学教练</span>
+            <strong>先猜，再问；先修，再看代码。</strong>
+          </div>
+        </aside>
+      </header>
+
+      <section class="route-panel" aria-label="选择游戏类型">
+        <button class="route-card is-active" data-route="shooter" type="button">
+          <span class="route-icon">S</span>
+          <span>
+            <strong>星际射击路线</strong>
+            <small>控制飞船穿过能量门</small>
+          </span>
+        </button>
+        <button class="route-card" data-route="platform" type="button">
+          <span class="route-icon">M</span>
+          <span>
+            <strong>平台跳跃路线</strong>
+            <small>像马里奥一样移动和跳跃</small>
+          </span>
+        </button>
+      </section>
+
+      <section class="lesson-grid">
+        <article class="stage-card">
+          <div class="card-head">
+            <div>
+              <p class="kicker">试玩区</p>
+              <h2 id="routeTitle">星际射击路线</h2>
+            </div>
+            <div class="status-pill" id="runStatus">等待修复</div>
+          </div>
+
+          <div class="game-wrap">
+            <canvas id="gameCanvas" width="960" height="540" aria-label="游戏运行画布"></canvas>
+            <div class="game-hint" id="gameHint">
+              按 WASD 或方向键试试看：角色现在不会动，因为输入规则还没连接。
+            </div>
+            <div class="touch-pad" aria-label="屏幕控制键">
+              <button type="button" data-touch-key="ArrowUp">上</button>
+              <button type="button" data-touch-key="ArrowLeft">左</button>
+              <button type="button" data-touch-key="ArrowDown">下</button>
+              <button type="button" data-touch-key="ArrowRight">右</button>
+            </div>
+          </div>
+
+          <div class="control-strip">
+            <button class="primary-btn" id="applyRuleBtn" type="button">修复控制规则</button>
+            <button class="ghost-btn" id="runBtn" type="button">试运行</button>
+            <button class="ghost-btn" id="resetBtn" type="button">重置关卡</button>
+          </div>
+        </article>
+
+        <aside class="mission-card">
+          <p class="kicker">本课任务</p>
+          <h2>把“按键”变成“动作”</h2>
+          <p>
+            你要理解第一个核心概念：<strong>事件</strong>。当玩家按下某个键，游戏会触发一条规则，让角色改变坐标。
+          </p>
+
+          <div class="progress-list">
+            <div class="progress-item is-done" data-step="1">
+              <span>1</span>
+              <p>试玩坏掉的游戏</p>
+            </div>
+            <div class="progress-item" data-step="2">
+              <span>2</span>
+              <p>猜测为什么角色不动</p>
+            </div>
+            <div class="progress-item" data-step="3">
+              <span>3</span>
+              <p>启用输入事件规则</p>
+            </div>
+            <div class="progress-item" data-step="4">
+              <span>4</span>
+              <p>到达目标并复盘代码</p>
+            </div>
+          </div>
+
+          <div class="stats">
+            <div>
+              <span>X 坐标</span>
+              <strong id="statX">0</strong>
+            </div>
+            <div>
+              <span>Y 坐标</span>
+              <strong id="statY">0</strong>
+            </div>
+            <div>
+              <span>速度</span>
+              <strong id="statSpeed">0</strong>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="tool-grid">
+        <article class="rule-card">
+          <div class="card-head compact">
+            <div>
+              <p class="kicker">规则编辑器</p>
+              <h2>当 · 如果 · 就</h2>
+            </div>
+            <span class="lesson-badge">核心资产原型</span>
+          </div>
+
+          <div class="rule-stack">
+            <div class="rule-row">
+              <span>当</span>
+              <button class="slot" type="button" id="eventSlot">按下方向键 / WASD</button>
+            </div>
+            <div class="rule-row">
+              <span>如果</span>
+              <button class="slot" type="button" id="conditionSlot">角色没有被锁定</button>
+            </div>
+            <div class="rule-row">
+              <span>就</span>
+              <button class="slot" type="button" id="actionSlot">改变角色坐标</button>
+            </div>
+          </div>
+
+          <div class="teacher-note">
+            <strong>这一课不先背语法。</strong>
+            学生先理解“按键是事件，移动是动作，坐标会变化”，再通过代码透视看到真实代码。
+          </div>
+        </article>
+
+        <article class="code-card">
+          <div class="card-head compact">
+            <div>
+              <p class="kicker">代码透视眼</p>
+              <h2>规则背后的代码</h2>
+            </div>
+            <div class="tabs" role="tablist" aria-label="代码显示模式">
+              <button class="tab is-active" data-code="rule" type="button">中文规则</button>
+              <button class="tab" data-code="pseudo" type="button">伪代码</button>
+              <button class="tab" data-code="python" type="button">Python</button>
+            </div>
+          </div>
+          <pre class="code-window"><code id="codeView"></code></pre>
+        </article>
+
+        <article class="ai-card">
+          <div class="card-head compact">
+            <div>
+              <p class="kicker">AI 伴学</p>
+              <h2>不是代写，是陪你调试</h2>
+            </div>
+            <div class="ai-face">AI</div>
+          </div>
+
+          <div class="chat-window" id="chatWindow" aria-live="polite">
+            <div class="message ai">
+              先按一下方向键观察现象。然后告诉我：你觉得角色为什么不动？
+            </div>
+          </div>
+
+          <div class="prompt-chips">
+            <button type="button" data-prompt="stuck">为什么动不了？</button>
+            <button type="button" data-prompt="hint">给我一个提示</button>
+            <button type="button" data-prompt="code">解释这段代码</button>
+            <button type="button" data-prompt="recap">我来复盘</button>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
