@@ -1,32 +1,83 @@
 const canvas = document.querySelector("#gameCanvas");
 const ctx = canvas.getContext("2d");
-const applyRuleBtn = document.querySelector("#applyRuleBtn");
-const runBtn = document.querySelector("#runBtn");
-const resetBtn = document.querySelector("#resetBtn");
-const routeTitle = document.querySelector("#routeTitle");
-const runStatus = document.querySelector("#runStatus");
-const gameHint = document.querySelector("#gameHint");
-const codeView = document.querySelector("#codeView");
-const chatWindow = document.querySelector("#chatWindow");
-const statX = document.querySelector("#statX");
-const statY = document.querySelector("#statY");
-const statSpeed = document.querySelector("#statSpeed");
+
+const dom = {
+  lessonEyebrow: document.querySelector("#lessonEyebrow"),
+  lessonHeading: document.querySelector("#lessonHeading"),
+  lessonIntro: document.querySelector("#lessonIntro"),
+  routeTitle: document.querySelector("#routeTitle"),
+  runStatus: document.querySelector("#runStatus"),
+  gameHint: document.querySelector("#gameHint"),
+  applyRuleBtn: document.querySelector("#applyRuleBtn"),
+  runBtn: document.querySelector("#runBtn"),
+  resetBtn: document.querySelector("#resetBtn"),
+  missionTitle: document.querySelector("#missionTitle"),
+  missionCopy: document.querySelector("#missionCopy"),
+  stepText1: document.querySelector("#stepText1"),
+  stepText2: document.querySelector("#stepText2"),
+  stepText3: document.querySelector("#stepText3"),
+  stepText4: document.querySelector("#stepText4"),
+  statLabel1: document.querySelector("#statLabel1"),
+  statLabel2: document.querySelector("#statLabel2"),
+  statLabel3: document.querySelector("#statLabel3"),
+  statX: document.querySelector("#statX"),
+  statY: document.querySelector("#statY"),
+  statSpeed: document.querySelector("#statSpeed"),
+  codeView: document.querySelector("#codeView"),
+  chatWindow: document.querySelector("#chatWindow")
+};
 
 const routes = {
   shooter: {
     title: "星际射击路线",
-    hintLocked: "按 WASD 或方向键试试看：飞船现在不会动，因为输入事件还没连接。",
-    hintLive: "规则已连接。用 WASD 或方向键移动飞船，穿过右侧蓝色能量门。",
-    targetText: "穿过能量门",
+    icon: "S",
+    noun: "飞船",
+    targetText: {
+      1: "穿过能量门",
+      2: "收集 3 个能量晶核"
+    }
+  },
+  platform: {
+    title: "平台跳跃路线",
+    icon: "M",
+    noun: "角色",
+    targetText: {
+      1: "到达终点旗帜",
+      2: "收集 3 枚金币"
+    }
+  }
+};
+
+const lessons = {
+  1: {
+    eyebrow: "AI 伴学式游戏编程平台 · 第 1 关",
+    heading: "控制校准场",
+    intro: "角色醒来了，但控制系统还没接上。先观察问题，再把“按键事件”连接到“移动动作”。",
+    missionTitle: "把“按键”变成“动作”",
+    missionCopy: "你要理解第一个核心概念：事件。当玩家按下某个键，游戏会触发一条规则，让角色改变坐标。",
+    button: "修复控制规则",
+    activeButton: "控制规则已启用",
+    statusIdle: "等待修复",
+    statusLive: "控制已连接",
+    statusWin: "校准完成",
+    statLabels: ["X 坐标", "Y 坐标", "速度"],
+    steps: ["试玩坏掉的游戏", "猜测为什么角色不动", "启用输入事件规则", "到达目标并复盘事件"],
+    hintLocked: {
+      shooter: "按 WASD 或方向键试试看：飞船现在不会动，因为输入事件还没连接。",
+      platform: "按 A/D 或方向键试试看：角色现在不会动，因为输入事件还没连接。"
+    },
+    hintLive: {
+      shooter: "规则已连接。用 WASD 或方向键移动飞船，穿过右侧蓝色能量门。",
+      platform: "规则已连接。用 A/D 移动，用 W、空格或上方向键跳到终点旗帜。"
+    },
     code: {
       rule: `当 玩家按下方向键
-如果 飞船没有被锁定
-就 根据按键方向改变飞船坐标
+如果 角色没有被锁定
+就 根据按键方向改变角色坐标
 
-学习重点：
-按键 = 输入事件
-坐标 = 角色位置
-速度 = 每次移动多少`,
+评价出口：
+我知道按键是事件。
+我知道 x/y 坐标变化会让角色移动。`,
       pseudo: `当按键被按下:
     如果 player.locked 是 false:
         direction = 读取按键方向
@@ -44,50 +95,65 @@ if key_pressed("down"):
     player.y += speed`
     }
   },
-  platform: {
-    title: "平台跳跃路线",
-    hintLocked: "按 A/D 或方向键试试看：角色现在不会动，因为输入事件还没连接。",
-    hintLive: "规则已连接。用 A/D 移动，用 W、空格或上方向键跳到终点旗帜。",
-    targetText: "到达终点旗帜",
+  2: {
+    eyebrow: "AI 伴学式游戏编程平台 · 第 2 关",
+    heading: "分数晶核",
+    intro: "控制系统已经修好了，但分数系统坏了。收集晶核或金币后，修复 score 变量，让游戏记住你的成果。",
+    missionTitle: "让“分数盒子”动起来",
+    missionCopy: "你要理解变量：score 像一个会变化的盒子，用来记录游戏分数，屏幕上的分数来自这个盒子。",
+    button: "修复计分规则",
+    activeButton: "计分规则已启用",
+    statusIdle: "分数未连接",
+    statusLive: "计分运行中",
+    statusWin: "阶段成果完成",
+    statLabels: ["Score 分数", "目标", "已收集"],
+    steps: ["收集一个物品", "观察分数为什么没变", "启用 score 变量规则", "收集全部目标并复盘变量"],
+    hintLocked: {
+      shooter: "飞船已经能动了。先碰到能量晶核，你会发现 score 仍然是 0。",
+      platform: "角色已经能动了。先吃一枚金币，你会发现 score 仍然是 0。"
+    },
+    hintLive: {
+      shooter: "计分规则已连接。继续收集 3 个能量晶核，让 score 达到 30。",
+      platform: "计分规则已连接。继续收集 3 枚金币，让 score 达到 3。"
+    },
     code: {
-      rule: `当 玩家按下移动键
-如果 角色没有被锁定
-就 改变角色的横向速度
+      rule: `当 玩家碰到 收集物
+如果 收集物还没有被收集
+就 分数增加
+并且 隐藏这个收集物
 
-当 玩家按下跳跃键
-如果 角色站在地面上
-就 给角色一个向上的速度`,
-      pseudo: `当移动键被按下:
-    如果 player.locked 是 false:
-        player.vx = 输入方向 * move_speed
-
-当跳跃键被按下:
-    如果 player.on_ground 是 true:
-        player.vy = -jump_power`,
-      python: `move_speed = 5
-jump_power = 13
-
-if key_pressed("left"):
-    player.vx = -move_speed
-if key_pressed("right"):
-    player.vx = move_speed
-if key_pressed("jump") and player.on_ground:
-    player.vy = -jump_power`
+评价出口：
+我知道 score 是变量。
+我知道屏幕分数来自 score。`,
+      pseudo: `当玩家碰到收集物:
+    如果 item.collected 是 false:
+        score = score + item.value
+        item.collected = true
+        隐藏 item`,
+      python: `if player.collides_with(item):
+    if item.collected == False:
+        score += item.value
+        item.collected = True
+        item.hide()`
     }
   }
 };
 
 const state = {
+  lesson: 1,
   route: "shooter",
   codeMode: "rule",
-  rulesEnabled: false,
+  ruleFixed: false,
   completed: false,
   triedInput: false,
+  scoreIssueObserved: false,
   width: 960,
   height: 540,
   keys: new Set(),
   particles: [],
   stars: [],
+  items: [],
+  score: 0,
   player: {
     x: 88,
     y: 270,
@@ -106,8 +172,8 @@ function resizeCanvas() {
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
   state.width = rect.width;
   state.height = rect.height;
-  resetGame(false);
   createStars();
+  resetGame(false);
 }
 
 function createStars() {
@@ -118,6 +184,27 @@ function createStars() {
     speed: Math.random() * 0.42 + 0.08,
     alpha: Math.random() * 0.55 + 0.25
   }));
+}
+
+function applyLessonContent() {
+  const lesson = lessons[state.lesson];
+  const route = routes[state.route];
+  dom.lessonEyebrow.textContent = lesson.eyebrow;
+  dom.lessonHeading.textContent = lesson.heading;
+  dom.lessonIntro.textContent = lesson.intro;
+  dom.routeTitle.textContent = route.title;
+  dom.missionTitle.textContent = lesson.missionTitle;
+  dom.missionCopy.textContent = lesson.missionCopy;
+  [dom.stepText1, dom.stepText2, dom.stepText3, dom.stepText4].forEach((node, index) => {
+    node.textContent = lesson.steps[index];
+  });
+  [dom.statLabel1, dom.statLabel2, dom.statLabel3].forEach((node, index) => {
+    node.textContent = lesson.statLabels[index];
+  });
+  dom.applyRuleBtn.textContent = state.ruleFixed ? lesson.activeButton : lesson.button;
+  dom.gameHint.textContent = state.ruleFixed ? lesson.hintLive[state.route] : lesson.hintLocked[state.route];
+  updateCode();
+  updateStats();
 }
 
 function resetGame(resetProgress = true) {
@@ -136,39 +223,45 @@ function resetGame(resetProgress = true) {
 
   state.particles = [];
   state.completed = false;
+  state.score = 0;
+  state.items = state.lesson === 2 ? createLessonTwoItems() : [];
 
   if (resetProgress) {
-    state.rulesEnabled = false;
+    state.ruleFixed = false;
     state.triedInput = false;
-    applyRuleBtn.textContent = "修复控制规则";
-    applyRuleBtn.classList.remove("is-applied");
+    state.scoreIssueObserved = false;
+    dom.applyRuleBtn.classList.remove("is-applied");
     markStep(2, false);
     markStep(3, false);
     markStep(4, false);
-    setStatus("等待修复", "");
-    gameHint.textContent = routes[state.route].hintLocked;
+    setStatus(lessons[state.lesson].statusIdle, "");
   }
 
-  updateStats();
+  applyLessonContent();
+}
+
+function createLessonTwoItems() {
+  if (state.route === "shooter") {
+    return [
+      { x: state.width * 0.36, y: state.height * 0.28, value: 10, collected: false },
+      { x: state.width * 0.58, y: state.height * 0.62, value: 10, collected: false },
+      { x: state.width * 0.82, y: state.height * 0.42, value: 10, collected: false }
+    ];
+  }
+
+  return [
+    { x: state.width * 0.31, y: state.height - 190, value: 1, collected: false },
+    { x: state.width * 0.57, y: state.height - 262, value: 1, collected: false },
+    { x: state.width * 0.78, y: state.height - 192, value: 1, collected: false }
+  ];
 }
 
 function setStatus(text, mode) {
-  runStatus.textContent = text;
-  runStatus.classList.remove("is-live", "is-win");
+  dom.runStatus.textContent = text;
+  dom.runStatus.classList.remove("is-live", "is-win");
   if (mode) {
-    runStatus.classList.add(mode);
+    dom.runStatus.classList.add(mode);
   }
-}
-
-function switchRoute(route) {
-  state.route = route;
-  routeTitle.textContent = routes[route].title;
-  document.querySelectorAll(".route-card").forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.route === route);
-  });
-  resetGame(true);
-  updateCode();
-  addAiMessage(`你选择了「${routes[route].title}」。这节课的知识点不变：按键事件会改变角色坐标。`);
 }
 
 function markStep(step, done = true) {
@@ -179,33 +272,38 @@ function markStep(step, done = true) {
 }
 
 function updateCode() {
-  codeView.textContent = routes[state.route].code[state.codeMode];
+  dom.codeView.textContent = lessons[state.lesson].code[state.codeMode];
 }
 
 function addAiMessage(text, role = "ai") {
   const node = document.createElement("div");
   node.className = `message ${role}`;
   node.textContent = text;
-  chatWindow.appendChild(node);
-  chatWindow.scrollTop = chatWindow.scrollHeight;
+  dom.chatWindow.appendChild(node);
+  dom.chatWindow.scrollTop = dom.chatWindow.scrollHeight;
 }
 
 function pulseHint(text) {
-  gameHint.textContent = text;
-  gameHint.classList.remove("pulse");
+  dom.gameHint.textContent = text;
+  dom.gameHint.classList.remove("pulse");
   window.requestAnimationFrame(() => {
-    gameHint.classList.add("pulse");
+    dom.gameHint.classList.add("pulse");
   });
 }
 
-function enableRules() {
-  state.rulesEnabled = true;
-  applyRuleBtn.textContent = "规则已启用";
-  applyRuleBtn.classList.add("is-applied");
-  setStatus("规则运行中", "is-live");
-  pulseHint(routes[state.route].hintLive);
+function enableRule() {
+  state.ruleFixed = true;
+  dom.applyRuleBtn.textContent = lessons[state.lesson].activeButton;
+  dom.applyRuleBtn.classList.add("is-applied");
+  setStatus(lessons[state.lesson].statusLive, "is-live");
+  pulseHint(lessons[state.lesson].hintLive[state.route]);
   markStep(3, true);
-  addAiMessage("很好，你刚刚把“输入事件”接到了“移动动作”。现在运行游戏，观察坐标数字是不是在变化。");
+
+  if (state.lesson === 1) {
+    addAiMessage("很好，你把“按键事件”接到了“移动动作”。现在观察坐标数字，它们会跟着角色移动而变化。");
+  } else {
+    addAiMessage("很好，你把“收集事件”接到了“score 变量更新”。继续收集目标，看看屏幕分数是否变化。");
+  }
 }
 
 function completeLesson() {
@@ -213,10 +311,15 @@ function completeLesson() {
     return;
   }
   state.completed = true;
-  setStatus("任务完成", "is-win");
+  setStatus(lessons[state.lesson].statusWin, "is-win");
   markStep(4, true);
   burst(state.player.x, state.player.y, 36, "#ffb43b");
-  addAiMessage("通关了。复盘一下：你按下按键触发了事件，事件改变了角色坐标，所以角色到达了目标。");
+
+  if (state.lesson === 1) {
+    addAiMessage("第 1 关完成。复盘出口：按键是事件，事件触发移动动作，x/y 坐标变化让角色在画面上移动。");
+  } else {
+    addAiMessage("第 2 关完成。阶段成果：score 是变量，收集物品会更新 score，屏幕上的分数来自这个变量。");
+  }
 }
 
 function burst(x, y, count, color) {
@@ -234,13 +337,17 @@ function burst(x, y, count, color) {
   }
 }
 
+function movementEnabled() {
+  return state.lesson === 2 || state.ruleFixed;
+}
+
 function updateShooter() {
   const player = state.player;
   const speed = 6.2;
   let ax = 0;
   let ay = 0;
 
-  if (state.rulesEnabled) {
+  if (movementEnabled()) {
     if (state.keys.has("ArrowLeft") || state.keys.has("a")) ax -= 1;
     if (state.keys.has("ArrowRight") || state.keys.has("d")) ax += 1;
     if (state.keys.has("ArrowUp") || state.keys.has("w")) ay -= 1;
@@ -266,10 +373,14 @@ function updateShooter() {
     });
   }
 
-  const gateX = state.width - 92;
-  const gateY = state.height * 0.5;
-  if (state.rulesEnabled && Math.hypot(player.x - gateX, player.y - gateY) < 50) {
-    completeLesson();
+  if (state.lesson === 1) {
+    const gateX = state.width - 92;
+    const gateY = state.height * 0.5;
+    if (state.ruleFixed && Math.hypot(player.x - gateX, player.y - gateY) < 50) {
+      completeLesson();
+    }
+  } else {
+    handleItemCollection();
   }
 }
 
@@ -281,7 +392,7 @@ function updatePlatform() {
   const right = state.keys.has("ArrowRight") || state.keys.has("d");
   const jump = state.keys.has("ArrowUp") || state.keys.has("w") || state.keys.has(" ");
 
-  if (state.rulesEnabled) {
+  if (movementEnabled()) {
     if (left) player.vx += (-moveSpeed - player.vx) * 0.3;
     if (right) player.vx += (moveSpeed - player.vx) * 0.3;
     if (!left && !right) player.vx *= 0.78;
@@ -317,8 +428,44 @@ function updatePlatform() {
     }
   });
 
-  const flag = getFlag();
-  if (state.rulesEnabled && Math.abs(player.x - flag.x) < 38 && Math.abs(player.y - flag.y) < 70) {
+  if (state.lesson === 1) {
+    const flag = getFlag();
+    if (state.ruleFixed && Math.abs(player.x - flag.x) < 38 && Math.abs(player.y - flag.y) < 70) {
+      completeLesson();
+    }
+  } else {
+    handleItemCollection();
+  }
+}
+
+function handleItemCollection() {
+  state.items.forEach((item) => {
+    if (item.collected) {
+      return;
+    }
+
+    const distance = Math.hypot(state.player.x - item.x, state.player.y - item.y);
+    if (distance > 34) {
+      return;
+    }
+
+    markStep(2, true);
+    if (!state.ruleFixed) {
+      if (!state.scoreIssueObserved) {
+        state.scoreIssueObserved = true;
+        pulseHint("你碰到了收集物，但 score 没有变化。计分规则还没有连接到 score 变量。");
+        addAiMessage("你观察到了关键 bug：收集发生了，但 score 没变。合理猜测是“变量更新规则”缺失。");
+      }
+      burst(item.x, item.y, 8, "#ef6548");
+      return;
+    }
+
+    item.collected = true;
+    state.score += item.value;
+    burst(item.x, item.y, 18, "#ffb43b");
+  });
+
+  if (state.ruleFixed && state.items.length > 0 && state.items.every((item) => item.collected)) {
     completeLesson();
   }
 }
@@ -341,6 +488,21 @@ function updateStars() {
       star.y = Math.random() * state.height;
     }
   });
+}
+
+function updateStats() {
+  if (state.lesson === 1) {
+    dom.statX.textContent = Math.round(state.player.x);
+    dom.statY.textContent = Math.round(state.player.y);
+    dom.statSpeed.textContent = Math.round(Math.hypot(state.player.vx, state.player.vy) * 10) / 10;
+    return;
+  }
+
+  const target = state.route === "shooter" ? 30 : 3;
+  const collected = state.items.filter((item) => item.collected).length;
+  dom.statX.textContent = state.score;
+  dom.statY.textContent = target;
+  dom.statSpeed.textContent = `${collected}/3`;
 }
 
 function drawBackground() {
@@ -375,21 +537,25 @@ function drawBackground() {
 
 function drawShooter() {
   const player = state.player;
-  const gateX = state.width - 92;
-  const gateY = state.height * 0.5;
 
-  ctx.save();
-  ctx.translate(gateX, gateY);
-  const pulse = Math.sin(performance.now() * 0.006) * 7;
-  ctx.strokeStyle = "rgba(99, 216, 255, 0.88)";
-  ctx.lineWidth = 10;
-  ctx.beginPath();
-  ctx.ellipse(0, 0, 30 + pulse, 78 + pulse, 0, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = "rgba(255, 244, 201, 0.72)";
-  ctx.stroke();
-  ctx.restore();
+  if (state.lesson === 1) {
+    const gateX = state.width - 92;
+    const gateY = state.height * 0.5;
+    ctx.save();
+    ctx.translate(gateX, gateY);
+    const pulse = Math.sin(performance.now() * 0.006) * 7;
+    ctx.strokeStyle = "rgba(99, 216, 255, 0.88)";
+    ctx.lineWidth = 10;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 30 + pulse, 78 + pulse, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(255, 244, 201, 0.72)";
+    ctx.stroke();
+    ctx.restore();
+  } else {
+    drawItems();
+  }
 
   ctx.save();
   ctx.translate(player.x, player.y);
@@ -415,7 +581,6 @@ function drawShooter() {
 function drawPlatform() {
   const ground = state.height - 58;
   const player = state.player;
-  const flag = getFlag();
 
   ctx.fillStyle = "rgba(255, 244, 201, 0.95)";
   roundRect(0, ground, state.width, 80, 28);
@@ -430,22 +595,11 @@ function drawPlatform() {
     ctx.fill();
   });
 
-  ctx.save();
-  ctx.translate(flag.x, flag.y);
-  ctx.strokeStyle = "#fff7d1";
-  ctx.lineWidth = 5;
-  ctx.beginPath();
-  ctx.moveTo(0, 50);
-  ctx.lineTo(0, -52);
-  ctx.stroke();
-  ctx.fillStyle = "#ef6548";
-  ctx.beginPath();
-  ctx.moveTo(2, -48);
-  ctx.lineTo(58, -32);
-  ctx.lineTo(2, -12);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
+  if (state.lesson === 1) {
+    drawFlag();
+  } else {
+    drawItems();
+  }
 
   ctx.save();
   ctx.translate(player.x, player.y);
@@ -463,6 +617,64 @@ function drawPlatform() {
   ctx.restore();
 }
 
+function drawFlag() {
+  const flag = getFlag();
+  ctx.save();
+  ctx.translate(flag.x, flag.y);
+  ctx.strokeStyle = "#fff7d1";
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(0, 50);
+  ctx.lineTo(0, -52);
+  ctx.stroke();
+  ctx.fillStyle = "#ef6548";
+  ctx.beginPath();
+  ctx.moveTo(2, -48);
+  ctx.lineTo(58, -32);
+  ctx.lineTo(2, -12);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawItems() {
+  state.items.forEach((item) => {
+    if (item.collected) {
+      return;
+    }
+
+    const bob = Math.sin(performance.now() * 0.005 + item.x * 0.03) * 5;
+    ctx.save();
+    ctx.translate(item.x, item.y + bob);
+    if (state.route === "shooter") {
+      ctx.rotate(performance.now() * 0.0018);
+      ctx.fillStyle = "#63d8ff";
+      ctx.strokeStyle = "rgba(255,255,255,0.82)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, -18);
+      ctx.lineTo(18, 0);
+      ctx.lineTo(0, 18);
+      ctx.lineTo(-18, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      ctx.fillStyle = "#ffb43b";
+      ctx.strokeStyle = "rgba(255,255,255,0.82)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, 0, 17, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "rgba(17, 33, 56, 0.76)";
+      ctx.font = "900 18px Segoe UI, Microsoft YaHei, sans-serif";
+      ctx.fillText("$", -5, 6);
+    }
+    ctx.restore();
+  });
+}
+
 function drawParticles() {
   state.particles.forEach((particle) => {
     ctx.globalAlpha = Math.max(0, particle.life);
@@ -478,12 +690,18 @@ function drawOverlay() {
   ctx.save();
   ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
   ctx.font = "800 16px Segoe UI, Microsoft YaHei, sans-serif";
-  ctx.fillText(routes[state.route].targetText, 22, 34);
+  ctx.fillText(routes[state.route].targetText[state.lesson], 22, 34);
 
-  if (!state.rulesEnabled) {
+  if (!state.ruleFixed) {
     ctx.fillStyle = "rgba(239, 101, 72, 0.92)";
     ctx.font = "900 22px Segoe UI, Microsoft YaHei, sans-serif";
-    ctx.fillText("输入事件未连接", 22, 66);
+    ctx.fillText(state.lesson === 1 ? "输入事件未连接" : "score 变量未连接", 22, 66);
+  }
+
+  if (state.lesson === 2) {
+    ctx.fillStyle = "rgba(217, 255, 242, 0.94)";
+    ctx.font = "900 24px Segoe UI, Microsoft YaHei, sans-serif";
+    ctx.fillText(`score = ${state.score}`, 22, 100);
   }
   ctx.restore();
 }
@@ -507,12 +725,6 @@ function loop() {
   drawParticles();
   drawOverlay();
   window.requestAnimationFrame(loop);
-}
-
-function updateStats() {
-  statX.textContent = Math.round(state.player.x);
-  statY.textContent = Math.round(state.player.y);
-  statSpeed.textContent = Math.round(Math.hypot(state.player.vx, state.player.vy) * 10) / 10;
 }
 
 function getPlatforms() {
@@ -551,16 +763,70 @@ function handleFirstInput(event) {
     return;
   }
 
+  if (state.lesson !== 1) {
+    return;
+  }
+
   if (!state.triedInput) {
     state.triedInput = true;
     markStep(2, true);
     addAiMessage("你已经观察到现象：按键没有效果。一个合理猜测是“输入事件还没有连接到移动动作”。");
   }
 
-  if (!state.rulesEnabled) {
+  if (!state.ruleFixed) {
     pulseHint("角色没有动，因为规则编辑器里的“当按下按键，就改变坐标”还没有启用。");
   }
 }
+
+function switchLesson(lesson) {
+  state.lesson = Number(lesson);
+  document.querySelectorAll(".lesson-card").forEach((button) => {
+    button.classList.toggle("is-active", Number(button.dataset.lesson) === state.lesson);
+  });
+  resetGame(true);
+  addAiMessage(`已切换到第 ${state.lesson} 关「${lessons[state.lesson].heading}」。先试玩，再观察哪里坏了。`);
+}
+
+function switchRoute(route) {
+  state.route = route;
+  document.querySelectorAll(".route-card").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.route === route);
+  });
+  resetGame(true);
+  addAiMessage(`你选择了「${routes[route].title}」。学习目标不变，但游戏表现会换成你喜欢的类型。`);
+}
+
+function getAiReply(prompt) {
+  if (state.lesson === 1) {
+    const replies = {
+      stuck: state.ruleFixed
+        ? "现在控制规则已经启用。如果仍然动得不对，观察坐标面板：X 代表左右，Y 代表上下。"
+        : "先检查三件事：有没有事件、有没有条件、有没有动作。现在缺的是把按键事件接到移动动作。",
+      hint: state.ruleFixed
+        ? `朝着目标移动。${state.route === "shooter" ? "能量门在右侧。" : "终点旗帜在右上方，跳跃需要站在地面或平台上。"}`
+        : "提示 1：按键本身只是事件。事件发生后，必须有一条规则告诉角色“改变坐标”。",
+      code: "这段代码会检测哪个键被按下，然后改变角色的 x 或 y 坐标。x 变大通常向右，y 变小通常向上。",
+      recap: "你可以这样复盘：我按下键盘触发事件；规则判断角色能移动；动作改变坐标；所以角色在画面上移动。"
+    };
+    return replies[prompt];
+  }
+
+  const replies = {
+    stuck: state.ruleFixed
+      ? "计分规则已经启用。如果分数仍然没变，先看收集物有没有被标记为 collected。"
+      : "你已经能移动了，但 score 没变。最可能的问题是：收集事件没有连接到 score 变量更新。",
+    hint: state.ruleFixed
+      ? "继续收集剩余目标。观察 score、目标和已收集数量是否同步变化。"
+      : "提示 1：score 是变量。收集发生后，需要执行 score = score + item.value。",
+    code: "这段代码的意思是：如果玩家碰到未收集的物品，就让 score 增加，并把物品标记为已收集。",
+    recap: "你可以这样复盘：score 是记录分数的变量；收集物品会更新 score；屏幕上的分数来自 score。"
+  };
+  return replies[prompt];
+}
+
+document.querySelectorAll(".lesson-card").forEach((button) => {
+  button.addEventListener("click", () => switchLesson(button.dataset.lesson));
+});
 
 document.querySelectorAll(".route-card").forEach((button) => {
   button.addEventListener("click", () => switchRoute(button.dataset.route));
@@ -578,19 +844,7 @@ document.querySelectorAll(".prompt-chips button").forEach((button) => {
   button.addEventListener("click", () => {
     const prompt = button.dataset.prompt;
     addAiMessage(button.textContent.trim(), "user");
-
-    const replies = {
-      stuck: state.rulesEnabled
-        ? "现在规则已经启用，如果仍然动得不对，请观察坐标面板：X 代表左右，Y 代表上下。"
-        : "先别急着写代码。你可以先检查三件事：有没有事件、有没有条件、有没有动作。现在缺的是把按键事件接到移动动作。",
-      hint: state.rulesEnabled
-        ? `提示：朝着目标移动。${state.route === "shooter" ? "能量门在右侧。" : "终点旗帜在右上方，跳跃需要站在地面或平台上。"}`
-        : "提示 1：按键本身只是事件。事件发生后，必须有一条规则告诉角色“改变坐标”。",
-      code: "这段代码的意思是：检测哪个键被按下，然后改变角色的 x 或 y 坐标。x 变大通常向右，y 变小通常向上。",
-      recap: "你可以这样复盘：我按下键盘触发事件；规则判断角色能移动；动作改变坐标；所以角色在画面上移动。"
-    };
-
-    addAiMessage(replies[prompt]);
+    addAiMessage(getAiReply(prompt));
   });
 });
 
@@ -612,14 +866,14 @@ document.querySelectorAll("[data-touch-key]").forEach((button) => {
   button.addEventListener("pointerleave", release);
 });
 
-applyRuleBtn.addEventListener("click", enableRules);
+dom.applyRuleBtn.addEventListener("click", enableRule);
 
-runBtn.addEventListener("click", () => {
+dom.runBtn.addEventListener("click", () => {
   canvas.focus();
-  pulseHint(state.rulesEnabled ? routes[state.route].hintLive : routes[state.route].hintLocked);
+  pulseHint(state.ruleFixed ? lessons[state.lesson].hintLive[state.route] : lessons[state.lesson].hintLocked[state.route]);
 });
 
-resetBtn.addEventListener("click", () => {
+dom.resetBtn.addEventListener("click", () => {
   resetGame(true);
   addAiMessage("关卡已重置。再试一次：先观察，再修复，再运行验证。");
 });
@@ -639,6 +893,6 @@ window.addEventListener("keyup", (event) => {
 window.addEventListener("resize", resizeCanvas);
 
 createStars();
-updateCode();
+applyLessonContent();
 resizeCanvas();
 loop();

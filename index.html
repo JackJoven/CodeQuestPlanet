@@ -14,9 +14,9 @@
     <main class="shell">
       <header class="hero">
         <div>
-          <p class="eyebrow">AI 伴学式游戏编程平台 · Lesson 01</p>
-          <h1>控制我的角色</h1>
-          <p class="hero-copy">
+          <p class="eyebrow" id="lessonEyebrow">AI 伴学式游戏编程平台 · 第 1 关</p>
+          <h1 id="lessonHeading">控制校准场</h1>
+          <p class="hero-copy" id="lessonIntro">
             先试玩一个“坏掉”的游戏，再用规则修好它。你选择喜欢的游戏类型，平台把同一个编程概念映射到不同玩法里。
           </p>
         </div>
@@ -28,6 +28,19 @@
           </div>
         </aside>
       </header>
+
+      <section class="lesson-panel" aria-label="选择关卡">
+        <button class="lesson-card is-active" data-lesson="1" type="button">
+          <span>01</span>
+          <strong>控制校准场</strong>
+          <small>事件 · 坐标 · 速度</small>
+        </button>
+        <button class="lesson-card" data-lesson="2" type="button">
+          <span>02</span>
+          <strong>分数晶核</strong>
+          <small>变量 · 分数 · UI</small>
+        </button>
+      </section>
 
       <section class="route-panel" aria-label="选择游戏类型">
         <button class="route-card is-active" data-route="shooter" type="button">
@@ -78,41 +91,41 @@
 
         <aside class="mission-card">
           <p class="kicker">本课任务</p>
-          <h2>把“按键”变成“动作”</h2>
-          <p>
+          <h2 id="missionTitle">把“按键”变成“动作”</h2>
+          <p id="missionCopy">
             你要理解第一个核心概念：<strong>事件</strong>。当玩家按下某个键，游戏会触发一条规则，让角色改变坐标。
           </p>
 
           <div class="progress-list">
             <div class="progress-item is-done" data-step="1">
               <span>1</span>
-              <p>试玩坏掉的游戏</p>
+              <p id="stepText1">试玩坏掉的游戏</p>
             </div>
             <div class="progress-item" data-step="2">
               <span>2</span>
-              <p>猜测为什么角色不动</p>
+              <p id="stepText2">猜测为什么角色不动</p>
             </div>
             <div class="progress-item" data-step="3">
               <span>3</span>
-              <p>启用输入事件规则</p>
+              <p id="stepText3">启用输入事件规则</p>
             </div>
             <div class="progress-item" data-step="4">
               <span>4</span>
-              <p>到达目标并复盘代码</p>
+              <p id="stepText4">到达目标并复盘代码</p>
             </div>
           </div>
 
           <div class="stats">
             <div>
-              <span>X 坐标</span>
+              <span id="statLabel1">X 坐标</span>
               <strong id="statX">0</strong>
             </div>
             <div>
-              <span>Y 坐标</span>
+              <span id="statLabel2">Y 坐标</span>
               <strong id="statY">0</strong>
             </div>
             <div>
-              <span>速度</span>
+              <span id="statLabel3">速度</span>
               <strong id="statSpeed">0</strong>
             </div>
           </div>
