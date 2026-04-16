@@ -3,73 +3,117 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>规则星港 | 第1课 控制我的角色</title>
+    <title>造游星球 | 规则星港</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="ambient ambient-one"></div>
-    <div class="ambient ambient-two"></div>
-    <div class="grain"></div>
+    <div class="paper-dots"></div>
 
-    <main class="shell">
-      <header class="hero">
-        <div>
-          <p class="eyebrow" id="lessonEyebrow">AI 伴学式游戏编程平台 · 第 1 关</p>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="造游星球首页">
+        <span class="brand-mark">Z</span>
+        <span>造游星球</span>
+      </a>
+      <nav class="topnav" aria-label="主导航">
+        <a class="is-active" href="#">任务地图</a>
+        <a href="#">作品工坊</a>
+        <a href="#">成长报告</a>
+      </nav>
+      <div class="top-actions">
+        <button class="icon-btn" type="button" aria-label="通知">N</button>
+        <button class="start-btn" type="button">继续学习</button>
+      </div>
+    </header>
+
+    <aside class="sidebar" aria-label="学生侧边栏">
+      <div class="profile-card">
+        <div class="avatar">创</div>
+        <p>Welcome, Creator</p>
+        <strong>规则星港 · Level 01</strong>
+      </div>
+
+      <nav class="side-nav">
+        <a class="is-active" href="#"><span>R</span>任务控制台</a>
+        <a href="#"><span>S</span>星星成就</a>
+        <a href="#"><span>W</span>我的作品</a>
+        <a href="#"><span>P</span>家长报告</a>
+      </nav>
+
+      <div class="stage-summary">
+        <span>阶段 1</span>
+        <strong>控制与状态</strong>
+        <div class="chunky-track">
+          <i style="width: 34%"></i>
+        </div>
+        <small>完成前 2 关后生成阶段成果卡</small>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <section class="hero-panel">
+        <div class="hero-copy-wrap">
+          <span class="chapter-pill" id="lessonEyebrow">AI 伴学式游戏编程平台 · 第 1 关</span>
           <h1 id="lessonHeading">控制校准场</h1>
-          <p class="hero-copy" id="lessonIntro">
+          <p id="lessonIntro">
             先试玩一个“坏掉”的游戏，再用规则修好它。你选择喜欢的游戏类型，平台把同一个编程概念映射到不同玩法里。
           </p>
         </div>
-        <aside class="mentor-card" aria-label="AI伴学教练">
-          <div class="mentor-orb"></div>
-          <div>
-            <span>AI 伴学教练</span>
-            <strong>先猜，再问；先修，再看代码。</strong>
+
+        <div class="coach-bubble">
+          <div class="mascot">AI</div>
+          <p>先观察现象，再修复规则。最后讲清楚你做了什么。</p>
+        </div>
+      </section>
+
+      <section class="selector-row" aria-label="选择关卡和路线">
+        <div class="selector-card lesson-selector">
+          <p class="section-kicker">关卡</p>
+          <div class="choice-grid">
+            <button class="lesson-card is-active" data-lesson="1" type="button">
+              <span>01</span>
+              <strong>控制校准场</strong>
+              <small>事件 · 坐标 · 速度</small>
+            </button>
+            <button class="lesson-card" data-lesson="2" type="button">
+              <span>02</span>
+              <strong>分数晶核</strong>
+              <small>变量 · 分数 · UI</small>
+            </button>
           </div>
-        </aside>
-      </header>
+        </div>
 
-      <section class="lesson-panel" aria-label="选择关卡">
-        <button class="lesson-card is-active" data-lesson="1" type="button">
-          <span>01</span>
-          <strong>控制校准场</strong>
-          <small>事件 · 坐标 · 速度</small>
-        </button>
-        <button class="lesson-card" data-lesson="2" type="button">
-          <span>02</span>
-          <strong>分数晶核</strong>
-          <small>变量 · 分数 · UI</small>
-        </button>
+        <div class="selector-card route-panel">
+          <p class="section-kicker">游戏路线</p>
+          <div class="choice-grid">
+            <button class="route-card is-active" data-route="shooter" type="button">
+              <span class="route-icon">S</span>
+              <span>
+                <strong>星际射击路线</strong>
+                <small>飞船、晶核、能量门</small>
+              </span>
+            </button>
+            <button class="route-card" data-route="platform" type="button">
+              <span class="route-icon">M</span>
+              <span>
+                <strong>平台跳跃路线</strong>
+                <small>角色、金币、终点旗帜</small>
+              </span>
+            </button>
+          </div>
+        </div>
       </section>
 
-      <section class="route-panel" aria-label="选择游戏类型">
-        <button class="route-card is-active" data-route="shooter" type="button">
-          <span class="route-icon">S</span>
-          <span>
-            <strong>星际射击路线</strong>
-            <small>控制飞船穿过能量门</small>
-          </span>
-        </button>
-        <button class="route-card" data-route="platform" type="button">
-          <span class="route-icon">M</span>
-          <span>
-            <strong>平台跳跃路线</strong>
-            <small>像马里奥一样移动和跳跃</small>
-          </span>
-        </button>
-      </section>
-
-      <section class="lesson-grid">
-        <article class="stage-card">
+      <section class="learning-shell">
+        <article class="game-card">
           <div class="card-head">
             <div>
-              <p class="kicker">试玩区</p>
+              <p class="section-kicker">游戏运行区</p>
               <h2 id="routeTitle">星际射击路线</h2>
             </div>
             <div class="status-pill" id="runStatus">等待修复</div>
           </div>
 
-          <div class="game-wrap">
+          <div class="game-frame">
             <canvas id="gameCanvas" width="960" height="540" aria-label="游戏运行画布"></canvas>
             <div class="game-hint" id="gameHint">
               按 WASD 或方向键试试看：角色现在不会动，因为输入规则还没连接。
@@ -82,7 +126,7 @@
             </div>
           </div>
 
-          <div class="control-strip">
+          <div class="game-actions">
             <button class="primary-btn" id="applyRuleBtn" type="button">修复控制规则</button>
             <button class="ghost-btn" id="runBtn" type="button">试运行</button>
             <button class="ghost-btn" id="resetBtn" type="button">重置关卡</button>
@@ -90,10 +134,10 @@
         </article>
 
         <aside class="mission-card">
-          <p class="kicker">本课任务</p>
+          <p class="section-kicker">本课任务</p>
           <h2 id="missionTitle">把“按键”变成“动作”</h2>
           <p id="missionCopy">
-            你要理解第一个核心概念：<strong>事件</strong>。当玩家按下某个键，游戏会触发一条规则，让角色改变坐标。
+            你要理解第一个核心概念：事件。当玩家按下某个键，游戏会触发一条规则，让角色改变坐标。
           </p>
 
           <div class="progress-list">
@@ -132,14 +176,14 @@
         </aside>
       </section>
 
-      <section class="tool-grid">
+      <section class="tool-bento">
         <article class="rule-card">
           <div class="card-head compact">
             <div>
-              <p class="kicker">规则编辑器</p>
-              <h2>当 · 如果 · 就</h2>
+              <p class="section-kicker">规则编辑器</p>
+              <h2>像搭积木一样写规则</h2>
             </div>
-            <span class="lesson-badge">核心资产原型</span>
+            <span class="mini-badge">Rule DSL</span>
           </div>
 
           <div class="rule-stack">
@@ -156,17 +200,12 @@
               <button class="slot" type="button" id="actionSlot">改变角色坐标</button>
             </div>
           </div>
-
-          <div class="teacher-note">
-            <strong>这一课不先背语法。</strong>
-            学生先理解“按键是事件，移动是动作，坐标会变化”，再通过代码透视看到真实代码。
-          </div>
         </article>
 
         <article class="code-card">
           <div class="card-head compact">
             <div>
-              <p class="kicker">代码透视眼</p>
+              <p class="section-kicker">代码透视眼</p>
               <h2>规则背后的代码</h2>
             </div>
             <div class="tabs" role="tablist" aria-label="代码显示模式">
@@ -181,8 +220,8 @@
         <article class="ai-card">
           <div class="card-head compact">
             <div>
-              <p class="kicker">AI 伴学</p>
-              <h2>不是代写，是陪你调试</h2>
+              <p class="section-kicker">AI 伴学</p>
+              <h2>Coach Joy</h2>
             </div>
             <div class="ai-face">AI</div>
           </div>
@@ -201,7 +240,18 @@
           </div>
         </article>
       </section>
+
+      <section class="report-strip" aria-label="阶段评价预览">
+        <div>
+          <span>家长可见成果</span>
+          <strong>阶段 1 完成后，将生成“控制与状态”成果卡</strong>
+          <p>包含孩子完成的作品、关键规则、对应编程概念，以及 AI 协作复盘。</p>
+        </div>
+        <button class="report-btn" type="button">预览成果卡</button>
+      </section>
     </main>
+
+    <button class="floating-help" type="button" aria-label="询问 AI 教练">AI</button>
 
     <script src="./app.js"></script>
   </body>
