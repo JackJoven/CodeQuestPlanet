@@ -20,10 +20,12 @@
   --on-secondary-fixed: #00365c;
   --tertiary: #9a3d3f;
   --tertiary-fixed: #ff9191;
+  --on-tertiary-fixed: #4b1112;
   --inverse: #0b0f10;
   --mint: #a1e3d8;
   --shadow: 0 20px 40px rgba(44, 47, 48, 0.06);
   --shadow-strong: 0 30px 70px rgba(44, 47, 48, 0.1);
+  --radius-lg: 34px;
   --font-headline: "Plus Jakarta Sans", "Microsoft YaHei", sans-serif;
   --font-body: "Be Vietnam Pro", "Microsoft YaHei", sans-serif;
   color-scheme: light;
@@ -175,6 +177,9 @@ a {
 .start-btn,
 .primary-btn,
 .report-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 48px;
   padding: 0 24px;
   border-radius: 999px;
@@ -712,6 +717,9 @@ canvas {
 }
 
 .ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 48px;
   padding: 0 20px;
   border-radius: 999px;
@@ -980,11 +988,241 @@ canvas {
   box-shadow: var(--shadow);
 }
 
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.mission-map-shell,
+.portal-card,
+.achievement-card,
+.project-card,
+.metric-card,
+.report-panel {
+  border-radius: var(--radius-lg);
+  background: var(--surface-white);
+  box-shadow: var(--shadow);
+}
+
+.mission-map-shell {
+  padding: 30px;
+}
+
+.mission-path {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(140px, 1fr));
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.mission-path::before {
+  position: absolute;
+  top: 50%;
+  left: 6%;
+  right: 6%;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary-fixed), var(--secondary-fixed), var(--tertiary-fixed));
+  content: "";
+  transform: translateY(-50%);
+  opacity: 0.58;
+}
+
+.map-node {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 8px;
+  min-height: 188px;
+  padding: 20px;
+  border-radius: 34px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow);
+  transition: transform 240ms cubic-bezier(0.175, 0.885, 0.32, 1.275), background 220ms ease;
+}
+
+.map-node:hover {
+  transform: translateY(-8px) rotate(-1deg);
+}
+
+.map-node span,
+.achievement-card span,
+.metric-card span,
+.project-card .mini-badge {
+  font-family: var(--font-headline);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.map-node span {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 20px;
+  color: var(--on-primary-fixed);
+  background: var(--primary-fixed);
+}
+
+.map-node strong,
+.portal-card h2,
+.achievement-card strong,
+.project-card h2,
+.report-panel h2 {
+  font-family: var(--font-headline);
+  line-height: 1.08;
+}
+
+.map-node small,
+.portal-card p,
+.achievement-card p,
+.project-card p,
+.metric-card p,
+.report-panel p {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.map-node.is-current {
+  background: linear-gradient(135deg, var(--primary-fixed), #fff3aa);
+  transform: translateY(-12px);
+}
+
+.map-node.is-boss {
+  color: #fff;
+  background: linear-gradient(135deg, var(--secondary), #0b0f10);
+}
+
+.map-node.is-boss small {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.portal-grid,
+.showcase-grid,
+.report-dashboard {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.portal-card,
+.achievement-card,
+.project-card,
+.metric-card {
+  padding: 26px;
+}
+
+.portal-card {
+  min-height: 230px;
+}
+
+.text-link {
+  display: inline-flex;
+  margin-top: 18px;
+  color: var(--primary);
+  font-family: var(--font-headline);
+  font-weight: 900;
+}
+
+.achievement-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.achievement-card {
+  min-height: 220px;
+  background: var(--surface-container);
+}
+
+.achievement-card.is-earned {
+  background: var(--secondary-fixed);
+}
+
+.achievement-card.is-current {
+  background: linear-gradient(135deg, var(--primary-fixed), #fff3aa);
+}
+
+.showcase-grid {
+  align-items: stretch;
+}
+
+.project-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.featured-project {
+  grid-column: span 2;
+}
+
+.project-thumb {
+  display: grid;
+  place-items: center;
+  min-height: 210px;
+  margin: -6px -6px 22px;
+  border-radius: 34px;
+  color: #fff;
+  font-family: var(--font-headline);
+  font-size: clamp(4rem, 9vw, 8rem);
+  font-weight: 900;
+}
+
+.shooter-thumb {
+  background: radial-gradient(circle at 25% 20%, #fad538, transparent 28%), linear-gradient(135deg, #07111c, #005f9b);
+}
+
+.platform-thumb {
+  color: var(--on-primary-fixed);
+  background: linear-gradient(135deg, #b1d5ff, #fad538);
+}
+
+.report-thumb {
+  color: var(--on-tertiary-fixed);
+  background: linear-gradient(135deg, #ff9191, #ffd0d0);
+}
+
+.report-dashboard {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.metric-card strong {
+  display: block;
+  margin: 8px 0;
+  font-family: var(--font-headline);
+  font-size: clamp(2rem, 4vw, 3.4rem);
+}
+
+.report-panel {
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: 24px;
+  padding: 32px;
+}
+
+.evidence-list {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.evidence-list a {
+  padding: 16px 18px;
+  border-radius: 22px;
+  color: var(--primary);
+  background: var(--surface-container);
+  font-weight: 900;
+}
+
 .floating-help {
   position: fixed;
   right: 28px;
   bottom: 28px;
   z-index: 60;
+  display: grid;
+  place-items: center;
   width: 66px;
   height: 66px;
   border: 0;
@@ -1053,6 +1291,10 @@ canvas {
   .topnav {
     margin-left: 22px;
   }
+
+  .mission-path {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 1080px) {
@@ -1060,6 +1302,21 @@ canvas {
   .selector-row,
   .learning-shell,
   .tool-bento {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-grid,
+  .showcase-grid,
+  .report-dashboard,
+  .achievement-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .featured-project {
+    grid-column: span 1;
+  }
+
+  .report-panel {
     grid-template-columns: 1fr;
   }
 
@@ -1100,6 +1357,12 @@ canvas {
   .rule-card,
   .code-card,
   .ai-card,
+  .mission-map-shell,
+  .portal-card,
+  .achievement-card,
+  .project-card,
+  .metric-card,
+  .report-panel,
   .report-strip {
     border-radius: 28px;
   }
@@ -1109,8 +1372,17 @@ canvas {
   }
 
   .choice-grid,
-  .stats {
+  .stats,
+  .mission-path,
+  .portal-grid,
+  .showcase-grid,
+  .report-dashboard,
+  .achievement-grid {
     grid-template-columns: 1fr;
+  }
+
+  .mission-path::before {
+    display: none;
   }
 
   .card-head,

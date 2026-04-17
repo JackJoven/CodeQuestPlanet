@@ -1588,6 +1588,35 @@ function getAiReply(prompt) {
   return replies[prompt][state.lesson];
 }
 
+function applyInitialUrlState() {
+  const params = new URLSearchParams(window.location.search);
+  const lesson = Number(params.get("lesson"));
+  const route = params.get("route");
+
+  if (lessons[lesson]) {
+    state.lesson = lesson;
+  }
+
+  if (routes[route]) {
+    state.route = route;
+  }
+
+  document.querySelectorAll(".lesson-card").forEach((card) => {
+    card.classList.toggle("is-active", Number(card.dataset.lesson) === state.lesson);
+  });
+
+  document.querySelectorAll(".route-card").forEach((card) => {
+    card.classList.toggle("is-active", card.dataset.route === state.route);
+  });
+}
+
+function syncLessonUrl() {
+  const params = new URLSearchParams();
+  params.set("lesson", state.lesson);
+  params.set("route", state.route);
+  window.history.replaceState(null, "", `./lesson.html?${params.toString()}`);
+}
+
 function gameLoop() {
   updateStars();
   updatePlayer();
@@ -1603,6 +1632,7 @@ document.querySelectorAll(".lesson-card").forEach((button) => {
   button.addEventListener("click", () => {
     state.lesson = Number(button.dataset.lesson);
     document.querySelectorAll(".lesson-card").forEach((card) => card.classList.toggle("is-active", card === button));
+    syncLessonUrl();
     resetGame(true);
     addAiMessage(`已切换到第 ${state.lesson} 关：${lessons[state.lesson].heading}。先观察，再修复。`);
   });
@@ -1612,6 +1642,7 @@ document.querySelectorAll(".route-card").forEach((button) => {
   button.addEventListener("click", () => {
     state.route = button.dataset.route;
     document.querySelectorAll(".route-card").forEach((card) => card.classList.toggle("is-active", card === button));
+    syncLessonUrl();
     resetGame(true);
     addAiMessage(`你选择了${routes[state.route].title}。同一个编程概念，会换成你喜欢的游戏表达。`);
   });
@@ -1687,6 +1718,7 @@ window.addEventListener("keyup", (event) => {
 
 window.addEventListener("resize", resizeCanvas);
 
+applyInitialUrlState();
 resizeCanvas();
 resetGame(true);
 window.requestAnimationFrame(gameLoop);
