@@ -24,26 +24,37 @@ const dom = {
   statY: document.querySelector("#statY"),
   statSpeed: document.querySelector("#statSpeed"),
   codeView: document.querySelector("#codeView"),
-  chatWindow: document.querySelector("#chatWindow")
+  chatWindow: document.querySelector("#chatWindow"),
+  eventSlot: document.querySelector("#eventSlot"),
+  conditionSlot: document.querySelector("#conditionSlot"),
+  actionSlot: document.querySelector("#actionSlot")
 };
 
 const routes = {
   shooter: {
     title: "星际射击路线",
-    icon: "S",
     noun: "飞船",
+    itemName: "能量晶核",
     targetText: {
       1: "穿过能量门",
-      2: "收集 3 个能量晶核"
+      2: "收集 3 个能量晶核",
+      3: "修复子弹命中结果",
+      4: "启动敌机生成器",
+      5: "释放 3 次强化射击",
+      6: "完成一关射击挑战"
     }
   },
   platform: {
     title: "平台跳跃路线",
-    icon: "M",
     noun: "角色",
+    itemName: "金币",
     targetText: {
       1: "到达终点旗帜",
-      2: "收集 3 枚金币"
+      2: "收集 3 枚金币",
+      3: "修复怪物碰撞结果",
+      4: "启动金币刷新器",
+      5: "释放 3 次冲刺技能",
+      6: "完成一关平台挑战"
     }
   }
 };
@@ -54,7 +65,7 @@ const lessons = {
     heading: "控制校准场",
     intro: "角色醒来了，但控制系统还没接上。先观察问题，再把“按键事件”连接到“移动动作”。",
     missionTitle: "把“按键”变成“动作”",
-    missionCopy: "你要理解第一个核心概念：事件。当玩家按下某个键，游戏会触发一条规则，让角色改变坐标。",
+    missionCopy: "你要理解事件：玩家按下某个键，游戏会触发一条规则，让角色改变坐标。",
     button: "修复控制规则",
     activeButton: "控制规则已启用",
     statusIdle: "等待修复",
@@ -62,13 +73,14 @@ const lessons = {
     statusWin: "校准完成",
     statLabels: ["X 坐标", "Y 坐标", "速度"],
     steps: ["试玩坏掉的游戏", "猜测为什么角色不动", "启用输入事件规则", "到达目标并复盘事件"],
+    slots: ["按下方向键 / WASD", "角色没有被锁定", "改变角色坐标"],
     hintLocked: {
       shooter: "按 WASD 或方向键试试看：飞船现在不会动，因为输入事件还没连接。",
       platform: "按 A/D 或方向键试试看：角色现在不会动，因为输入事件还没连接。"
     },
     hintLive: {
-      shooter: "规则已连接。用 WASD 或方向键移动飞船，穿过右侧蓝色能量门。",
-      platform: "规则已连接。用 A/D 移动，用 W、空格或上方向键跳到终点旗帜。"
+      shooter: "规则已连接。移动飞船穿过右侧蓝色能量门。",
+      platform: "规则已连接。移动并跳跃到终点旗帜。"
     },
     code: {
       rule: `当 玩家按下方向键
@@ -108,6 +120,7 @@ if key_pressed("down"):
     statusWin: "阶段成果完成",
     statLabels: ["Score 分数", "目标", "已收集"],
     steps: ["收集一个物品", "观察分数为什么没变", "启用 score 变量规则", "收集全部目标并复盘变量"],
+    slots: ["玩家碰到收集物", "收集物还没有被收集", "score 增加并隐藏收集物"],
     hintLocked: {
       shooter: "飞船已经能动了。先碰到能量晶核，你会发现 score 仍然是 0。",
       platform: "角色已经能动了。先吃一枚金币，你会发现 score 仍然是 0。"
@@ -120,11 +133,7 @@ if key_pressed("down"):
       rule: `当 玩家碰到 收集物
 如果 收集物还没有被收集
 就 分数增加
-并且 隐藏这个收集物
-
-评价出口：
-我知道 score 是变量。
-我知道屏幕分数来自 score。`,
+并且 隐藏这个收集物`,
       pseudo: `当玩家碰到收集物:
     如果 item.collected 是 false:
         score = score + item.value
@@ -136,6 +145,159 @@ if key_pressed("down"):
         item.collected = True
         item.hide()`
     }
+  },
+  3: {
+    eyebrow: "AI 伴学式游戏编程平台 · 第 3 关",
+    heading: "碰撞开关",
+    intro: "对象已经碰到了，但游戏没有结果。你要修复“如果发生碰撞，就改变状态”的规则。",
+    missionTitle: "让碰撞产生结果",
+    missionCopy: "你要理解条件和碰撞：如果两个对象碰到，就触发加分、扣血、消失等结果。",
+    button: "修复碰撞规则",
+    activeButton: "碰撞规则已启用",
+    statusIdle: "碰撞无结果",
+    statusLive: "碰撞检测中",
+    statusWin: "互动系统完成",
+    statLabels: ["Score / HP", "目标", "碰撞次数"],
+    steps: ["触发一次碰撞", "观察为什么没有结果", "启用如果碰到就执行", "完成碰撞任务并复盘条件"],
+    slots: ["对象发生碰撞", "目标还处于有效状态", "加分 / 扣血 / 隐藏对象"],
+    hintLocked: {
+      shooter: "按空格或“发射”打中训练靶，你会看到命中了，但分数不变、目标不消失。",
+      platform: "移动角色碰到红色怪物，你会看到碰到了，但 HP 不会变化。"
+    },
+    hintLive: {
+      shooter: "碰撞规则已连接。发射子弹消灭训练靶，让 score 达到 20。",
+      platform: "碰撞规则已连接。碰到怪物会扣 HP，踩到绿色宝石会加分。"
+    },
+    code: {
+      rule: `当 子弹/玩家 碰到 目标
+如果 目标还有效
+就 改变目标状态
+并且 更新 score 或 hp`,
+      pseudo: `当发生碰撞:
+    如果 target.active 是 true:
+        target.active = false
+        score = score + target.value`,
+      python: `if bullet.collides_with(enemy):
+    if enemy.active:
+        enemy.active = False
+        score += 20`
+    }
+  },
+  4: {
+    eyebrow: "AI 伴学式游戏编程平台 · 第 4 关",
+    heading: "自动生成器",
+    intro: "游戏世界不应该只响应玩家，系统也会持续运行。启动定时器，让敌人或金币自动出现。",
+    missionTitle: "让系统自己运行",
+    missionCopy: "你要理解循环和定时器：每隔一段时间，系统会自动执行一次生成规则。",
+    button: "启动生成规则",
+    activeButton: "生成规则已启用",
+    statusIdle: "生成器未启动",
+    statusLive: "自动生成中",
+    statusWin: "生成系统完成",
+    statLabels: ["生成数", "目标", "倒计时"],
+    steps: ["等待 3 秒观察现象", "猜测为什么没有新对象", "启用循环/定时生成", "生成 5 个对象并复盘循环"],
+    slots: ["每隔 1.5 秒", "场景中数量未达上限", "随机位置生成对象"],
+    hintLocked: {
+      shooter: "先等几秒：敌机不会自己出现，因为生成器还没启动。",
+      platform: "先等几秒：金币不会刷新，因为定时生成规则还没启动。"
+    },
+    hintLive: {
+      shooter: "生成器已启动。观察敌机不断出现，这就是循环和定时器。",
+      platform: "生成器已启动。观察金币在不同平台附近刷新。"
+    },
+    code: {
+      rule: `当 每隔一段时间
+如果 场景中对象数量未达上限
+就 在随机位置生成一个对象`,
+      pseudo: `每 1.5 秒重复:
+    如果 objects.count < max_count:
+        position = random_position()
+        spawn(object, position)`,
+      python: `if timer.every(1.5):
+    if len(objects) < max_count:
+        spawn_object(random_position())`
+    }
+  },
+  5: {
+    eyebrow: "AI 伴学式游戏编程平台 · 第 5 关",
+    heading: "技能胶囊",
+    intro: "重复动作可以打包成一个技能。修复技能胶囊，让一组动作能被按键触发，并受到冷却限制。",
+    missionTitle: "把一组动作打包成技能",
+    missionCopy: "你要理解函数和参数：技能是一组被打包的动作，速度、伤害、冷却时间都是参数。",
+    button: "激活技能函数",
+    activeButton: "技能函数已启用",
+    statusIdle: "技能未连接",
+    statusLive: "技能可释放",
+    statusWin: "技能系统完成",
+    statLabels: ["技能次数", "冷却", "能量"],
+    steps: ["尝试按 E 使用技能", "观察技能为什么没反应", "启用函数/参数/冷却", "释放 3 次技能并复盘函数"],
+    slots: ["玩家按下 E / 技能键", "技能冷却已结束", "执行强化射击或冲刺函数"],
+    hintLocked: {
+      shooter: "按 E 或“技能”：现在不会释放强化射击，因为技能函数还没连接。",
+      platform: "按 E 或“技能”：现在不会冲刺，因为技能函数还没连接。"
+    },
+    hintLive: {
+      shooter: "技能已启用。按 E 发射强化弹，等待冷却后再释放。",
+      platform: "技能已启用。按 E 冲刺，观察冷却和能量变化。"
+    },
+    code: {
+      rule: `当 玩家按下技能键
+如果 技能冷却结束
+就 调用 skill()
+并且 重置冷却时间`,
+      pseudo: `函数 use_skill(power, cooldown):
+    如果 cooldown <= 0:
+        执行技能动作
+        cooldown = cooldown_time`,
+      python: `def use_skill(power, cooldown_time):
+    global cooldown
+    if cooldown <= 0:
+        cast_skill(power)
+        cooldown = cooldown_time`
+    }
+  },
+  6: {
+    eyebrow: "AI 伴学式游戏编程平台 · 第 6 关",
+    heading: "我的第一款小游戏",
+    intro: "把前 5 课的规则组合起来：移动、分数、碰撞、自动生成和技能。完成一关可展示的小游戏。",
+    missionTitle: "完成毕业小作品",
+    missionCopy: "你要综合运用前面学过的规则，并能向家长解释最重要的 3 条规则。",
+    button: "启动综合规则",
+    activeButton: "综合规则已启用",
+    statusIdle: "作品待启动",
+    statusLive: "毕业项目运行中",
+    statusWin: "作品可展示",
+    statLabels: ["Score", "目标", "HP"],
+    steps: ["启动综合关卡", "收集/击中目标得分", "使用技能处理危险", "达成目标并完成展示复盘"],
+    slots: ["游戏开始运行", "移动/碰撞/生成/技能都可用", "完成胜利条件并生成展示证据"],
+    hintLocked: {
+      shooter: "这是毕业综合关。先点击启动综合规则，再用移动、射击、技能完成挑战。",
+      platform: "这是毕业综合关。先点击启动综合规则，再用移动、收集、躲避和冲刺完成挑战。"
+    },
+    hintLive: {
+      shooter: "综合规则已启动。得分达到 60 并保持 HP 大于 0，即可展示作品。",
+      platform: "综合规则已启动。收集金币、躲避怪物，得分达到 6 即可展示作品。"
+    },
+    code: {
+      rule: `当 游戏运行中
+如果 玩家完成目标并且 hp > 0
+就 标记作品完成
+并生成展示复盘`,
+      pseudo: `游戏循环:
+    处理输入
+    处理碰撞
+    定时生成对象
+    处理技能
+    如果 score >= target and hp > 0:
+        publish_project()`,
+      python: `while game.running:
+    handle_input()
+    handle_collisions()
+    spawn_objects()
+    handle_skill()
+    if score >= target and hp > 0:
+        publish_project()`
+    }
   }
 };
 
@@ -145,22 +307,35 @@ const state = {
   codeMode: "rule",
   ruleFixed: false,
   completed: false,
-  triedInput: false,
-  scoreIssueObserved: false,
+  observedIssue: false,
   width: 960,
   height: 540,
   keys: new Set(),
+  keyLocks: {},
   particles: [],
   stars: [],
   items: [],
+  enemies: [],
+  bullets: [],
+  spawned: 0,
   score: 0,
+  hp: 3,
+  collisionCount: 0,
+  bulletCooldown: 0,
+  spawnClock: 0,
+  spawnCountdown: 90,
+  skillCooldown: 0,
+  skillUses: 0,
+  skillEnergy: 3,
+  finalStarted: false,
   player: {
     x: 88,
     y: 270,
     vx: 0,
     vy: 0,
     size: 34,
-    grounded: false
+    grounded: false,
+    shield: 0
   }
 };
 
@@ -177,10 +352,10 @@ function resizeCanvas() {
 }
 
 function createStars() {
-  state.stars = Array.from({ length: 84 }, (_, index) => ({
+  state.stars = Array.from({ length: 90 }, (_, index) => ({
     x: Math.random() * state.width,
     y: Math.random() * state.height,
-    r: index % 7 === 0 ? 2.1 : Math.random() * 1.7 + 0.6,
+    r: index % 8 === 0 ? 2.1 : Math.random() * 1.7 + 0.6,
     speed: Math.random() * 0.42 + 0.08,
     alpha: Math.random() * 0.55 + 0.25
   }));
@@ -188,11 +363,10 @@ function createStars() {
 
 function applyLessonContent() {
   const lesson = lessons[state.lesson];
-  const route = routes[state.route];
   dom.lessonEyebrow.textContent = lesson.eyebrow;
   dom.lessonHeading.textContent = lesson.heading;
   dom.lessonIntro.textContent = lesson.intro;
-  dom.routeTitle.textContent = route.title;
+  dom.routeTitle.textContent = routes[state.route].title;
   dom.missionTitle.textContent = lesson.missionTitle;
   dom.missionCopy.textContent = lesson.missionCopy;
   [dom.stepText1, dom.stepText2, dom.stepText3, dom.stepText4].forEach((node, index) => {
@@ -200,6 +374,9 @@ function applyLessonContent() {
   });
   [dom.statLabel1, dom.statLabel2, dom.statLabel3].forEach((node, index) => {
     node.textContent = lesson.statLabels[index];
+  });
+  [dom.eventSlot, dom.conditionSlot, dom.actionSlot].forEach((node, index) => {
+    node.textContent = lesson.slots[index];
   });
   dom.applyRuleBtn.textContent = state.ruleFixed ? lesson.activeButton : lesson.button;
   dom.gameHint.textContent = state.ruleFixed ? lesson.hintLive[state.route] : lesson.hintLocked[state.route];
@@ -209,7 +386,7 @@ function applyLessonContent() {
 
 function resetGame(resetProgress = true) {
   if (state.route === "shooter") {
-    state.player = { x: 82, y: state.height * 0.5, vx: 0, vy: 0, size: 34, grounded: false };
+    state.player = { x: 82, y: state.height * 0.5, vx: 0, vy: 0, size: 34, grounded: false, shield: 0 };
   } else {
     state.player = {
       x: 74,
@@ -217,20 +394,36 @@ function resetGame(resetProgress = true) {
       vx: 0,
       vy: 0,
       size: 38,
-      grounded: true
+      grounded: true,
+      shield: 0
     };
   }
 
   state.particles = [];
+  state.items = [];
+  state.enemies = [];
+  state.bullets = [];
+  state.keyLocks = {};
   state.completed = false;
+  state.observedIssue = false;
   state.score = 0;
-  state.items = state.lesson === 2 ? createLessonTwoItems() : [];
+  state.hp = 3;
+  state.collisionCount = 0;
+  state.bulletCooldown = 0;
+  state.spawned = 0;
+  state.spawnClock = 0;
+  state.spawnCountdown = 90;
+  state.skillCooldown = 0;
+  state.skillUses = 0;
+  state.skillEnergy = 3;
+  state.finalStarted = false;
+
+  setupLessonObjects();
 
   if (resetProgress) {
     state.ruleFixed = false;
-    state.triedInput = false;
-    state.scoreIssueObserved = false;
     dom.applyRuleBtn.classList.remove("is-applied");
+    markStep(1, state.lesson === 1);
     markStep(2, false);
     markStep(3, false);
     markStep(4, false);
@@ -240,20 +433,51 @@ function resetGame(resetProgress = true) {
   applyLessonContent();
 }
 
-function createLessonTwoItems() {
-  if (state.route === "shooter") {
-    return [
-      { x: state.width * 0.36, y: state.height * 0.28, value: 10, collected: false },
-      { x: state.width * 0.58, y: state.height * 0.62, value: 10, collected: false },
-      { x: state.width * 0.82, y: state.height * 0.42, value: 10, collected: false }
-    ];
+function setupLessonObjects() {
+  if (state.lesson === 2) {
+    state.items = createCollectibles(3);
   }
 
-  return [
-    { x: state.width * 0.31, y: state.height - 190, value: 1, collected: false },
-    { x: state.width * 0.57, y: state.height - 262, value: 1, collected: false },
-    { x: state.width * 0.78, y: state.height - 192, value: 1, collected: false }
+  if (state.lesson === 3) {
+    if (state.route === "shooter") {
+      state.enemies = [{ x: state.width * 0.72, y: state.height * 0.5, hp: 1, alive: true, value: 20, radius: 28, vx: 0 }];
+    } else {
+      state.enemies = [{ x: state.width * 0.58, y: state.height - 88, hp: 1, alive: true, value: 1, radius: 26, vx: 0 }];
+      state.items = [{ x: state.width * 0.78, y: state.height - 192, value: 2, collected: false }];
+    }
+  }
+
+  if (state.lesson === 5) {
+    state.enemies = state.route === "shooter"
+      ? [{ x: state.width * 0.74, y: state.height * 0.5, hp: 3, alive: true, value: 10, radius: 30, vx: 0 }]
+      : [];
+  }
+
+  if (state.lesson === 6) {
+    state.items = createCollectibles(state.route === "shooter" ? 2 : 4);
+    state.enemies = state.route === "shooter"
+      ? [{ x: state.width * 0.72, y: state.height * 0.4, hp: 2, alive: true, value: 20, radius: 28, vx: -0.35 }]
+      : [{ x: state.width * 0.62, y: state.height - 88, hp: 1, alive: true, value: 1, radius: 26, vx: -0.45 }];
+  }
+}
+
+function createCollectibles(count) {
+  if (state.route === "shooter") {
+    return Array.from({ length: count }, (_, index) => ({
+      x: state.width * (0.32 + index * 0.22),
+      y: state.height * (index % 2 === 0 ? 0.32 : 0.64),
+      value: 10,
+      collected: false
+    }));
+  }
+
+  const spots = [
+    { x: state.width * 0.31, y: state.height - 190 },
+    { x: state.width * 0.57, y: state.height - 262 },
+    { x: state.width * 0.78, y: state.height - 192 },
+    { x: state.width * 0.86, y: state.height - 95 }
   ];
+  return spots.slice(0, count).map((spot) => ({ ...spot, value: 1, collected: false }));
 }
 
 function setStatus(text, mode) {
@@ -292,150 +516,475 @@ function pulseHint(text) {
 }
 
 function enableRule() {
-  state.ruleFixed = true;
-  dom.applyRuleBtn.textContent = lessons[state.lesson].activeButton;
-  dom.applyRuleBtn.classList.add("is-applied");
-  setStatus(lessons[state.lesson].statusLive, "is-live");
-  pulseHint(lessons[state.lesson].hintLive[state.route]);
-  markStep(3, true);
-
-  if (state.lesson === 1) {
-    addAiMessage("很好，你把“按键事件”接到了“移动动作”。现在观察坐标数字，它们会跟着角色移动而变化。");
-  } else {
-    addAiMessage("很好，你把“收集事件”接到了“score 变量更新”。继续收集目标，看看屏幕分数是否变化。");
+  if (state.ruleFixed) {
+    pulseHint(lessons[state.lesson].hintLive[state.route]);
+    return;
   }
+
+  const lesson = lessons[state.lesson];
+  state.ruleFixed = true;
+  dom.applyRuleBtn.textContent = lesson.activeButton;
+  dom.applyRuleBtn.classList.add("is-applied");
+  markStep(3, true);
+  setStatus(lesson.statusLive, "is-live");
+  pulseHint(lesson.hintLive[state.route]);
+
+  if (state.lesson === 6) {
+    state.finalStarted = true;
+    markStep(1, true);
+  }
+
+  if (state.lesson === 4) {
+    state.spawnClock = 0;
+    state.spawnCountdown = 90;
+  }
+
+  addAiMessage(getRuleAppliedReply());
 }
 
-function completeLesson() {
+function completeLesson(message) {
   if (state.completed) {
     return;
   }
-  state.completed = true;
-  setStatus(lessons[state.lesson].statusWin, "is-win");
-  markStep(4, true);
-  burst(state.player.x, state.player.y, 36, "#ffb43b");
 
-  if (state.lesson === 1) {
-    addAiMessage("第 1 关完成。复盘出口：按键是事件，事件触发移动动作，x/y 坐标变化让角色在画面上移动。");
-  } else {
-    addAiMessage("第 2 关完成。阶段成果：score 是变量，收集物品会更新 score，屏幕上的分数来自这个变量。");
-  }
+  const lesson = lessons[state.lesson];
+  state.completed = true;
+  markStep(4, true);
+  setStatus(lesson.statusWin, "is-win");
+  pulseHint(message);
+  addAiMessage(`${message} 现在可以用自己的话解释这一关背后的规则了。`);
 }
 
-function burst(x, y, count, color) {
+function getRuleAppliedReply() {
+  const route = routes[state.route];
+  const replies = {
+    1: `连接成功。现在${route.noun}会响应输入事件，目标是${route.targetText[1]}。`,
+    2: `score 变量已经接上线了。每次收集${route.itemName}，变量和屏幕数字都会一起变化。`,
+    3: "碰撞开关已打开。接下来观察：对象碰到以后，状态会真的改变。",
+    4: "生成器开始工作。你会看到系统不等玩家操作，也能按节奏自己执行规则。",
+    5: "技能函数已经激活。按 E 触发一组动作，冷却时间会防止无限连发。",
+    6: "综合规则启动。现在这已经是一关完整小游戏：移动、得分、碰撞、生成和技能会一起运转。"
+  };
+  return replies[state.lesson];
+}
+
+function observeIssue(text) {
+  if (!state.observedIssue) {
+    state.observedIssue = true;
+    markStep(2, true);
+    addAiMessage(text);
+  }
+  pulseHint(text);
+}
+
+function isMoveKey(key) {
+  return ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "w", "a", "s", "d", "W", "A", "S", "D"].includes(key);
+}
+
+function isSkillKey(key) {
+  return key === "e" || key === "E";
+}
+
+function keyIsDown(...keys) {
+  return keys.some((key) => state.keys.has(key));
+}
+
+function consumeKey(...keys) {
+  const key = keys.find((candidate) => state.keys.has(candidate));
+  if (!key || state.keyLocks[key]) {
+    return false;
+  }
+  state.keyLocks[key] = true;
+  return true;
+}
+
+function movementEnabled() {
+  if (state.lesson === 1 || state.lesson === 6) {
+    return state.ruleFixed;
+  }
+  return true;
+}
+
+function systemsEnabled() {
+  if (state.lesson === 6) {
+    return state.ruleFixed && state.finalStarted;
+  }
+  return state.ruleFixed;
+}
+
+function lessonTargetScore() {
+  if (state.lesson === 2) {
+    return state.route === "shooter" ? 30 : 3;
+  }
+
+  if (state.lesson === 3) {
+    return state.route === "shooter" ? 20 : 2;
+  }
+
+  if (state.lesson === 6) {
+    return state.route === "shooter" ? 60 : 6;
+  }
+
+  return 0;
+}
+
+function distance(ax, ay, bx, by) {
+  return Math.hypot(ax - bx, ay - by);
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function burst(x, y, color = "#fad538", count = 12) {
   for (let index = 0; index < count; index += 1) {
     const angle = Math.random() * Math.PI * 2;
-    const speed = Math.random() * 4 + 1.4;
+    const speed = Math.random() * 3 + 1.2;
     state.particles.push({
       x,
       y,
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
-      life: 1,
-      color
+      life: Math.random() * 24 + 24,
+      maxLife: 48,
+      color,
+      size: Math.random() * 4 + 2
     });
   }
 }
 
-function movementEnabled() {
-  return state.lesson === 2 || state.ruleFixed;
-}
-
-function updateShooter() {
-  const player = state.player;
-  const speed = 6.2;
-  let ax = 0;
-  let ay = 0;
-
-  if (movementEnabled()) {
-    if (state.keys.has("ArrowLeft") || state.keys.has("a")) ax -= 1;
-    if (state.keys.has("ArrowRight") || state.keys.has("d")) ax += 1;
-    if (state.keys.has("ArrowUp") || state.keys.has("w")) ay -= 1;
-    if (state.keys.has("ArrowDown") || state.keys.has("s")) ay += 1;
-  }
-
-  const length = Math.hypot(ax, ay) || 1;
-  player.vx += ((ax / length) * speed - player.vx) * 0.24;
-  player.vy += ((ay / length) * speed - player.vy) * 0.24;
-  player.x += player.vx;
-  player.y += player.vy;
-  player.x = clamp(player.x, 32, state.width - 32);
-  player.y = clamp(player.y, 42, state.height - 42);
-
-  if (Math.hypot(player.vx, player.vy) > 1.2 && Math.random() > 0.42) {
-    state.particles.push({
-      x: player.x - 18,
-      y: player.y + (Math.random() - 0.5) * 16,
-      vx: -Math.random() * 1.6 - 0.8,
-      vy: (Math.random() - 0.5) * 1.2,
-      life: 0.9,
-      color: "#d9fff2"
-    });
-  }
-
-  if (state.lesson === 1) {
-    const gateX = state.width - 92;
-    const gateY = state.height * 0.5;
-    if (state.ruleFixed && Math.hypot(player.x - gateX, player.y - gateY) < 50) {
-      completeLesson();
-    }
+function updatePlayer() {
+  if (state.route === "shooter") {
+    updateShooterPlayer();
   } else {
-    handleItemCollection();
+    updatePlatformPlayer();
   }
 }
 
-function updatePlatform() {
-  const player = state.player;
-  const ground = state.height - 58;
-  const moveSpeed = 5.2;
-  const left = state.keys.has("ArrowLeft") || state.keys.has("a");
-  const right = state.keys.has("ArrowRight") || state.keys.has("d");
-  const jump = state.keys.has("ArrowUp") || state.keys.has("w") || state.keys.has(" ");
+function updateShooterPlayer() {
+  const speed = state.player.shield > 0 ? 7.2 : 5.2;
+  let dx = 0;
+  let dy = 0;
 
   if (movementEnabled()) {
-    if (left) player.vx += (-moveSpeed - player.vx) * 0.3;
-    if (right) player.vx += (moveSpeed - player.vx) * 0.3;
-    if (!left && !right) player.vx *= 0.78;
+    if (keyIsDown("ArrowLeft", "a", "A")) dx -= 1;
+    if (keyIsDown("ArrowRight", "d", "D")) dx += 1;
+    if (keyIsDown("ArrowUp", "w", "W")) dy -= 1;
+    if (keyIsDown("ArrowDown", "s", "S")) dy += 1;
+  }
 
-    if (jump && player.grounded) {
-      player.vy = -13;
+  if (dx !== 0 && dy !== 0) {
+    dx *= 0.72;
+    dy *= 0.72;
+  }
+
+  state.player.vx = dx * speed;
+  state.player.vy = dy * speed;
+  state.player.x = clamp(state.player.x + state.player.vx, 42, state.width - 42);
+  state.player.y = clamp(state.player.y + state.player.vy, 54, state.height - 54);
+}
+
+function updatePlatformPlayer() {
+  const player = state.player;
+  const groundY = platformGroundY();
+  const speed = player.shield > 0 ? 7.5 : 5.3;
+
+  if (movementEnabled()) {
+    if (keyIsDown("ArrowLeft", "a", "A")) {
+      player.vx = -speed;
+    } else if (keyIsDown("ArrowRight", "d", "D")) {
+      player.vx = speed;
+    } else {
+      player.vx *= 0.78;
+    }
+
+    if (consumeKey("ArrowUp", "w", "W", " ") && player.grounded) {
+      player.vy = -13.2;
       player.grounded = false;
-      burst(player.x, player.y + 18, 10, "#d9fff2");
+      burst(player.x, player.y + player.size * 0.4, "#b1d5ff", 8);
     }
   } else {
-    player.vx *= 0.82;
+    player.vx *= 0.78;
   }
 
-  player.vy += 0.58;
-  player.x += player.vx;
+  player.vy += 0.72;
+  player.x = clamp(player.x + player.vx, 34, state.width - 34);
   player.y += player.vy;
-  player.x = clamp(player.x, 30, state.width - 30);
 
-  if (player.y + player.size * 0.5 >= ground) {
-    player.y = ground - player.size * 0.5;
+  if (player.y + player.size * 0.5 >= groundY) {
+    player.y = groundY - player.size * 0.5;
     player.vy = 0;
     player.grounded = true;
   }
 
-  getPlatforms().forEach((platform) => {
-    const wasAbove = player.y + player.size * 0.5 - player.vy <= platform.y;
-    const withinX = player.x > platform.x && player.x < platform.x + platform.w;
-    const falling = player.vy >= 0;
-    if (wasAbove && withinX && falling && player.y + player.size * 0.5 >= platform.y) {
-      player.y = platform.y - player.size * 0.5;
+  handlePlatformLandings();
+}
+
+function platformGroundY() {
+  return state.height - 54;
+}
+
+function platformRects() {
+  return [
+    { x: state.width * 0.24, y: state.height - 150, w: 150, h: 18 },
+    { x: state.width * 0.52, y: state.height - 220, w: 164, h: 18 },
+    { x: state.width * 0.74, y: state.height - 145, w: 150, h: 18 }
+  ];
+}
+
+function handlePlatformLandings() {
+  if (state.route !== "platform" || state.player.vy < 0) {
+    return;
+  }
+
+  const player = state.player;
+  const half = player.size * 0.5;
+  platformRects().forEach((platform) => {
+    const wasAbove = player.y + half - player.vy <= platform.y + 6;
+    const insideX = player.x + half > platform.x && player.x - half < platform.x + platform.w;
+    const touchesY = player.y + half >= platform.y && player.y + half <= platform.y + platform.h + 12;
+
+    if (wasAbove && insideX && touchesY) {
+      player.y = platform.y - half;
       player.vy = 0;
       player.grounded = true;
     }
   });
+}
 
-  if (state.lesson === 1) {
-    const flag = getFlag();
-    if (state.ruleFixed && Math.abs(player.x - flag.x) < 38 && Math.abs(player.y - flag.y) < 70) {
-      completeLesson();
+function updateSystems() {
+  state.bulletCooldown = Math.max(0, state.bulletCooldown - 1);
+  state.skillCooldown = Math.max(0, state.skillCooldown - 1);
+  state.player.shield = Math.max(0, state.player.shield - 1);
+
+  if (state.route === "shooter" && consumeKey(" ")) {
+    if (state.lesson === 3 || state.lesson === 5 || state.lesson === 6) {
+      fireBullet(false);
     }
-  } else {
-    handleItemCollection();
   }
+
+  if (consumeKey("e", "E")) {
+    if (state.lesson === 5 || state.lesson === 6) {
+      useSkill();
+    }
+  }
+
+  updateLesson4Spawner();
+  updateFinalProject();
+  updateBullets();
+  updateEnemies();
+  handleItemCollection();
+  handleBulletEnemyCollisions();
+  handlePlayerEnemyCollisions();
+}
+
+function fireBullet(powered) {
+  if (state.route !== "shooter" || state.bulletCooldown > 0 || !movementEnabled()) {
+    return;
+  }
+
+  const damage = powered ? 3 : 1;
+  const radius = powered ? 8 : 5;
+  const spread = powered ? [-10, 0, 10] : [0];
+
+  spread.forEach((offset) => {
+    state.bullets.push({
+      x: state.player.x + 26,
+      y: state.player.y + offset,
+      vx: powered ? 12 : 8,
+      vy: offset * 0.018,
+      damage,
+      radius,
+      alive: true,
+      color: powered ? "#fad538" : "#b1d5ff"
+    });
+  });
+
+  state.bulletCooldown = powered ? 18 : 12;
+  burst(state.player.x + 24, state.player.y, powered ? "#fad538" : "#b1d5ff", powered ? 8 : 4);
+}
+
+function useSkill() {
+  if (!systemsEnabled()) {
+    observeIssue("你按下了技能键，但技能函数还没接上线，所以没有执行任何动作。");
+    markStep(1, true);
+    return;
+  }
+
+  if (state.skillCooldown > 0) {
+    pulseHint(`技能冷却中，还需要 ${(state.skillCooldown / 60).toFixed(1)} 秒。`);
+    return;
+  }
+
+  if (state.skillEnergy <= 0) {
+    pulseHint("能量已经用完。这个限制就是技能系统里的资源规则。");
+    return;
+  }
+
+  state.skillUses += 1;
+  state.skillEnergy -= 1;
+  state.skillCooldown = 76;
+  markStep(1, true);
+  markStep(3, true);
+
+  if (state.route === "shooter") {
+    state.bulletCooldown = 0;
+    fireBullet(true);
+    pulseHint("强化射击已释放：函数一次执行了多颗子弹和更高伤害。");
+  } else {
+    state.player.vx = 12;
+    state.player.shield = 68;
+    burst(state.player.x, state.player.y, "#fad538", 20);
+    pulseHint("冲刺技能已释放：速度提升，并获得短暂护盾。");
+  }
+
+  if (state.lesson === 5 && state.skillUses >= 3) {
+    completeLesson("技能系统完成：你已经释放 3 次技能，并看到了冷却与能量限制。");
+  }
+}
+
+function updateLesson4Spawner() {
+  if (state.lesson !== 4) {
+    return;
+  }
+
+  state.spawnClock += 1;
+
+  if (!state.ruleFixed) {
+    state.spawnCountdown = 0;
+    if (state.spawnClock > 180) {
+      markStep(1, true);
+      observeIssue("你等了几秒，但没有新对象出现：说明定时生成规则还没有启动。");
+    }
+    return;
+  }
+
+  state.spawnCountdown = 90 - (state.spawnClock % 90);
+
+  if (state.spawnClock % 90 === 1 && state.spawned < 5) {
+    spawnObject(false);
+    markStep(1, true);
+  }
+
+  if (state.spawned >= 5) {
+    completeLesson("生成器任务完成：系统已经自动生成 5 个对象。");
+  }
+}
+
+function updateFinalProject() {
+  if (state.lesson !== 6 || !systemsEnabled()) {
+    return;
+  }
+
+  state.spawnClock += 1;
+  state.spawnCountdown = 80 - (state.spawnClock % 80);
+
+  if (state.spawnClock % 80 === 1) {
+    spawnObject(true);
+  }
+
+  if (state.score >= lessonTargetScore() && state.hp > 0) {
+    completeLesson("毕业小游戏完成：你的作品已经达到展示标准。");
+  }
+}
+
+function spawnObject(forFinalProject) {
+  if (state.route === "shooter") {
+    const enemyCount = state.enemies.filter((enemy) => enemy.alive).length;
+    const itemCount = state.items.filter((item) => !item.collected).length;
+
+    if (forFinalProject && itemCount < 3 && Math.random() > 0.52) {
+      state.items.push({
+        x: state.width * (0.45 + Math.random() * 0.42),
+        y: state.height * (0.22 + Math.random() * 0.56),
+        value: 10,
+        collected: false
+      });
+      state.spawned += 1;
+      return;
+    }
+
+    if (!forFinalProject || enemyCount < 4) {
+      state.enemies.push({
+        x: state.width + 36,
+        y: state.height * (0.18 + Math.random() * 0.64),
+        hp: forFinalProject ? 1 + Math.floor(Math.random() * 2) : 1,
+        alive: true,
+        value: forFinalProject ? 20 : 1,
+        radius: 24 + Math.random() * 8,
+        vx: forFinalProject ? -1.1 - Math.random() * 0.8 : -0.45,
+        touchLock: 0
+      });
+      state.spawned += 1;
+    }
+    return;
+  }
+
+  const monsterCount = state.enemies.filter((enemy) => enemy.alive).length;
+  const shouldSpawnMonster = forFinalProject && monsterCount < 2 && Math.random() > 0.62;
+
+  if (shouldSpawnMonster) {
+    state.enemies.push({
+      x: state.width * (0.48 + Math.random() * 0.42),
+      y: platformGroundY() - 26,
+      hp: 1,
+      alive: true,
+      value: 1,
+      radius: 25,
+      vx: Math.random() > 0.5 ? -0.75 : 0.75,
+      touchLock: 0
+    });
+  } else {
+    const platforms = platformRects();
+    const platform = platforms[Math.floor(Math.random() * platforms.length)];
+    state.items.push({
+      x: platform.x + 32 + Math.random() * (platform.w - 64),
+      y: platform.y - 34,
+      value: 1,
+      collected: false
+    });
+  }
+
+  state.spawned += 1;
+}
+
+function updateBullets() {
+  state.bullets.forEach((bullet) => {
+    bullet.x += bullet.vx;
+    bullet.y += bullet.vy;
+    if (bullet.x > state.width + 40 || bullet.y < -40 || bullet.y > state.height + 40) {
+      bullet.alive = false;
+    }
+  });
+  state.bullets = state.bullets.filter((bullet) => bullet.alive);
+}
+
+function updateEnemies() {
+  state.enemies.forEach((enemy) => {
+    if (!enemy.alive) {
+      return;
+    }
+
+    enemy.touchLock = Math.max(0, (enemy.touchLock || 0) - 1);
+
+    if (state.route === "shooter") {
+      enemy.x += enemy.vx || 0;
+      enemy.y += Math.sin((enemy.x + state.spawnClock) * 0.015) * 0.45;
+
+      if (enemy.x < -60) {
+        enemy.alive = false;
+      }
+      return;
+    }
+
+    enemy.x += enemy.vx || 0;
+    const left = state.width * 0.28;
+    const right = state.width - 54;
+    if (enemy.x < left || enemy.x > right) {
+      enemy.vx *= -1;
+      enemy.x = clamp(enemy.x, left, right);
+    }
+  });
 }
 
 function handleItemCollection() {
@@ -444,194 +993,335 @@ function handleItemCollection() {
       return;
     }
 
-    const distance = Math.hypot(state.player.x - item.x, state.player.y - item.y);
-    if (distance > 34) {
+    const touchDistance = state.route === "shooter" ? 34 : 38;
+    if (distance(state.player.x, state.player.y, item.x, item.y) > touchDistance + state.player.size * 0.35) {
       return;
     }
 
-    markStep(2, true);
-    if (!state.ruleFixed) {
-      if (!state.scoreIssueObserved) {
-        state.scoreIssueObserved = true;
-        pulseHint("你碰到了收集物，但 score 没有变化。计分规则还没有连接到 score 变量。");
-        addAiMessage("你观察到了关键 bug：收集发生了，但 score 没变。合理猜测是“变量更新规则”缺失。");
-      }
-      burst(item.x, item.y, 8, "#ef6548");
+    if (state.lesson === 2 && !state.ruleFixed) {
+      markStep(1, true);
+      observeIssue(`你碰到了${routes[state.route].itemName}，但 score 没有变化：变量更新规则还没接上。`);
       return;
     }
 
-    item.collected = true;
-    state.score += item.value;
-    burst(item.x, item.y, 18, "#ffb43b");
+    if ((state.lesson === 2 || state.lesson === 3 || state.lesson === 6) && systemsEnabled()) {
+      collectItem(item);
+    }
   });
+}
 
-  if (state.ruleFixed && state.items.length > 0 && state.items.every((item) => item.collected)) {
-    completeLesson();
+function collectItem(item) {
+  item.collected = true;
+  state.score += item.value;
+  markStep(2, true);
+  burst(item.x, item.y, state.route === "shooter" ? "#fad538" : "#ff9191", 14);
+
+  if (state.lesson === 2 && state.score >= lessonTargetScore()) {
+    completeLesson(`计分任务完成：score 已经达到 ${lessonTargetScore()}。`);
+  }
+
+  if (state.lesson === 3 && state.route === "platform" && state.score >= lessonTargetScore()) {
+    completeLesson("碰撞任务完成：你让碰撞产生了真实结果。");
   }
 }
 
+function handleBulletEnemyCollisions() {
+  if (state.route !== "shooter") {
+    return;
+  }
+
+  state.bullets.forEach((bullet) => {
+    state.enemies.forEach((enemy) => {
+      if (!bullet.alive || !enemy.alive) {
+        return;
+      }
+
+      if (distance(bullet.x, bullet.y, enemy.x, enemy.y) > enemy.radius + bullet.radius) {
+        return;
+      }
+
+      bullet.alive = false;
+      state.collisionCount += 1;
+      markStep(1, true);
+
+      if (state.lesson === 3 && !state.ruleFixed) {
+        observeIssue("子弹确实打中了训练靶，但分数没变、目标也没消失：碰撞结果规则缺失。");
+        burst(enemy.x, enemy.y, "#ffffff", 8);
+        return;
+      }
+
+      if (!systemsEnabled() && state.lesson !== 5) {
+        return;
+      }
+
+      enemy.hp -= bullet.damage;
+      burst(enemy.x, enemy.y, bullet.color, 12);
+
+      if (enemy.hp <= 0) {
+        enemy.alive = false;
+        state.score += enemy.value;
+        markStep(2, true);
+        burst(enemy.x, enemy.y, "#fad538", 20);
+      }
+
+      if (state.lesson === 3 && state.score >= lessonTargetScore()) {
+        completeLesson("碰撞任务完成：命中、隐藏目标、加分这三件事已经连起来。");
+      }
+    });
+  });
+
+  state.bullets = state.bullets.filter((bullet) => bullet.alive);
+}
+
+function handlePlayerEnemyCollisions() {
+  state.enemies.forEach((enemy) => {
+    if (!enemy.alive) {
+      return;
+    }
+
+    const touchDistance = state.player.size * 0.5 + enemy.radius;
+    if (distance(state.player.x, state.player.y, enemy.x, enemy.y) > touchDistance) {
+      return;
+    }
+
+    if (state.lesson === 3 && state.route === "platform" && !state.ruleFixed) {
+      markStep(1, true);
+      observeIssue("角色已经碰到怪物，但 HP 没有变化：缺的是 if 碰到就扣血的条件规则。");
+      enemy.touchLock = 50;
+      return;
+    }
+
+    if (!systemsEnabled()) {
+      return;
+    }
+
+    if (enemy.touchLock > 0) {
+      return;
+    }
+
+    state.collisionCount += 1;
+    markStep(1, true);
+
+    if (state.player.shield > 0) {
+      enemy.alive = false;
+      state.score += enemy.value;
+      markStep(2, true);
+      burst(enemy.x, enemy.y, "#fad538", 18);
+    } else {
+      state.hp = Math.max(0, state.hp - 1);
+      enemy.touchLock = 70;
+      state.player.vx *= -0.8;
+      burst(state.player.x, state.player.y, "#ff9191", 14);
+    }
+
+    if (state.lesson === 3 && state.route === "platform") {
+      completeLesson("碰撞任务完成：怪物碰撞已经能改变 HP 状态。");
+    }
+
+    if (state.lesson === 6 && state.hp <= 0) {
+      setStatus("作品需要调试", "");
+      pulseHint("HP 归零了。点击重置关卡再试一次，或者用技能护盾处理危险。");
+    }
+  });
+}
+
 function updateParticles() {
-  state.particles = state.particles.filter((particle) => {
+  state.particles.forEach((particle) => {
     particle.x += particle.vx;
     particle.y += particle.vy;
-    particle.vy += 0.03;
-    particle.life -= 0.025;
-    return particle.life > 0;
+    particle.vx *= 0.97;
+    particle.vy *= 0.97;
+    particle.life -= 1;
   });
+  state.particles = state.particles.filter((particle) => particle.life > 0);
 }
 
 function updateStars() {
   state.stars.forEach((star) => {
     star.x -= star.speed;
-    if (star.x < -10) {
-      star.x = state.width + 10;
+    if (star.x < -4) {
+      star.x = state.width + 4;
       star.y = Math.random() * state.height;
     }
   });
 }
 
-function updateStats() {
-  if (state.lesson === 1) {
-    dom.statX.textContent = Math.round(state.player.x);
-    dom.statY.textContent = Math.round(state.player.y);
-    dom.statSpeed.textContent = Math.round(Math.hypot(state.player.vx, state.player.vy) * 10) / 10;
+function checkLesson1Goal() {
+  if (state.lesson !== 1 || !state.ruleFixed) {
     return;
   }
 
-  const target = state.route === "shooter" ? 30 : 3;
-  const collected = state.items.filter((item) => item.collected).length;
-  dom.statX.textContent = state.score;
-  dom.statY.textContent = target;
-  dom.statSpeed.textContent = `${collected}/3`;
+  if (state.route === "shooter" && state.player.x > state.width - 112) {
+    completeLesson("控制校准完成：你已经穿过能量门。");
+  }
+
+  if (state.route === "platform" && state.player.x > state.width - 112 && state.player.y > state.height - 150) {
+    completeLesson("控制校准完成：你已经到达终点旗帜。");
+  }
 }
 
-function drawBackground() {
+function updateStats() {
+  const speed = Math.hypot(state.player.vx || 0, state.player.vy || 0);
+  const collected = state.items.filter((item) => item.collected).length;
+
+  if (state.lesson === 1) {
+    dom.statX.textContent = Math.round(state.player.x);
+    dom.statY.textContent = Math.round(state.player.y);
+    dom.statSpeed.textContent = speed.toFixed(1);
+    return;
+  }
+
+  if (state.lesson === 2) {
+    dom.statX.textContent = state.score;
+    dom.statY.textContent = lessonTargetScore();
+    dom.statSpeed.textContent = `${collected}/3`;
+    return;
+  }
+
+  if (state.lesson === 3) {
+    dom.statX.textContent = state.route === "shooter" ? state.score : `HP ${state.hp}`;
+    dom.statY.textContent = state.route === "shooter" ? lessonTargetScore() : "扣血/加分";
+    dom.statSpeed.textContent = state.collisionCount;
+    return;
+  }
+
+  if (state.lesson === 4) {
+    dom.statX.textContent = state.spawned;
+    dom.statY.textContent = 5;
+    dom.statSpeed.textContent = state.ruleFixed ? `${(state.spawnCountdown / 60).toFixed(1)}s` : "--";
+    return;
+  }
+
+  if (state.lesson === 5) {
+    dom.statX.textContent = state.skillUses;
+    dom.statY.textContent = `${(state.skillCooldown / 60).toFixed(1)}s`;
+    dom.statSpeed.textContent = state.skillEnergy;
+    return;
+  }
+
+  dom.statX.textContent = state.score;
+  dom.statY.textContent = lessonTargetScore();
+  dom.statSpeed.textContent = state.hp;
+}
+
+function drawGame() {
+  if (state.route === "shooter") {
+    drawShooterScene();
+  } else {
+    drawPlatformScene();
+  }
+
+  drawItems();
+  drawEnemies();
+  drawBullets();
+  drawParticles();
+  drawPlayer();
+  drawOverlay();
+}
+
+function drawShooterScene() {
   const gradient = ctx.createLinearGradient(0, 0, state.width, state.height);
-  gradient.addColorStop(0, "#132a48");
-  gradient.addColorStop(0.52, "#0c2f3f");
-  gradient.addColorStop(1, "#071522");
+  gradient.addColorStop(0, "#07111c");
+  gradient.addColorStop(0.55, "#0c1f31");
+  gradient.addColorStop(1, "#12314a");
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, state.width, state.height);
 
   ctx.save();
   state.stars.forEach((star) => {
     ctx.globalAlpha = star.alpha;
-    ctx.fillStyle = "#fff7d1";
+    ctx.fillStyle = "#e8f4ff";
     ctx.beginPath();
     ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
     ctx.fill();
   });
   ctx.restore();
 
+  ctx.save();
   ctx.globalAlpha = 0.22;
-  ctx.strokeStyle = "#7fe0d2";
-  ctx.lineWidth = 1;
-  for (let y = 34; y < state.height; y += 42) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(state.width, y + Math.sin(y * 0.02) * 18);
-    ctx.stroke();
-  }
-  ctx.globalAlpha = 1;
-}
-
-function drawShooter() {
-  const player = state.player;
+  ctx.fillStyle = "#005f9b";
+  ctx.beginPath();
+  ctx.arc(state.width * 0.22, state.height * 0.18, 120, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#ff9191";
+  ctx.beginPath();
+  ctx.arc(state.width * 0.78, state.height * 0.82, 160, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 
   if (state.lesson === 1) {
-    const gateX = state.width - 92;
-    const gateY = state.height * 0.5;
-    ctx.save();
-    ctx.translate(gateX, gateY);
-    const pulse = Math.sin(performance.now() * 0.006) * 7;
-    ctx.strokeStyle = "rgba(99, 216, 255, 0.88)";
-    ctx.lineWidth = 10;
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 30 + pulse, 78 + pulse, 0, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "rgba(255, 244, 201, 0.72)";
-    ctx.stroke();
-    ctx.restore();
-  } else {
-    drawItems();
+    drawEnergyGate();
   }
+}
 
+function drawEnergyGate() {
+  const x = state.width - 92;
+  const y = state.height * 0.5;
   ctx.save();
-  ctx.translate(player.x, player.y);
-  ctx.rotate(player.vx * 0.018);
-  ctx.fillStyle = "#ffb43b";
+  ctx.strokeStyle = state.ruleFixed ? "#fad538" : "#b1d5ff";
+  ctx.lineWidth = 10;
+  ctx.shadowColor = ctx.strokeStyle;
+  ctx.shadowBlur = 20;
   ctx.beginPath();
-  ctx.moveTo(24, 0);
-  ctx.lineTo(-18, -17);
-  ctx.lineTo(-10, 0);
-  ctx.lineTo(-18, 17);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillStyle = "#d9fff2";
-  ctx.beginPath();
-  ctx.arc(0, 0, 8, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(255,255,255,0.58)";
-  ctx.lineWidth = 3;
+  ctx.ellipse(x, y, 28, 112, 0, 0, Math.PI * 2);
   ctx.stroke();
   ctx.restore();
 }
 
-function drawPlatform() {
-  const ground = state.height - 58;
-  const player = state.player;
+function drawPlatformScene() {
+  const gradient = ctx.createLinearGradient(0, 0, 0, state.height);
+  gradient.addColorStop(0, "#b1d5ff");
+  gradient.addColorStop(0.56, "#f5f7f8");
+  gradient.addColorStop(1, "#d5f5da");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, state.width, state.height);
 
-  ctx.fillStyle = "rgba(255, 244, 201, 0.95)";
-  roundRect(0, ground, state.width, 80, 28);
+  ctx.save();
+  ctx.fillStyle = "rgba(0, 95, 155, 0.14)";
+  ctx.beginPath();
+  ctx.arc(state.width * 0.18, state.height + 70, 220, Math.PI, 0);
   ctx.fill();
+  ctx.fillStyle = "rgba(20, 119, 70, 0.14)";
+  ctx.beginPath();
+  ctx.arc(state.width * 0.68, state.height + 88, 260, Math.PI, 0);
+  ctx.fill();
+  ctx.restore();
 
-  getPlatforms().forEach((platform) => {
-    ctx.fillStyle = "rgba(217, 255, 242, 0.9)";
-    roundRect(platform.x, platform.y, platform.w, 18, 9);
+  ctx.fillStyle = "#1f6f46";
+  roundRect(0, platformGroundY(), state.width, 86, 28);
+  ctx.fill();
+  ctx.fillStyle = "#fad538";
+  ctx.fillRect(0, platformGroundY(), state.width, 10);
+
+  platformRects().forEach((platform) => {
+    ctx.fillStyle = "#005f9b";
+    roundRect(platform.x, platform.y, platform.w, platform.h, 12);
     ctx.fill();
-    ctx.fillStyle = "rgba(12, 155, 142, 0.45)";
-    roundRect(platform.x + 8, platform.y + 7, platform.w - 16, 7, 4);
+    ctx.fillStyle = "#fad538";
+    roundRect(platform.x + 10, platform.y - 7, platform.w - 20, 9, 10);
     ctx.fill();
   });
 
   if (state.lesson === 1) {
     drawFlag();
-  } else {
-    drawItems();
   }
-
-  ctx.save();
-  ctx.translate(player.x, player.y);
-  ctx.fillStyle = "#ffb43b";
-  roundRect(-18, -24, 36, 46, 13);
-  ctx.fill();
-  ctx.fillStyle = "#112138";
-  ctx.beginPath();
-  ctx.arc(-7, -6, 3, 0, Math.PI * 2);
-  ctx.arc(8, -6, 3, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#0c9b8e";
-  roundRect(-20, 10, 40, 16, 8);
-  ctx.fill();
-  ctx.restore();
 }
 
 function drawFlag() {
-  const flag = getFlag();
+  const x = state.width - 96;
+  const y = platformGroundY() - 118;
   ctx.save();
-  ctx.translate(flag.x, flag.y);
-  ctx.strokeStyle = "#fff7d1";
+  ctx.strokeStyle = "#0b0f10";
   ctx.lineWidth = 5;
   ctx.beginPath();
-  ctx.moveTo(0, 50);
-  ctx.lineTo(0, -52);
+  ctx.moveTo(x, platformGroundY());
+  ctx.lineTo(x, y);
   ctx.stroke();
-  ctx.fillStyle = "#ef6548";
+  ctx.fillStyle = "#ff9191";
   ctx.beginPath();
-  ctx.moveTo(2, -48);
-  ctx.lineTo(58, -32);
-  ctx.lineTo(2, -12);
+  ctx.moveTo(x + 3, y);
+  ctx.lineTo(x + 72, y + 24);
+  ctx.lineTo(x + 3, y + 48);
   ctx.closePath();
   ctx.fill();
   ctx.restore();
@@ -643,111 +1333,177 @@ function drawItems() {
       return;
     }
 
-    const bob = Math.sin(performance.now() * 0.005 + item.x * 0.03) * 5;
+    const bob = Math.sin((performance.now() * 0.004) + item.x) * 4;
     ctx.save();
     ctx.translate(item.x, item.y + bob);
+
     if (state.route === "shooter") {
-      ctx.rotate(performance.now() * 0.0018);
-      ctx.fillStyle = "#63d8ff";
-      ctx.strokeStyle = "rgba(255,255,255,0.82)";
+      ctx.fillStyle = "#fad538";
+      ctx.strokeStyle = "#fff3aa";
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(0, -18);
-      ctx.lineTo(18, 0);
+      ctx.lineTo(16, 0);
       ctx.lineTo(0, 18);
-      ctx.lineTo(-18, 0);
+      ctx.lineTo(-16, 0);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
     } else {
-      ctx.fillStyle = "#ffb43b";
-      ctx.strokeStyle = "rgba(255,255,255,0.82)";
+      ctx.fillStyle = state.lesson === 3 ? "#73d987" : "#fad538";
+      ctx.strokeStyle = "#0b0f10";
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.arc(0, 0, 17, 0, Math.PI * 2);
+      ctx.arc(0, 0, 15, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
-      ctx.fillStyle = "rgba(17, 33, 56, 0.76)";
-      ctx.font = "900 18px Segoe UI, Microsoft YaHei, sans-serif";
-      ctx.fillText("$", -5, 6);
+      ctx.fillStyle = "#0b0f10";
+      ctx.fillRect(-3, -8, 6, 16);
     }
+
+    ctx.restore();
+  });
+}
+
+function drawEnemies() {
+  state.enemies.forEach((enemy) => {
+    if (!enemy.alive) {
+      return;
+    }
+
+    ctx.save();
+    ctx.globalAlpha = enemy.touchLock > 0 ? 0.65 : 1;
+    ctx.translate(enemy.x, enemy.y);
+
+    if (state.route === "shooter") {
+      ctx.fillStyle = "#ff9191";
+      ctx.strokeStyle = "#ffd0d0";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, 0, enemy.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#0b0f10";
+      ctx.beginPath();
+      ctx.arc(-8, -4, 4, 0, Math.PI * 2);
+      ctx.arc(8, -4, 4, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = "#ff9191";
+      ctx.strokeStyle = "#0b0f10";
+      ctx.lineWidth = 3;
+      roundRect(-enemy.radius, -enemy.radius, enemy.radius * 2, enemy.radius * 2, 12);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#0b0f10";
+      ctx.beginPath();
+      ctx.arc(-8, -4, 3, 0, Math.PI * 2);
+      ctx.arc(8, -4, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillRect(-10, 9, 20, 4);
+    }
+
+    ctx.restore();
+  });
+}
+
+function drawBullets() {
+  state.bullets.forEach((bullet) => {
+    ctx.save();
+    ctx.fillStyle = bullet.color;
+    ctx.shadowColor = bullet.color;
+    ctx.shadowBlur = 14;
+    ctx.beginPath();
+    ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
   });
 }
 
 function drawParticles() {
   state.particles.forEach((particle) => {
-    ctx.globalAlpha = Math.max(0, particle.life);
+    ctx.save();
+    ctx.globalAlpha = clamp(particle.life / particle.maxLife, 0, 1);
     ctx.fillStyle = particle.color;
     ctx.beginPath();
-    ctx.arc(particle.x, particle.y, 3.5 + particle.life * 3, 0, Math.PI * 2);
+    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
     ctx.fill();
+    ctx.restore();
   });
-  ctx.globalAlpha = 1;
+}
+
+function drawPlayer() {
+  const player = state.player;
+  ctx.save();
+  ctx.translate(player.x, player.y);
+
+  if (player.shield > 0) {
+    ctx.strokeStyle = "rgba(250, 213, 56, 0.8)";
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(0, 0, player.size * 0.75 + Math.sin(performance.now() * 0.02) * 3, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  if (state.route === "shooter") {
+    ctx.rotate((player.vy || 0) * 0.03);
+    ctx.fillStyle = state.ruleFixed || state.lesson !== 1 ? "#fad538" : "#b1d5ff";
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(24, 0);
+    ctx.lineTo(-18, -18);
+    ctx.lineTo(-10, 0);
+    ctx.lineTo(-18, 18);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#005f9b";
+    ctx.beginPath();
+    ctx.arc(-2, 0, 7, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    ctx.fillStyle = state.ruleFixed || state.lesson !== 1 ? "#fad538" : "#b1d5ff";
+    ctx.strokeStyle = "#0b0f10";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(0, 0, player.size * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#0b0f10";
+    ctx.beginPath();
+    ctx.arc(-7, -4, 3, 0, Math.PI * 2);
+    ctx.arc(7, -4, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#0b0f10";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(0, 4, 8, 0.1, Math.PI - 0.1);
+    ctx.stroke();
+  }
+
+  ctx.restore();
 }
 
 function drawOverlay() {
+  const route = routes[state.route];
   ctx.save();
-  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
-  ctx.font = "800 16px Segoe UI, Microsoft YaHei, sans-serif";
-  ctx.fillText(routes[state.route].targetText[state.lesson], 22, 34);
+  ctx.fillStyle = state.route === "shooter" ? "rgba(245, 247, 248, 0.9)" : "rgba(11, 15, 16, 0.78)";
+  ctx.font = "800 15px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText(`目标：${route.targetText[state.lesson]}`, 24, 34);
 
-  if (!state.ruleFixed) {
-    ctx.fillStyle = "rgba(239, 101, 72, 0.92)";
-    ctx.font = "900 22px Segoe UI, Microsoft YaHei, sans-serif";
-    ctx.fillText(state.lesson === 1 ? "输入事件未连接" : "score 变量未连接", 22, 66);
-  }
+  ctx.font = "700 13px 'Be Vietnam Pro', sans-serif";
+  const helperText = state.ruleFixed ? lessons[state.lesson].hintLive[state.route] : lessons[state.lesson].hintLocked[state.route];
+  ctx.fillText(helperText.slice(0, 34), 24, 58);
 
-  if (state.lesson === 2) {
-    ctx.fillStyle = "rgba(217, 255, 242, 0.94)";
-    ctx.font = "900 24px Segoe UI, Microsoft YaHei, sans-serif";
-    ctx.fillText(`score = ${state.score}`, 22, 100);
+  if (state.lesson === 6 || state.lesson === 3) {
+    ctx.fillText(`HP ${state.hp}`, state.width - 88, 34);
   }
   ctx.restore();
 }
 
-function loop() {
-  updateStars();
-  if (state.route === "shooter") {
-    updateShooter();
-  } else {
-    updatePlatform();
-  }
-  updateParticles();
-  updateStats();
-
-  drawBackground();
-  if (state.route === "shooter") {
-    drawShooter();
-  } else {
-    drawPlatform();
-  }
-  drawParticles();
-  drawOverlay();
-  window.requestAnimationFrame(loop);
-}
-
-function getPlatforms() {
-  return [
-    { x: state.width * 0.28, y: state.height - 148, w: 150 },
-    { x: state.width * 0.55, y: state.height - 220, w: 170 },
-    { x: state.width * 0.76, y: state.height - 150, w: 130 }
-  ];
-}
-
-function getFlag() {
-  return {
-    x: state.width - 92,
-    y: state.height - 198
-  };
-}
-
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
-
 function roundRect(x, y, width, height, radius) {
-  const r = Math.min(radius, width / 2, height / 2);
+  const r = Math.min(radius, width * 0.5, height * 0.5);
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.arcTo(x + width, y, x + width, y + height, r);
@@ -757,79 +1513,108 @@ function roundRect(x, y, width, height, radius) {
   ctx.closePath();
 }
 
-function handleFirstInput(event) {
-  const validKeys = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "w", "a", "s", "d", " "];
-  if (!validKeys.includes(event.key)) {
-    return;
+function handleInputObservation(key) {
+  if (state.lesson === 1 && !state.ruleFixed && isMoveKey(key)) {
+    observeIssue("你已经确认了现象：按键被按了，但角色没有移动，因为事件规则还没有连接。");
   }
 
-  if (state.lesson !== 1) {
-    return;
+  if (state.lesson === 5 && !state.ruleFixed && isSkillKey(key)) {
+    markStep(1, true);
+    observeIssue("你尝试了技能键，但没有任何动作：这正是函数还没被调用的表现。");
   }
 
-  if (!state.triedInput) {
-    state.triedInput = true;
-    markStep(2, true);
-    addAiMessage("你已经观察到现象：按键没有效果。一个合理猜测是“输入事件还没有连接到移动动作”。");
-  }
-
-  if (!state.ruleFixed) {
-    pulseHint("角色没有动，因为规则编辑器里的“当按下按键，就改变坐标”还没有启用。");
+  if (state.lesson === 6 && !state.ruleFixed && (isMoveKey(key) || isSkillKey(key) || key === " ")) {
+    pulseHint("毕业关需要先启动综合规则，才会把移动、得分、碰撞、生成和技能组合起来。");
   }
 }
 
-function switchLesson(lesson) {
-  state.lesson = Number(lesson);
-  document.querySelectorAll(".lesson-card").forEach((button) => {
-    button.classList.toggle("is-active", Number(button.dataset.lesson) === state.lesson);
-  });
-  resetGame(true);
-  addAiMessage(`已切换到第 ${state.lesson} 关「${lessons[state.lesson].heading}」。先试玩，再观察哪里坏了。`);
+function rememberKey(key) {
+  state.keys.add(key);
+  if (key.length === 1) {
+    state.keys.add(key.toLowerCase());
+    state.keys.add(key.toUpperCase());
+  }
 }
 
-function switchRoute(route) {
-  state.route = route;
-  document.querySelectorAll(".route-card").forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.route === route);
-  });
-  resetGame(true);
-  addAiMessage(`你选择了「${routes[route].title}」。学习目标不变，但游戏表现会换成你喜欢的类型。`);
+function forgetKey(key) {
+  state.keys.delete(key);
+  delete state.keyLocks[key];
+  if (key.length === 1) {
+    state.keys.delete(key.toLowerCase());
+    state.keys.delete(key.toUpperCase());
+    delete state.keyLocks[key.toLowerCase()];
+    delete state.keyLocks[key.toUpperCase()];
+  }
 }
 
 function getAiReply(prompt) {
-  if (state.lesson === 1) {
-    const replies = {
-      stuck: state.ruleFixed
-        ? "现在控制规则已经启用。如果仍然动得不对，观察坐标面板：X 代表左右，Y 代表上下。"
-        : "先检查三件事：有没有事件、有没有条件、有没有动作。现在缺的是把按键事件接到移动动作。",
-      hint: state.ruleFixed
-        ? `朝着目标移动。${state.route === "shooter" ? "能量门在右侧。" : "终点旗帜在右上方，跳跃需要站在地面或平台上。"}`
-        : "提示 1：按键本身只是事件。事件发生后，必须有一条规则告诉角色“改变坐标”。",
-      code: "这段代码会检测哪个键被按下，然后改变角色的 x 或 y 坐标。x 变大通常向右，y 变小通常向上。",
-      recap: "你可以这样复盘：我按下键盘触发事件；规则判断角色能移动；动作改变坐标；所以角色在画面上移动。"
-    };
-    return replies[prompt];
-  }
-
+  const route = routes[state.route];
+  const lesson = lessons[state.lesson];
   const replies = {
-    stuck: state.ruleFixed
-      ? "计分规则已经启用。如果分数仍然没变，先看收集物有没有被标记为 collected。"
-      : "你已经能移动了，但 score 没变。最可能的问题是：收集事件没有连接到 score 变量更新。",
-    hint: state.ruleFixed
-      ? "继续收集剩余目标。观察 score、目标和已收集数量是否同步变化。"
-      : "提示 1：score 是变量。收集发生后，需要执行 score = score + item.value。",
-    code: "这段代码的意思是：如果玩家碰到未收集的物品，就让 score 增加，并把物品标记为已收集。",
-    recap: "你可以这样复盘：score 是记录分数的变量；收集物品会更新 score；屏幕上的分数来自 score。"
+    stuck: {
+      1: "先把问题说成一句话：我按了键，但角色坐标没有变化。所以我们要连接“输入事件 -> 坐标变化”。",
+      2: "你可以盯住 score。碰到物品以后，如果 score 不变，说明缺的是变量更新，不是移动问题。",
+      3: "碰撞不只是“碰到了”，还要写结果：如果碰到，就让目标失效、加分或扣 HP。",
+      4: "这一关不用急着操作，先等待。没有新对象出现，就说明系统循环没有启动。",
+      5: "技能像一个打包动作。按 E 没反应时，说明函数还没有被调用，或者冷却条件没通过。",
+      6: "毕业关要把前 5 个系统合起来看。先确认哪条规则没运行，再单独修那一条。"
+    },
+    hint: {
+      1: `点击“${lesson.button}”后，再让${route.noun}${route.targetText[1]}。`,
+      2: `先碰一个${route.itemName}观察问题，再启用 score 规则，最后收集全部目标。`,
+      3: state.route === "shooter" ? "先按空格打中靶子，再修复碰撞结果。" : "先碰一下红色怪物观察 HP，再修复碰撞结果。",
+      4: "等 3 秒是第一步；启动生成规则后，盯住“生成数”变到 5。",
+      5: "按 E 看有没有反应。启用函数后，等冷却归零再按下一次。",
+      6: "射击路线靠空格和 E 得分；平台路线靠金币、躲怪和冲刺护盾。"
+    },
+    code: {
+      1: "代码的核心是：按键事件发生后，改变 x/y。x 变大向右，y 变小向上。",
+      2: "score += item.value 的意思是：把旧分数拿出来，加上物品价值，再放回 score。",
+      3: "if collision 的价值是防止所有事情都发生。只有碰撞成立，才执行后面的结果。",
+      4: "timer.every(1.5) 像节拍器：每隔一段时间，就检查一次能不能生成新对象。",
+      5: "函数把多行行为包装成一个名字。use_skill() 被调用时，才会执行里面的动作。",
+      6: "完整游戏循环通常是：处理输入、更新对象、检测碰撞、判断胜负。"
+    },
+    recap: {
+      1: "你可以这样复盘：我修复了输入事件，让玩家按键能改变角色坐标。",
+      2: "你可以这样复盘：我修复了变量 score，让收集结果能被游戏记录和展示。",
+      3: "你可以这样复盘：我用 if 判断碰撞是否发生，再改变分数、HP 或对象状态。",
+      4: "你可以这样复盘：我启动了定时循环，让系统自动生成对象。",
+      5: "你可以这样复盘：我把一组动作封装成技能函数，并加入冷却和能量限制。",
+      6: "你可以这样复盘：我把移动、分数、碰撞、生成和技能组合成了一关可展示的小游戏。"
+    }
   };
-  return replies[prompt];
+
+  return replies[prompt][state.lesson];
+}
+
+function gameLoop() {
+  updateStars();
+  updatePlayer();
+  updateSystems();
+  updateParticles();
+  checkLesson1Goal();
+  updateStats();
+  drawGame();
+  window.requestAnimationFrame(gameLoop);
 }
 
 document.querySelectorAll(".lesson-card").forEach((button) => {
-  button.addEventListener("click", () => switchLesson(button.dataset.lesson));
+  button.addEventListener("click", () => {
+    state.lesson = Number(button.dataset.lesson);
+    document.querySelectorAll(".lesson-card").forEach((card) => card.classList.toggle("is-active", card === button));
+    resetGame(true);
+    addAiMessage(`已切换到第 ${state.lesson} 关：${lessons[state.lesson].heading}。先观察，再修复。`);
+  });
 });
 
 document.querySelectorAll(".route-card").forEach((button) => {
-  button.addEventListener("click", () => switchRoute(button.dataset.route));
+  button.addEventListener("click", () => {
+    state.route = button.dataset.route;
+    document.querySelectorAll(".route-card").forEach((card) => card.classList.toggle("is-active", card === button));
+    resetGame(true);
+    addAiMessage(`你选择了${routes[state.route].title}。同一个编程概念，会换成你喜欢的游戏表达。`);
+  });
 });
 
 document.querySelectorAll(".tab").forEach((button) => {
@@ -842,57 +1627,66 @@ document.querySelectorAll(".tab").forEach((button) => {
 
 document.querySelectorAll(".prompt-chips button").forEach((button) => {
   button.addEventListener("click", () => {
-    const prompt = button.dataset.prompt;
-    addAiMessage(button.textContent.trim(), "user");
-    addAiMessage(getAiReply(prompt));
+    addAiMessage(button.textContent, "user");
+    addAiMessage(getAiReply(button.dataset.prompt));
   });
 });
 
-document.querySelectorAll("[data-touch-key]").forEach((button) => {
-  const key = button.dataset.touchKey;
-  const press = (event) => {
+document.querySelectorAll(".touch-pad button").forEach((button) => {
+  button.addEventListener("pointerdown", (event) => {
     event.preventDefault();
-    state.keys.add(key);
-    handleFirstInput({ key });
-  };
-  const release = (event) => {
-    event.preventDefault();
-    state.keys.delete(key);
-  };
+    const key = button.dataset.touchKey;
+    rememberKey(key);
+    handleInputObservation(key);
+    button.setPointerCapture(event.pointerId);
+  });
 
-  button.addEventListener("pointerdown", press);
-  button.addEventListener("pointerup", release);
-  button.addEventListener("pointercancel", release);
-  button.addEventListener("pointerleave", release);
+  ["pointerup", "pointerleave", "pointercancel"].forEach((eventName) => {
+    button.addEventListener(eventName, () => {
+      forgetKey(button.dataset.touchKey);
+    });
+  });
 });
 
 dom.applyRuleBtn.addEventListener("click", enableRule);
 
 dom.runBtn.addEventListener("click", () => {
-  canvas.focus();
-  pulseHint(state.ruleFixed ? lessons[state.lesson].hintLive[state.route] : lessons[state.lesson].hintLocked[state.route]);
+  if (state.lesson !== 6 || state.ruleFixed) {
+    markStep(1, true);
+  }
+  if (state.ruleFixed) {
+    setStatus(lessons[state.lesson].statusLive, "is-live");
+    pulseHint(lessons[state.lesson].hintLive[state.route]);
+    return;
+  }
+  pulseHint(lessons[state.lesson].hintLocked[state.route]);
 });
 
 dom.resetBtn.addEventListener("click", () => {
   resetGame(true);
-  addAiMessage("关卡已重置。再试一次：先观察，再修复，再运行验证。");
+  addAiMessage("关卡已重置。没关系，调试就是反复观察和修正。");
+});
+
+[dom.eventSlot, dom.conditionSlot, dom.actionSlot].forEach((slot) => {
+  slot.addEventListener("click", () => {
+    addAiMessage(getAiReply("code"));
+  });
 });
 
 window.addEventListener("keydown", (event) => {
   if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " "].includes(event.key)) {
     event.preventDefault();
   }
-  state.keys.add(event.key);
-  handleFirstInput(event);
+  rememberKey(event.key);
+  handleInputObservation(event.key);
 });
 
 window.addEventListener("keyup", (event) => {
-  state.keys.delete(event.key);
+  forgetKey(event.key);
 });
 
 window.addEventListener("resize", resizeCanvas);
 
-createStars();
-applyLessonContent();
 resizeCanvas();
-loop();
+resetGame(true);
+window.requestAnimationFrame(gameLoop);

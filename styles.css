@@ -655,15 +655,16 @@ canvas {
   right: 28px;
   bottom: 28px;
   display: grid;
-  grid-template-columns: repeat(3, 44px);
+  grid-template-columns: repeat(3, 50px);
   grid-template-areas:
-    ". up ."
-    "left down right";
+    ". up skill"
+    "left down right"
+    ". fire .";
   gap: 7px;
 }
 
 .touch-pad button {
-  width: 44px;
+  width: 50px;
   height: 44px;
   border: 0;
   border-radius: 17px;
@@ -693,6 +694,14 @@ canvas {
 
 .touch-pad [data-touch-key="ArrowRight"] {
   grid-area: right;
+}
+
+.touch-pad [data-touch-key=" "] {
+  grid-area: fire;
+}
+
+.touch-pad [data-touch-key="e"] {
+  grid-area: skill;
 }
 
 .game-actions {
