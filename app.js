@@ -27,7 +27,13 @@ const dom = {
   chatWindow: document.querySelector("#chatWindow"),
   eventSlot: document.querySelector("#eventSlot"),
   conditionSlot: document.querySelector("#conditionSlot"),
-  actionSlot: document.querySelector("#actionSlot")
+  actionSlot: document.querySelector("#actionSlot"),
+  guideTitle: document.querySelector("#guideTitle"),
+  guideBadge: document.querySelector("#guideBadge"),
+  guideGoal: document.querySelector("#guideGoal"),
+  guideObserve: document.querySelector("#guideObserve"),
+  guideExperiment: document.querySelector("#guideExperiment"),
+  guideCheckpoint: document.querySelector("#guideCheckpoint")
 };
 
 const routes = {
@@ -62,34 +68,36 @@ const routes = {
 const lessons = {
   1: {
     eyebrow: "AI 伴学式游戏编程平台 · 第 1 关",
-    heading: "控制校准场",
-    intro: "角色醒来了，但控制系统还没接上。先观察问题，再把“按键事件”连接到“移动动作”。",
-    missionTitle: "把“按键”变成“动作”",
-    missionCopy: "你要理解事件：玩家按下某个键，游戏会触发一条规则，让角色改变坐标。",
-    button: "修复控制规则",
-    activeButton: "控制规则已启用",
-    statusIdle: "等待修复",
-    statusLive: "控制已连接",
+    heading: "控制诊断场",
+    intro: "这一关不是让你点一下按钮，而是像小工程师一样诊断：按键有没有被听见？坐标为什么没变？左右、上下和速度分别由哪条规则负责？",
+    missionTitle: "独立搞懂“输入 -> 坐标 -> 移动”",
+    missionCopy: "你要学会把游戏控制拆成 3 件事：事件被触发、方向被判断、坐标按速度变化。过关标准是能解释这条因果链。",
+    button: "先连接左右移动",
+    activeButton: "控制规则已完整连接",
+    statusIdle: "等待诊断",
+    statusLive: "分步调试中",
     statusWin: "校准完成",
-    statLabels: ["X 坐标", "Y 坐标", "速度"],
-    steps: ["试玩坏掉的游戏", "猜测为什么角色不动", "启用输入事件规则", "到达目标并复盘事件"],
-    slots: ["按下方向键 / WASD", "角色没有被锁定", "改变角色坐标"],
+    statLabels: ["X 坐标", "Y 坐标", "规则进度"],
+    steps: ["按两个方向键，确认事件被听见", "只连接左右移动，观察 x 坐标", "再连接上下/跳跃和速度", "到达目标并复盘事件链"],
+    slots: ["按下方向键 / WASD", "判断方向：左/右/上/下", "按速度改变 x/y 坐标"],
     hintLocked: {
-      shooter: "按 WASD 或方向键试试看：飞船现在不会动，因为输入事件还没连接。",
-      platform: "按 A/D 或方向键试试看：角色现在不会动，因为输入事件还没连接。"
+      shooter: "先别急着修。按两个不同方向键：飞船不动，但系统会记录你按了什么，这就是“事件”。",
+      platform: "先别急着修。按 A/D/方向键：角色不动，但系统会记录你按了什么，这就是“事件”。"
     },
     hintLive: {
-      shooter: "规则已连接。移动飞船穿过右侧蓝色能量门。",
-      platform: "规则已连接。移动并跳跃到终点旗帜。"
+      shooter: "控制规则已完整连接。现在用 x/y 坐标和速度，把飞船送进右侧能量门。",
+      platform: "控制规则已完整连接。现在用左右移动和跳跃，到达终点旗帜。"
     },
     code: {
       rule: `当 玩家按下方向键
-如果 角色没有被锁定
-就 根据按键方向改变角色坐标
+先 判断按键方向
+再 选择要改变 x 还是 y
+最后 按 speed 改变坐标
 
 评价出口：
-我知道按键是事件。
-我知道 x/y 坐标变化会让角色移动。`,
+我知道按键只是事件，不等于移动。
+我知道 x/y 坐标变化才会让角色移动。
+我能解释 speed 为什么会影响手感。`,
       pseudo: `当按键被按下:
     如果 player.locked 是 false:
         direction = 读取按键方向
@@ -109,39 +117,46 @@ if key_pressed("down"):
   },
   2: {
     eyebrow: "AI 伴学式游戏编程平台 · 第 2 关",
-    heading: "分数晶核",
-    intro: "控制系统已经修好了，但分数系统坏了。收集晶核或金币后，修复 score 变量，让游戏记住你的成果。",
-    missionTitle: "让“分数盒子”动起来",
-    missionCopy: "你要理解变量：score 像一个会变化的盒子，用来记录游戏分数，屏幕上的分数来自这个盒子。",
-    button: "修复计分规则",
-    activeButton: "计分规则已启用",
+    heading: "分数侦探局",
+    intro: "这一关把计分拆开学：先发现“碰到了但没记录”，再让 score 变量变化，最后把变量同步到屏幕 UI。",
+    missionTitle: "搞懂“变量”和“屏幕显示”不是一回事",
+    missionCopy: "score 是游戏记忆，屏幕分数只是把这个记忆显示出来。你要分步修复：碰撞触发、变量增加、UI 刷新、防止重复计分。",
+    button: "先记录 score 变量",
+    activeButton: "计分规则已完整连接",
     statusIdle: "分数未连接",
-    statusLive: "计分运行中",
+    statusLive: "计分调试中",
     statusWin: "阶段成果完成",
-    statLabels: ["Score 分数", "目标", "已收集"],
-    steps: ["收集一个物品", "观察分数为什么没变", "启用 score 变量规则", "收集全部目标并复盘变量"],
-    slots: ["玩家碰到收集物", "收集物还没有被收集", "score 增加并隐藏收集物"],
+    statLabels: ["变量 score", "屏幕分数", "已收集"],
+    steps: ["先收集一次，确认没有计分", "连接 score 变量，观察变量变化", "同步屏幕 UI 并防止重复计分", "收集全部目标并复盘变量链"],
+    slots: ["玩家碰到收集物", "物品未收集，且本次只加一次", "score 增加，再刷新屏幕分数"],
     hintLocked: {
-      shooter: "飞船已经能动了。先碰到能量晶核，你会发现 score 仍然是 0。",
-      platform: "角色已经能动了。先吃一枚金币，你会发现 score 仍然是 0。"
+      shooter: "先碰一个能量晶核：你会发现“碰到”和“计分”不是同一件事。",
+      platform: "先吃一枚金币：你会发现“碰到”和“计分”不是同一件事。"
     },
     hintLive: {
-      shooter: "计分规则已连接。继续收集 3 个能量晶核，让 score 达到 30。",
-      platform: "计分规则已连接。继续收集 3 枚金币，让 score 达到 3。"
+      shooter: "计分链路已完整连接。继续收集能量晶核，让变量 score 和屏幕分数一起达到 30。",
+      platform: "计分链路已完整连接。继续收集金币，让变量 score 和屏幕分数一起达到 3。"
     },
     code: {
       rule: `当 玩家碰到 收集物
 如果 收集物还没有被收集
-就 分数增加
-并且 隐藏这个收集物`,
+就 score 增加
+然后 刷新屏幕分数
+并且 隐藏这个收集物
+
+评价出口：
+我知道 score 是变量。
+我知道 UI 显示需要从变量同步。`,
       pseudo: `当玩家碰到收集物:
     如果 item.collected 是 false:
         score = score + item.value
+        score_text = score
         item.collected = true
         隐藏 item`,
       python: `if player.collides_with(item):
     if item.collected == False:
         score += item.value
+        score_text.update(score)
         item.collected = True
         item.hide()`
     }
@@ -301,13 +316,42 @@ if key_pressed("down"):
   }
 };
 
+const selfGuides = {
+  1: {
+    title: "这一关不是学“按键”，是学事件链",
+    badge: "Event Lab",
+    goal: "能说清楚：按键事件被触发后，程序判断方向，再改变 x/y 坐标，所以角色才移动。",
+    observe: "先按两个不同方向键。注意：你按键了，但角色没动；这说明“事件发生”和“动作执行”中间还差一条规则。",
+    experiment: "不要一口气全修。先只连接左右移动，看 x 坐标；再连接上下/跳跃，看 y 坐标；最后比较速度变化。",
+    checkpoint: "出口自测：不用看代码，能解释“为什么 x 变大角色向右，为什么 speed 变大手感更快”。"
+  },
+  2: {
+    title: "这一关不是学“加分”，是学变量链",
+    badge: "Score Lab",
+    goal: "能区分两件事：score 变量负责记住分数，屏幕 UI 负责把 score 显示给玩家。",
+    observe: "先收集一次物品。注意：碰撞发生了，但 score 没变；这说明“碰到物品”和“更新变量”不是自动等价的。",
+    experiment: "先只连接 score 变量，观察变量 score 和屏幕分数是否一致；再刷新 UI，让两者同步。",
+    checkpoint: "出口自测：能解释为什么要判断“未收集”，否则同一个金币可能被重复加分。"
+  },
+  default: {
+    title: "自学路线：先观察，再修复，最后复盘",
+    badge: "Self Learn",
+    goal: "知道这一关对应的核心编程概念，并能在游戏现象里找到它。",
+    observe: "先试玩坏掉的状态，确认到底是哪条规则没有工作。",
+    experiment: "启用规则后立刻回到游戏里测试，用数据或现象验证自己的判断。",
+    checkpoint: "出口自测：能用自己的话解释“我修了什么、为什么这样修、结果怎么变了”。"
+  }
+};
+
 const state = {
   lesson: 1,
   route: "shooter",
   codeMode: "rule",
   ruleFixed: false,
+  ruleStage: 0,
   completed: false,
   observedIssue: false,
+  observedKeys: new Set(),
   width: 960,
   height: 540,
   keys: new Set(),
@@ -319,6 +363,7 @@ const state = {
   bullets: [],
   spawned: 0,
   score: 0,
+  displayScore: 0,
   hp: 3,
   collisionCount: 0,
   bulletCooldown: 0,
@@ -375,13 +420,118 @@ function applyLessonContent() {
   [dom.statLabel1, dom.statLabel2, dom.statLabel3].forEach((node, index) => {
     node.textContent = lesson.statLabels[index];
   });
-  [dom.eventSlot, dom.conditionSlot, dom.actionSlot].forEach((node, index) => {
-    node.textContent = lesson.slots[index];
-  });
-  dom.applyRuleBtn.textContent = state.ruleFixed ? lesson.activeButton : lesson.button;
-  dom.gameHint.textContent = state.ruleFixed ? lesson.hintLive[state.route] : lesson.hintLocked[state.route];
+  updateRuleSlots();
+  updateGuide();
+  updateRuleButton();
+  dom.gameHint.textContent = getCurrentHint();
   updateCode();
   updateStats();
+}
+
+function updateGuide() {
+  const guide = selfGuides[state.lesson] || selfGuides.default;
+  dom.guideTitle.textContent = guide.title;
+  dom.guideBadge.textContent = guide.badge;
+  dom.guideGoal.textContent = guide.goal;
+  dom.guideObserve.textContent = guide.observe;
+  dom.guideExperiment.textContent = getGuideExperimentText(guide);
+  dom.guideCheckpoint.textContent = guide.checkpoint;
+}
+
+function updateRuleSlots() {
+  const lesson = lessons[state.lesson];
+  let slots = lesson.slots;
+
+  if (state.lesson === 1) {
+    const staged = [
+      ["按下方向键 / WASD", "只侦测事件，不移动", "记录按键方向"],
+      ["按左/右键", "方向是 left 或 right", "改变 x 坐标"],
+      ["按上/下/跳跃", "方向是 up/down 或 jump", "改变 y 坐标"],
+      ["按任意方向键", "方向有效且角色未锁定", "按 speed 改变 x/y"]
+    ];
+    slots = staged[state.ruleStage] || lesson.slots;
+  }
+
+  if (state.lesson === 2) {
+    const staged = [
+      ["玩家碰到收集物", "还没有 score 更新规则", "先观察不计分现象"],
+      ["玩家碰到收集物", "物品未收集", "score 增加，但 UI 暂不刷新"],
+      ["score 发生变化", "屏幕分数不是最新", "刷新 UI 显示"],
+      ["玩家碰到收集物", "物品未收集，且只加一次", "score 增加并刷新 UI"]
+    ];
+    slots = staged[state.ruleStage] || lesson.slots;
+  }
+
+  [dom.eventSlot, dom.conditionSlot, dom.actionSlot].forEach((node, index) => {
+    node.textContent = slots[index];
+  });
+}
+
+function getGuideExperimentText(guide) {
+  if (state.lesson === 1) {
+    const stageText = [
+      "第 1 步：先按两个不同方向键，不要点修复。你要先证明“事件被听见，但坐标没变”。",
+      "第 2 步：现在只连了左右移动。按左/右，看 x 坐标；按上/下，应该还不能完整移动。",
+      "第 3 步：上下/跳跃也接上了。继续按不同方向，观察 x/y 分别怎么变。",
+      "第 4 步：速度已校准。去到达目标，然后用自己的话复盘事件链。"
+    ];
+    return stageText[state.ruleStage] || guide.experiment;
+  }
+
+  if (state.lesson === 2) {
+    const stageText = [
+      "第 1 步：先收集一个物品，看变量 score 和屏幕分数都不变，确认问题。",
+      "第 2 步：现在只连接 score 变量。收集物品后，变量会变，但屏幕分数还不会同步。",
+      "第 3 步：现在同步 UI。继续收集，观察变量 score 和屏幕分数是否一致。",
+      "第 4 步：完整计分规则已连接。收集全部目标，并解释为什么不能重复加分。"
+    ];
+    return stageText[state.ruleStage] || guide.experiment;
+  }
+
+  return guide.experiment;
+}
+
+function updateRuleButton() {
+  const lesson = lessons[state.lesson];
+  const stagedButtons = {
+    1: ["先连接左右移动", "再连接上下/跳跃", "校准速度并完成规则", lesson.activeButton],
+    2: ["先记录 score 变量", "同步屏幕分数 UI", "启用防重复计分", lesson.activeButton]
+  };
+
+  if (stagedButtons[state.lesson]) {
+    dom.applyRuleBtn.textContent = stagedButtons[state.lesson][state.ruleStage] || lesson.activeButton;
+    dom.applyRuleBtn.classList.toggle("is-applied", state.ruleFixed);
+    return;
+  }
+
+  dom.applyRuleBtn.textContent = state.ruleFixed ? lesson.activeButton : lesson.button;
+  dom.applyRuleBtn.classList.toggle("is-applied", state.ruleFixed);
+}
+
+function getCurrentHint() {
+  const lesson = lessons[state.lesson];
+
+  if (state.lesson === 1 && !state.ruleFixed) {
+    const stageHints = [
+      lesson.hintLocked[state.route],
+      "只连接了左右移动。测试左/右键，看 x 坐标；再按上/下，想想为什么 y 还不变。",
+      "上下/跳跃也接上了。现在对比 x/y 和速度，准备完成最后校准。",
+      lesson.hintLive[state.route]
+    ];
+    return stageHints[state.ruleStage] || lesson.hintLocked[state.route];
+  }
+
+  if (state.lesson === 2 && !state.ruleFixed) {
+    const stageHints = [
+      lesson.hintLocked[state.route],
+      "score 变量已连接，但屏幕分数还没同步。收集一个物品，观察两个数字是否一致。",
+      "UI 同步已连接。继续收集，并确认同一个物品不会重复加分。",
+      lesson.hintLive[state.route]
+    ];
+    return stageHints[state.ruleStage] || lesson.hintLocked[state.route];
+  }
+
+  return state.ruleFixed ? lesson.hintLive[state.route] : lesson.hintLocked[state.route];
 }
 
 function resetGame(resetProgress = true) {
@@ -406,7 +556,9 @@ function resetGame(resetProgress = true) {
   state.keyLocks = {};
   state.completed = false;
   state.observedIssue = false;
+  state.observedKeys = new Set();
   state.score = 0;
+  state.displayScore = 0;
   state.hp = 3;
   state.collisionCount = 0;
   state.bulletCooldown = 0;
@@ -422,8 +574,9 @@ function resetGame(resetProgress = true) {
 
   if (resetProgress) {
     state.ruleFixed = false;
+    state.ruleStage = 0;
     dom.applyRuleBtn.classList.remove("is-applied");
-    markStep(1, state.lesson === 1);
+    markStep(1, false);
     markStep(2, false);
     markStep(3, false);
     markStep(4, false);
@@ -516,6 +669,16 @@ function pulseHint(text) {
 }
 
 function enableRule() {
+  if (state.lesson === 1) {
+    advanceControlRule();
+    return;
+  }
+
+  if (state.lesson === 2) {
+    advanceScoreRule();
+    return;
+  }
+
   if (state.ruleFixed) {
     pulseHint(lessons[state.lesson].hintLive[state.route]);
     return;
@@ -540,6 +703,84 @@ function enableRule() {
   }
 
   addAiMessage(getRuleAppliedReply());
+}
+
+function advanceControlRule() {
+  if (state.ruleFixed) {
+    pulseHint(lessons[1].hintLive[state.route]);
+    return;
+  }
+
+  if (state.ruleStage === 0 && state.observedKeys.size < 2) {
+    pulseHint("先按两个不同方向键，证明系统听见了事件。别急，工程师第一步是观察。");
+    addAiMessage("先别点修复。请按两个不同方向键，然后看统计区：X/Y 没变，但 AI 会记录你的输入事件。");
+    return;
+  }
+
+  state.ruleStage += 1;
+  setStatus(lessons[1].statusLive, "is-live");
+
+  if (state.ruleStage === 1) {
+    markStep(2, true);
+    pulseHint("已连接左右移动。现在只按左/右，观察 x 坐标怎么变；再按上/下，对比差异。");
+    addAiMessage("很好，现在我们只修了一半：左右键会改变 x 坐标。请先验证“x 变，y 不变”。");
+  } else if (state.ruleStage === 2) {
+    markStep(3, true);
+    pulseHint("已连接上下/跳跃。现在测试不同方向，确认 x 和 y 分别由哪些键控制。");
+    addAiMessage("第二条规则接上了。现在你要能说出：左右改 x，上下或跳跃改 y。");
+  } else {
+    state.ruleStage = 3;
+    state.ruleFixed = true;
+    markStep(3, true);
+    pulseHint(lessons[1].hintLive[state.route]);
+    addAiMessage("控制链路完整了：输入事件、方向判断、坐标变化、速度参数都接起来了。去完成目标吧。");
+  }
+
+  updateRuleButton();
+  updateRuleSlots();
+  updateGuide();
+}
+
+function advanceScoreRule() {
+  if (state.ruleFixed) {
+    pulseHint(lessons[2].hintLive[state.route]);
+    return;
+  }
+
+  if (state.ruleStage === 0 && !state.observedIssue) {
+    pulseHint("先收集一个物品，观察“碰到了但没加分”。先有问题证据，再修规则。");
+    addAiMessage(`请先碰一个${routes[state.route].itemName}。如果 score 没变，你就找到了本关要修的第一条规则。`);
+    return;
+  }
+
+  state.ruleStage += 1;
+  setStatus(lessons[2].statusLive, "is-live");
+
+  if (state.ruleStage === 1) {
+    markStep(2, true);
+    pulseHint("score 变量已连接。下一次收集后，变量会增加，但屏幕分数还不会自动同步。");
+    addAiMessage("现在只修了“游戏记忆”：score 变量会变。请观察变量 score 和屏幕分数是否一致。");
+  } else if (state.ruleStage === 2) {
+    state.displayScore = state.score;
+    markStep(3, true);
+    pulseHint("屏幕 UI 已同步。现在变量 score 和屏幕分数会保持一致。");
+    addAiMessage("很好，UI 刷新接上了。现在请继续收集，并观察变量和屏幕显示是否同步。");
+  } else {
+    state.ruleStage = 3;
+    state.ruleFixed = true;
+    state.displayScore = state.score;
+    markStep(3, true);
+    pulseHint(lessons[2].hintLive[state.route]);
+    addAiMessage("完整计分链路已连接：碰撞触发、未收集判断、score 增加、UI 刷新、防重复计分。");
+    if (state.displayScore >= lessonTargetScore()) {
+      completeLesson(`计分任务完成：score 已经达到 ${lessonTargetScore()}。`);
+    }
+  }
+
+  updateRuleButton();
+  updateRuleSlots();
+  updateGuide();
+  updateStats();
 }
 
 function completeLesson(message) {
@@ -599,10 +840,29 @@ function consumeKey(...keys) {
 }
 
 function movementEnabled() {
-  if (state.lesson === 1 || state.lesson === 6) {
+  if (state.lesson === 1) {
+    return state.ruleStage > 0;
+  }
+
+  if (state.lesson === 6) {
     return state.ruleFixed;
   }
   return true;
+}
+
+function canMoveHorizontal() {
+  return state.lesson !== 1 || state.ruleStage >= 1;
+}
+
+function canMoveVertical() {
+  return state.lesson !== 1 || state.ruleStage >= 2;
+}
+
+function controlSpeed() {
+  if (state.lesson === 1 && state.ruleStage < 3) {
+    return state.route === "shooter" ? 3.4 : 4.1;
+  }
+  return state.route === "shooter" ? 5.2 : 5.3;
 }
 
 function systemsEnabled() {
@@ -662,15 +922,15 @@ function updatePlayer() {
 }
 
 function updateShooterPlayer() {
-  const speed = state.player.shield > 0 ? 7.2 : 5.2;
+  const speed = state.player.shield > 0 ? 7.2 : controlSpeed();
   let dx = 0;
   let dy = 0;
 
   if (movementEnabled()) {
-    if (keyIsDown("ArrowLeft", "a", "A")) dx -= 1;
-    if (keyIsDown("ArrowRight", "d", "D")) dx += 1;
-    if (keyIsDown("ArrowUp", "w", "W")) dy -= 1;
-    if (keyIsDown("ArrowDown", "s", "S")) dy += 1;
+    if (canMoveHorizontal() && keyIsDown("ArrowLeft", "a", "A")) dx -= 1;
+    if (canMoveHorizontal() && keyIsDown("ArrowRight", "d", "D")) dx += 1;
+    if (canMoveVertical() && keyIsDown("ArrowUp", "w", "W")) dy -= 1;
+    if (canMoveVertical() && keyIsDown("ArrowDown", "s", "S")) dy += 1;
   }
 
   if (dx !== 0 && dy !== 0) {
@@ -687,18 +947,18 @@ function updateShooterPlayer() {
 function updatePlatformPlayer() {
   const player = state.player;
   const groundY = platformGroundY();
-  const speed = player.shield > 0 ? 7.5 : 5.3;
+  const speed = player.shield > 0 ? 7.5 : controlSpeed();
 
   if (movementEnabled()) {
-    if (keyIsDown("ArrowLeft", "a", "A")) {
+    if (canMoveHorizontal() && keyIsDown("ArrowLeft", "a", "A")) {
       player.vx = -speed;
-    } else if (keyIsDown("ArrowRight", "d", "D")) {
+    } else if (canMoveHorizontal() && keyIsDown("ArrowRight", "d", "D")) {
       player.vx = speed;
     } else {
       player.vx *= 0.78;
     }
 
-    if (consumeKey("ArrowUp", "w", "W", " ") && player.grounded) {
+    if (canMoveVertical() && consumeKey("ArrowUp", "w", "W", " ") && player.grounded) {
       player.vy = -13.2;
       player.grounded = false;
       burst(player.x, player.y + player.size * 0.4, "#b1d5ff", 8);
@@ -998,13 +1258,18 @@ function handleItemCollection() {
       return;
     }
 
-    if (state.lesson === 2 && !state.ruleFixed) {
+    if (state.lesson === 2 && state.ruleStage === 0) {
       markStep(1, true);
       observeIssue(`你碰到了${routes[state.route].itemName}，但 score 没有变化：变量更新规则还没接上。`);
       return;
     }
 
-    if ((state.lesson === 2 || state.lesson === 3 || state.lesson === 6) && systemsEnabled()) {
+    if (state.lesson === 2 && state.ruleStage > 0) {
+      collectItem(item);
+      return;
+    }
+
+    if ((state.lesson === 3 || state.lesson === 6) && systemsEnabled()) {
       collectItem(item);
     }
   });
@@ -1013,10 +1278,18 @@ function handleItemCollection() {
 function collectItem(item) {
   item.collected = true;
   state.score += item.value;
+  if (state.lesson !== 2 || state.ruleStage >= 2) {
+    state.displayScore = state.score;
+  }
   markStep(2, true);
   burst(item.x, item.y, state.route === "shooter" ? "#fad538" : "#ff9191", 14);
 
-  if (state.lesson === 2 && state.score >= lessonTargetScore()) {
+  if (state.lesson === 2 && state.ruleStage === 1) {
+    pulseHint("变量 score 已经增加，但屏幕分数还没刷新。这就是变量和 UI 的区别。");
+    addAiMessage("观察统计区：变量 score 变了，屏幕分数还没同步。下一步要接 UI 刷新。");
+  }
+
+  if (state.lesson === 2 && state.ruleFixed && state.displayScore >= lessonTargetScore()) {
     completeLesson(`计分任务完成：score 已经达到 ${lessonTargetScore()}。`);
   }
 
@@ -1167,13 +1440,13 @@ function updateStats() {
   if (state.lesson === 1) {
     dom.statX.textContent = Math.round(state.player.x);
     dom.statY.textContent = Math.round(state.player.y);
-    dom.statSpeed.textContent = speed.toFixed(1);
+    dom.statSpeed.textContent = `${state.ruleStage}/3`;
     return;
   }
 
   if (state.lesson === 2) {
     dom.statX.textContent = state.score;
-    dom.statY.textContent = lessonTargetScore();
+    dom.statY.textContent = state.displayScore;
     dom.statSpeed.textContent = `${collected}/3`;
     return;
   }
@@ -1493,7 +1766,7 @@ function drawOverlay() {
   ctx.fillText(`目标：${route.targetText[state.lesson]}`, 24, 34);
 
   ctx.font = "700 13px 'Be Vietnam Pro', sans-serif";
-  const helperText = state.ruleFixed ? lessons[state.lesson].hintLive[state.route] : lessons[state.lesson].hintLocked[state.route];
+  const helperText = getCurrentHint();
   ctx.fillText(helperText.slice(0, 34), 24, 58);
 
   if (state.lesson === 6 || state.lesson === 3) {
@@ -1515,7 +1788,14 @@ function roundRect(x, y, width, height, radius) {
 
 function handleInputObservation(key) {
   if (state.lesson === 1 && !state.ruleFixed && isMoveKey(key)) {
-    observeIssue("你已经确认了现象：按键被按了，但角色没有移动，因为事件规则还没有连接。");
+    state.observedKeys.add(normalizeMoveKey(key));
+    if (state.observedKeys.size >= 2) {
+      markStep(1, true);
+      observeIssue("你已经确认了现象：系统听见了不同按键事件，但角色还没有移动，因为事件还没连到坐标变化。");
+      updateGuide();
+    } else {
+      pulseHint("很好，系统听见了第一个按键事件。再按另一个方向键，对比一下。");
+    }
   }
 
   if (state.lesson === 5 && !state.ruleFixed && isSkillKey(key)) {
@@ -1526,6 +1806,24 @@ function handleInputObservation(key) {
   if (state.lesson === 6 && !state.ruleFixed && (isMoveKey(key) || isSkillKey(key) || key === " ")) {
     pulseHint("毕业关需要先启动综合规则，才会把移动、得分、碰撞、生成和技能组合起来。");
   }
+}
+
+function normalizeMoveKey(key) {
+  const groups = {
+    ArrowLeft: "left",
+    a: "left",
+    A: "left",
+    ArrowRight: "right",
+    d: "right",
+    D: "right",
+    ArrowUp: "up",
+    w: "up",
+    W: "up",
+    ArrowDown: "down",
+    s: "down",
+    S: "down"
+  };
+  return groups[key] || key;
 }
 
 function rememberKey(key) {
@@ -1552,32 +1850,32 @@ function getAiReply(prompt) {
   const lesson = lessons[state.lesson];
   const replies = {
     stuck: {
-      1: "先把问题说成一句话：我按了键，但角色坐标没有变化。所以我们要连接“输入事件 -> 坐标变化”。",
-      2: "你可以盯住 score。碰到物品以后，如果 score 不变，说明缺的是变量更新，不是移动问题。",
+      1: "先把问题拆成链条：按键事件发生了没有？方向判断出来了吗？x/y 坐标有没有变化？不要急着修，先找到断点。",
+      2: "先区分变量和显示：碰到物品只是事件，score 增加是变量更新，屏幕数字变化是 UI 刷新。",
       3: "碰撞不只是“碰到了”，还要写结果：如果碰到，就让目标失效、加分或扣 HP。",
       4: "这一关不用急着操作，先等待。没有新对象出现，就说明系统循环没有启动。",
       5: "技能像一个打包动作。按 E 没反应时，说明函数还没有被调用，或者冷却条件没通过。",
       6: "毕业关要把前 5 个系统合起来看。先确认哪条规则没运行，再单独修那一条。"
     },
     hint: {
-      1: `点击“${lesson.button}”后，再让${route.noun}${route.targetText[1]}。`,
-      2: `先碰一个${route.itemName}观察问题，再启用 score 规则，最后收集全部目标。`,
+      1: state.ruleStage === 0 ? "先按两个不同方向键，完成观察证据；再点第一条修复。" : `当前规则进度 ${state.ruleStage}/3。每次只测试刚接上的那一条。`,
+      2: state.ruleStage === 0 ? `先碰一个${route.itemName}，确认“碰到但不计分”。` : `当前计分链路 ${state.ruleStage}/3。观察变量 score 和屏幕分数是否一致。`,
       3: state.route === "shooter" ? "先按空格打中靶子，再修复碰撞结果。" : "先碰一下红色怪物观察 HP，再修复碰撞结果。",
       4: "等 3 秒是第一步；启动生成规则后，盯住“生成数”变到 5。",
       5: "按 E 看有没有反应。启用函数后，等冷却归零再按下一次。",
       6: "射击路线靠空格和 E 得分；平台路线靠金币、躲怪和冲刺护盾。"
     },
     code: {
-      1: "代码的核心是：按键事件发生后，改变 x/y。x 变大向右，y 变小向上。",
-      2: "score += item.value 的意思是：把旧分数拿出来，加上物品价值，再放回 score。",
+      1: "代码的核心不是“按键=移动”，而是事件触发后，程序判断方向，再用 speed 改变 x/y。",
+      2: "score += item.value 只是在改变量；如果没有 refreshScoreUI()，玩家看到的屏幕分数可能还没变。",
       3: "if collision 的价值是防止所有事情都发生。只有碰撞成立，才执行后面的结果。",
       4: "timer.every(1.5) 像节拍器：每隔一段时间，就检查一次能不能生成新对象。",
       5: "函数把多行行为包装成一个名字。use_skill() 被调用时，才会执行里面的动作。",
       6: "完整游戏循环通常是：处理输入、更新对象、检测碰撞、判断胜负。"
     },
     recap: {
-      1: "你可以这样复盘：我修复了输入事件，让玩家按键能改变角色坐标。",
-      2: "你可以这样复盘：我修复了变量 score，让收集结果能被游戏记录和展示。",
+      1: "你可以这样复盘：我先确认按键事件被听见，再分步连接左右、上下和速度，最后让坐标变化形成移动。",
+      2: "你可以这样复盘：我先确认碰撞不会自动计分，再连接 score 变量、UI 刷新和防重复计分。",
       3: "你可以这样复盘：我用 if 判断碰撞是否发生，再改变分数、HP 或对象状态。",
       4: "你可以这样复盘：我启动了定时循环，让系统自动生成对象。",
       5: "你可以这样复盘：我把一组动作封装成技能函数，并加入冷却和能量限制。",

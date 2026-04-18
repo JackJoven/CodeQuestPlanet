@@ -473,6 +473,49 @@ h2 {
   margin-bottom: 20px;
 }
 
+.self-guide-card {
+  padding: 28px;
+  margin-bottom: 20px;
+  border-radius: var(--radius-lg);
+  color: var(--on-secondary-fixed);
+  background:
+    radial-gradient(circle at 8% 18%, rgba(250, 213, 56, 0.7), transparent 28%),
+    linear-gradient(135deg, var(--secondary-fixed), #e9f4ff);
+  box-shadow: var(--shadow);
+}
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.guide-grid article {
+  min-height: 150px;
+  padding: 18px;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 14px 28px rgba(0, 54, 92, 0.06);
+}
+
+.guide-grid span {
+  display: inline-flex;
+  margin-bottom: 10px;
+  font-family: var(--font-headline);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: var(--primary);
+}
+
+.guide-grid p {
+  margin: 0;
+  color: rgba(0, 54, 92, 0.82);
+  font-weight: 700;
+  line-height: 1.65;
+}
+
 .selector-card,
 .game-card,
 .mission-card,
@@ -1308,7 +1351,8 @@ canvas {
   .portal-grid,
   .showcase-grid,
   .report-dashboard,
-  .achievement-grid {
+  .achievement-grid,
+  .guide-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1352,6 +1396,7 @@ canvas {
 
   .hero-panel,
   .selector-card,
+  .self-guide-card,
   .game-card,
   .mission-card,
   .rule-card,
@@ -1377,7 +1422,8 @@ canvas {
   .portal-grid,
   .showcase-grid,
   .report-dashboard,
-  .achievement-grid {
+  .achievement-grid,
+  .guide-grid {
     grid-template-columns: 1fr;
   }
 
