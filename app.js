@@ -36,6 +36,8 @@ const dom = {
   guideCheckpoint: document.querySelector("#guideCheckpoint")
 };
 
+const curriculum = window.GameMakerCurriculum || null;
+
 const routes = {
   shooter: {
     title: "星际射击路线",
@@ -343,8 +345,99 @@ const selfGuides = {
   }
 };
 
+function createCurriculumLesson(course) {
+  const stage = course.stageMeta || curriculum.getStage(course.stage);
+  const lessonNumber = String(course.stageIndex).padStart(2, "0");
+  const stageTitle = `${course.stage} · ${stage.title}`;
+  const sharedHint = `这节是 ${course.id}《${course.title}》。先读目标，再完成一个小实验：${course.task}。`;
+
+  return {
+    eyebrow: `${stageTitle} · 第 ${lessonNumber} 课`,
+    heading: course.title,
+    intro: `这一课聚焦 ${course.concepts}。目标不是背语句，而是完成“${course.task}”，并能说清楚这条规则为什么会让作品变化。`,
+    missionTitle: `本课任务：${course.task}`,
+    missionCopy: `完成一个“${course.product}”学习证据。你需要先观察现象，再向 AI 说明目标、现象和猜测，最后保存一条规则复盘。`,
+    button: "开启本课任务",
+    activeButton: "任务已开启",
+    statusIdle: "课程待开始",
+    statusLive: "任务进行中",
+    statusWin: "课程任务完成",
+    statLabels: ["学段", "课次", "课时"],
+    steps: [
+      `理解：${course.concepts}`,
+      `观察：${course.task}`,
+      "向 AI 说明目标、现象和猜测",
+      `完成并展示：${course.product}`
+    ],
+    slots: [
+      "当 本课任务开始",
+      `如果 目标是：${course.task}`,
+      `就 完成一个${course.product}并写下复盘`
+    ],
+    hintLocked: {
+      shooter: sharedHint,
+      platform: sharedHint
+    },
+    hintLive: {
+      shooter: `任务已开启。请围绕“${course.concepts}”做一个最小作品证据，然后用自己的话解释规则。`,
+      platform: `任务已开启。请围绕“${course.concepts}”做一个最小作品证据，然后用自己的话解释规则。`
+    },
+    code: {
+      rule: `当 本课任务开始
+先 观察作品里发生了什么
+再 用“当/如果/就”写出关键规则
+最后 保存作品证据和复盘
+
+本课概念：
+${course.concepts}
+
+本课作品：
+${course.product}`,
+      pseudo: `lesson.goal = "${course.task}"
+concepts = "${course.concepts}"
+
+observe()
+describe_goal_to_ai()
+build_small_proof("${course.product}")
+reflect("我改了哪条规则？结果怎么变化？")`,
+      python: `lesson_goal = "${course.task}"
+concepts = "${course.concepts}"
+
+def learn():
+    observe()
+    ask_ai(goal=lesson_goal, mode="hint")
+    build("${course.product}")
+    reflect()`
+    }
+  };
+}
+
+if (curriculum) {
+  curriculum.courses.forEach((course) => {
+    if (!course.playableLesson) {
+      lessons[course.id] = createCurriculumLesson(course);
+    }
+  });
+}
+
+function getActiveCourse() {
+  if (!curriculum) {
+    return null;
+  }
+  return curriculum.getCourse(state.courseId);
+}
+
+function isPlayableLesson() {
+  return Number.isInteger(state.lesson);
+}
+
+function lessonKeyForCourse(course) {
+  return course && course.playableLesson ? course.playableLesson : course.id;
+}
+
 const state = {
   lesson: 1,
+  courseId: "L2-01",
   route: "shooter",
   codeMode: "rule",
   ruleFixed: false,
@@ -407,11 +500,15 @@ function createStars() {
 }
 
 function applyLessonContent() {
-  const lesson = lessons[state.lesson];
-  dom.lessonEyebrow.textContent = lesson.eyebrow;
-  dom.lessonHeading.textContent = lesson.heading;
+  const lesson = lessons[state.lesson] || lessons[1];
+  const course = getActiveCourse();
+  const stage = course ? course.stageMeta : null;
+  dom.lessonEyebrow.textContent = course
+    ? `${course.id} · ${stage.title}${course.playableLesson ? " · 可玩原型" : ""}`
+    : lesson.eyebrow;
+  dom.lessonHeading.textContent = course ? course.title : lesson.heading;
   dom.lessonIntro.textContent = lesson.intro;
-  dom.routeTitle.textContent = routes[state.route].title;
+  dom.routeTitle.textContent = isPlayableLesson() ? routes[state.route].title : `${stage.title} · 创作实验舱`;
   dom.missionTitle.textContent = lesson.missionTitle;
   dom.missionCopy.textContent = lesson.missionCopy;
   [dom.stepText1, dom.stepText2, dom.stepText3, dom.stepText4].forEach((node, index) => {
@@ -429,7 +526,17 @@ function applyLessonContent() {
 }
 
 function updateGuide() {
-  const guide = selfGuides[state.lesson] || selfGuides.default;
+  const course = getActiveCourse();
+  const guide = !isPlayableLesson() && course
+    ? {
+        title: `${course.id} 自学任务：${course.title}`,
+        badge: course.stage,
+        goal: `完成“${course.task}”，并把它解释成一条清楚的游戏/作品规则。`,
+        observe: `先观察这一课的作品目标：${course.product}。想一想它需要哪些对象、事件或状态。`,
+        experiment: `先做最小版本，不追求复杂。卡住时向 AI 说明：我想做什么、现在发生什么、我猜哪里有问题。`,
+        checkpoint: `出口自测：能说出本课概念“${course.concepts}”在作品里的位置，并留下作品证据。`
+      }
+    : selfGuides[state.lesson] || selfGuides.default;
   dom.guideTitle.textContent = guide.title;
   dom.guideBadge.textContent = guide.badge;
   dom.guideGoal.textContent = guide.goal;
@@ -688,6 +795,10 @@ function enableRule() {
   state.ruleFixed = true;
   dom.applyRuleBtn.textContent = lesson.activeButton;
   dom.applyRuleBtn.classList.add("is-applied");
+  if (!isPlayableLesson()) {
+    markStep(1, true);
+    markStep(2, true);
+  }
   markStep(3, true);
   setStatus(lesson.statusLive, "is-live");
   pulseHint(lesson.hintLive[state.route]);
@@ -798,6 +909,7 @@ function completeLesson(message) {
 
 function getRuleAppliedReply() {
   const route = routes[state.route];
+  const course = getActiveCourse();
   const replies = {
     1: `连接成功。现在${route.noun}会响应输入事件，目标是${route.targetText[1]}。`,
     2: `score 变量已经接上线了。每次收集${route.itemName}，变量和屏幕数字都会一起变化。`,
@@ -806,7 +918,9 @@ function getRuleAppliedReply() {
     5: "技能函数已经激活。按 E 触发一组动作，冷却时间会防止无限连发。",
     6: "综合规则启动。现在这已经是一关完整小游戏：移动、得分、碰撞、生成和技能会一起运转。"
   };
-  return replies[state.lesson];
+  return replies[state.lesson] || (course
+    ? `任务已开启。请围绕 ${course.concepts} 做出“${course.product}”，并把关键规则讲清楚。`
+    : "任务已开启。先观察、再验证，最后完成复盘。");
 }
 
 function observeIssue(text) {
@@ -1436,6 +1550,14 @@ function checkLesson1Goal() {
 function updateStats() {
   const speed = Math.hypot(state.player.vx || 0, state.player.vy || 0);
   const collected = state.items.filter((item) => item.collected).length;
+  const course = getActiveCourse();
+
+  if (!isPlayableLesson() && course) {
+    dom.statX.textContent = course.stage;
+    dom.statY.textContent = String(course.stageIndex).padStart(2, "0");
+    dom.statSpeed.textContent = course.stageMeta.duration.replace(" 分钟/节", "");
+    return;
+  }
 
   if (state.lesson === 1) {
     dom.statX.textContent = Math.round(state.player.x);
@@ -1760,10 +1882,12 @@ function drawPlayer() {
 
 function drawOverlay() {
   const route = routes[state.route];
+  const course = getActiveCourse();
+  const targetText = route.targetText[state.lesson] || (course ? course.task : lessons[state.lesson].heading);
   ctx.save();
   ctx.fillStyle = state.route === "shooter" ? "rgba(245, 247, 248, 0.9)" : "rgba(11, 15, 16, 0.78)";
   ctx.font = "800 15px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText(`目标：${route.targetText[state.lesson]}`, 24, 34);
+  ctx.fillText(`目标：${targetText}`, 24, 34);
 
   ctx.font = "700 13px 'Be Vietnam Pro', sans-serif";
   const helperText = getCurrentHint();
@@ -1883,25 +2007,124 @@ function getAiReply(prompt) {
     }
   };
 
-  return replies[prompt][state.lesson];
+  const legacyReply = replies[prompt] && replies[prompt][state.lesson];
+  if (legacyReply) {
+    return legacyReply;
+  }
+
+  const course = getActiveCourse();
+  if (!course) {
+    return "先把目标、现象和猜测说清楚，再让 AI 给一个小提示。";
+  }
+
+  const fallbackReplies = {
+    stuck: `把 ${course.id} 拆成三步：你想完成什么？现在看到什么？你猜哪条规则没连上？先写这三句话，再继续。`,
+    hint: `本课先做最小证据：${course.task}。不要加太多功能，先证明 ${course.concepts} 真的发生了。`,
+    code: `这节课的代码透视重点是：把“${course.task}”翻译成“当/如果/就”。先写中文规则，再看伪代码。`,
+    recap: `你可以这样复盘：我完成了“${course.product}”，它对应 ${course.concepts}；AI 给了提示，我通过运行或观察验证了结果。`
+  };
+
+  return fallbackReplies[prompt] || fallbackReplies.hint;
+}
+
+function setActiveCourse(courseId) {
+  if (!curriculum) {
+    const legacyLesson = Number(courseId);
+    if (lessons[legacyLesson]) {
+      state.lesson = legacyLesson;
+    }
+    return;
+  }
+
+  const course = curriculum.getCourse(courseId);
+  state.courseId = course.id;
+  state.lesson = lessonKeyForCourse(course);
+}
+
+function renderLessonNavigator(stageId) {
+  if (!curriculum) {
+    return;
+  }
+
+  const course = getActiveCourse();
+  const activeStage = stageId || course.stage;
+  curriculum.renderStageTabs("#stageTabs", { activeStage });
+  curriculum.renderLessonRail("#lessonCourseRail", {
+    activeCourseId: state.courseId,
+    stage: activeStage
+  });
+  bindStageTabEvents();
+  bindCourseCardEvents();
+  updateCourseNavigation();
+}
+
+function updateCourseNavigation() {
+  const activeCourse = getActiveCourse();
+  document.querySelectorAll(".lesson-card").forEach((card) => {
+    const courseId = card.dataset.course || (card.dataset.lesson ? `L2-${String(Number(card.dataset.lesson)).padStart(2, "0")}` : "");
+    card.classList.toggle("is-active", activeCourse ? courseId === activeCourse.id : Number(card.dataset.lesson) === state.lesson);
+  });
+
+  document.querySelectorAll(".stage-tab").forEach((tab) => {
+    tab.classList.toggle("is-active", activeCourse ? tab.dataset.stage === activeCourse.stage : false);
+  });
+}
+
+function bindStageTabEvents() {
+  document.querySelectorAll(".stage-tab").forEach((button) => {
+    if (button.dataset.bound === "true") {
+      return;
+    }
+
+    button.dataset.bound = "true";
+    button.addEventListener("click", () => {
+      const firstCourse = curriculum.coursesForStage(button.dataset.stage)[0];
+      if (firstCourse) {
+        activateCourse(firstCourse.id);
+      }
+    });
+  });
+}
+
+function bindCourseCardEvents() {
+  document.querySelectorAll(".lesson-card").forEach((button) => {
+    if (button.dataset.bound === "true") {
+      return;
+    }
+
+    button.dataset.bound = "true";
+    button.addEventListener("click", () => {
+      const courseId = button.dataset.course || button.dataset.lesson;
+      activateCourse(courseId);
+    });
+  });
+}
+
+function activateCourse(courseId) {
+  setActiveCourse(courseId);
+  const course = getActiveCourse();
+  renderLessonNavigator(course ? course.stage : undefined);
+  syncLessonUrl();
+  resetGame(true);
+  addAiMessage(course && course.playableLesson
+    ? `已切换到 ${course.id}：${lessons[state.lesson].heading}。先观察，再修复。`
+    : course
+      ? `已切换到 ${course.id}：${course.title}。先读任务，再完成一个最小作品证据。`
+      : `已切换到第 ${state.lesson} 关：${lessons[state.lesson].heading}。先观察，再修复。`);
 }
 
 function applyInitialUrlState() {
   const params = new URLSearchParams(window.location.search);
-  const lesson = Number(params.get("lesson"));
+  const course = params.get("course") || params.get("lesson") || "L2-01";
   const route = params.get("route");
 
-  if (lessons[lesson]) {
-    state.lesson = lesson;
-  }
+  setActiveCourse(course);
 
   if (routes[route]) {
     state.route = route;
   }
 
-  document.querySelectorAll(".lesson-card").forEach((card) => {
-    card.classList.toggle("is-active", Number(card.dataset.lesson) === state.lesson);
-  });
+  renderLessonNavigator(getActiveCourse() ? getActiveCourse().stage : undefined);
 
   document.querySelectorAll(".route-card").forEach((card) => {
     card.classList.toggle("is-active", card.dataset.route === state.route);
@@ -1910,7 +2133,11 @@ function applyInitialUrlState() {
 
 function syncLessonUrl() {
   const params = new URLSearchParams();
-  params.set("lesson", state.lesson);
+  if (state.courseId) {
+    params.set("course", state.courseId);
+  } else {
+    params.set("lesson", state.lesson);
+  }
   params.set("route", state.route);
   window.history.replaceState(null, "", `./lesson.html?${params.toString()}`);
 }
@@ -1926,15 +2153,7 @@ function gameLoop() {
   window.requestAnimationFrame(gameLoop);
 }
 
-document.querySelectorAll(".lesson-card").forEach((button) => {
-  button.addEventListener("click", () => {
-    state.lesson = Number(button.dataset.lesson);
-    document.querySelectorAll(".lesson-card").forEach((card) => card.classList.toggle("is-active", card === button));
-    syncLessonUrl();
-    resetGame(true);
-    addAiMessage(`已切换到第 ${state.lesson} 关：${lessons[state.lesson].heading}。先观察，再修复。`);
-  });
-});
+bindCourseCardEvents();
 
 document.querySelectorAll(".route-card").forEach((button) => {
   button.addEventListener("click", () => {
@@ -1980,6 +2199,16 @@ document.querySelectorAll(".touch-pad button").forEach((button) => {
 dom.applyRuleBtn.addEventListener("click", enableRule);
 
 dom.runBtn.addEventListener("click", () => {
+  if (!isPlayableLesson()) {
+    markStep(1, true);
+    if (!state.ruleFixed) {
+      pulseHint(lessons[state.lesson].hintLocked[state.route]);
+      return;
+    }
+    completeLesson(`课程任务完成：${lessons[state.lesson].heading} 已留下学习证据。`);
+    return;
+  }
+
   if (state.lesson !== 6 || state.ruleFixed) {
     markStep(1, true);
   }

@@ -29,7 +29,7 @@
       <div class="profile-card">
         <div class="avatar">创</div>
         <p>Welcome, Creator</p>
-        <strong>规则星港 · Level 01</strong>
+        <strong>造游星球 · 全学段</strong>
       </div>
 
       <nav class="side-nav">
@@ -40,84 +40,55 @@
       </nav>
 
       <div class="stage-summary">
-        <span>阶段 1</span>
-        <strong>控制与状态</strong>
+        <span>课程天梯</span>
+        <strong>L0-L2 主线</strong>
         <div class="chunky-track">
-          <i style="width: 34%"></i>
+          <i style="width: 48%"></i>
         </div>
-        <small>先完成 6 个任务，再进入作品展示和成长报告。</small>
+        <small>先做 L2 的 6 课 MVP，再向下接启蒙、向上扩展完整游戏编程主线。</small>
       </div>
     </aside>
 
     <main class="workspace">
       <section class="hero-panel portal-hero">
         <div class="hero-copy-wrap">
-          <span class="chapter-pill">Mission Map · AI 伴学路线</span>
-          <h1>选择你的下一座星球</h1>
+          <span class="chapter-pill">Mission Map · L0-L2 课程天梯</span>
+          <h1>从第一次创作，到第一款游戏</h1>
           <p>
-            这里是学生的任务地图。每一关都是一个独立学习任务，点击卡片进入课程闯关页；作品、成就和报告会在独立页面里沉淀。
+            这里是学生的全学段任务地图。L0 负责兴趣启蒙，L1 负责规则入门，L2 负责 AI 游戏编程主线；点击任意课程卡片进入对应任务页。
           </p>
           <div class="hero-actions">
-            <a class="primary-btn" href="./lesson.html?lesson=1">开始第 1 关</a>
-            <a class="ghost-btn" href="./projects.html">查看作品工坊</a>
+            <a class="primary-btn" href="./lesson.html?course=L2-01">开始 L2-01 可玩原型</a>
+            <a class="ghost-btn" href="#stage-L0">从 L0 启蒙看起</a>
           </div>
         </div>
 
         <div class="coach-bubble">
           <div class="mascot">AI</div>
-          <p>先从地图选任务，再进入闯关页。学完后回到作品和报告页面看成果。</p>
+          <p>课程可以从任意学段进入，但当前开发优先打磨 L2-01 到 L2-06 的可玩 MVP。</p>
         </div>
       </section>
 
       <section class="mission-map-shell">
         <div class="card-head">
           <div>
-            <p class="section-kicker">阶段任务</p>
-            <h2>规则星港 · 6 课 MVP 路线</h2>
+            <p class="section-kicker">全学段入口</p>
+            <h2>先选学段，再选课程</h2>
           </div>
-          <span class="mini-badge">34% Complete</span>
+          <span class="mini-badge">52 Core Lessons</span>
         </div>
 
-        <div class="mission-path" aria-label="课程任务地图">
-          <a class="map-node is-unlocked" href="./lesson.html?lesson=1">
-            <span>01</span>
-            <strong>控制诊断场</strong>
-            <small>事件 · 坐标 · 速度</small>
-          </a>
-          <a class="map-node is-unlocked" href="./lesson.html?lesson=2">
-            <span>02</span>
-            <strong>分数侦探局</strong>
-            <small>变量 · 分数 · UI</small>
-          </a>
-          <a class="map-node is-current" href="./lesson.html?lesson=3">
-            <span>03</span>
-            <strong>碰撞开关</strong>
-            <small>条件 · 碰撞 · 状态</small>
-          </a>
-          <a class="map-node" href="./lesson.html?lesson=4">
-            <span>04</span>
-            <strong>自动生成器</strong>
-            <small>循环 · 定时 · 随机</small>
-          </a>
-          <a class="map-node" href="./lesson.html?lesson=5">
-            <span>05</span>
-            <strong>技能胶囊</strong>
-            <small>函数 · 参数 · 冷却</small>
-          </a>
-          <a class="map-node is-boss" href="./lesson.html?lesson=6">
-            <span>06</span>
-            <strong>我的第一款小游戏</strong>
-            <small>综合 · 展示 · 复盘</small>
-          </a>
-        </div>
+        <div class="stage-overview" id="stageOverview" aria-label="学段入口"></div>
       </section>
+
+      <div class="curriculum-map" id="curriculumMap" aria-label="L0 L1 L2 完整课程地图"></div>
 
       <section class="portal-grid">
         <article class="portal-card">
           <p class="section-kicker">学习入口</p>
-          <h2>课程闯关页</h2>
-          <p>进入真实游戏关卡，选择射击或平台跳跃路线，用 AI 伴学完成观察、修复和复盘。</p>
-          <a class="text-link" href="./lesson.html">进入课程闯关</a>
+          <h2>L2 可玩 MVP</h2>
+          <p>优先打磨 L2-01 到 L2-06：选择射击或平台跳跃路线，用 AI 伴学完成观察、修复和复盘。</p>
+          <a class="text-link" href="./lesson.html?course=L2-01">进入 L2-01</a>
         </article>
 
         <article class="portal-card">
@@ -136,6 +107,7 @@
       </section>
     </main>
 
-    <a class="floating-help" href="./lesson.html" aria-label="询问 AI 教练">AI</a>
+    <a class="floating-help" href="./lesson.html?course=L2-01" aria-label="询问 AI 教练">AI</a>
+    <script src="./curriculum.js"></script>
   </body>
 </html>

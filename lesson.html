@@ -29,7 +29,7 @@
       <div class="profile-card">
         <div class="avatar">创</div>
         <p>Welcome, Creator</p>
-        <strong>规则星港 · Level 01</strong>
+        <strong>造游星球 · 课程任务</strong>
       </div>
 
       <nav class="side-nav">
@@ -40,12 +40,12 @@
       </nav>
 
       <div class="stage-summary">
-        <span>阶段 1</span>
-        <strong>控制与状态</strong>
+        <span>当前主线</span>
+        <strong>L2 游戏编程</strong>
         <div class="chunky-track">
-          <i style="width: 34%"></i>
+          <i style="width: 25%"></i>
         </div>
-        <small>完成前 2 关后生成阶段成果卡</small>
+        <small>L2-01 到 L2-06 是当前可玩 MVP，其余课程先进入任务页和课程详情。</small>
       </div>
     </aside>
 
@@ -65,41 +65,11 @@
         </div>
       </section>
 
-      <section class="selector-row" aria-label="选择关卡和路线">
-        <div class="selector-card lesson-selector">
-          <p class="section-kicker">关卡</p>
-          <div class="choice-grid">
-            <button class="lesson-card is-active" data-lesson="1" type="button">
-              <span>01</span>
-              <strong>控制诊断场</strong>
-              <small>事件 · 坐标 · 速度</small>
-            </button>
-            <button class="lesson-card" data-lesson="2" type="button">
-              <span>02</span>
-              <strong>分数侦探局</strong>
-              <small>变量 · 分数 · UI</small>
-            </button>
-            <button class="lesson-card" data-lesson="3" type="button">
-              <span>03</span>
-              <strong>碰撞开关</strong>
-              <small>条件 · 碰撞 · 状态</small>
-            </button>
-            <button class="lesson-card" data-lesson="4" type="button">
-              <span>04</span>
-              <strong>自动生成器</strong>
-              <small>循环 · 定时 · 随机</small>
-            </button>
-            <button class="lesson-card" data-lesson="5" type="button">
-              <span>05</span>
-              <strong>技能胶囊</strong>
-              <small>函数 · 参数 · 冷却</small>
-            </button>
-            <button class="lesson-card" data-lesson="6" type="button">
-              <span>06</span>
-              <strong>我的第一款小游戏</strong>
-              <small>综合 · 展示 · 复盘</small>
-            </button>
-          </div>
+      <section class="selector-row curriculum-selector-row" aria-label="选择课程和路线">
+        <div class="selector-card lesson-selector curriculum-selector">
+          <p class="section-kicker">课程选择</p>
+          <div class="stage-tabs" id="stageTabs" aria-label="选择学段"></div>
+          <div class="course-rail" id="lessonCourseRail" aria-label="当前学段课程"></div>
         </div>
 
         <div class="selector-card route-panel">
@@ -294,8 +264,8 @@
       <section class="report-strip" aria-label="阶段评价预览">
         <div>
           <span>家长可见成果</span>
-          <strong>阶段 1 完成后，将生成“控制与状态”成果卡</strong>
-          <p>包含孩子完成的作品、关键规则、对应编程概念，以及 AI 协作复盘。</p>
+          <strong>每个学段都会沉淀作品证据和规则复盘</strong>
+          <p>L0 看兴趣和表达，L1 看规则理解，L2 看可玩作品、代码透视和 AI 协作验证。</p>
         </div>
         <a class="report-btn" href="./report.html">预览成果卡</a>
       </section>
@@ -303,6 +273,7 @@
 
     <button class="floating-help" type="button" aria-label="询问 AI 教练">AI</button>
 
+    <script src="./curriculum.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>
