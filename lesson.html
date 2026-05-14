@@ -21,7 +21,7 @@
       </nav>
       <div class="top-actions">
         <button class="icon-btn" type="button" aria-label="通知">N</button>
-        <a class="start-btn" href="./lesson.html">继续学习</a>
+        <a class="start-btn" href="./lesson.html?course=L0-01">继续学习</a>
       </div>
     </header>
 
@@ -41,27 +41,27 @@
 
       <div class="stage-summary">
         <span>当前主线</span>
-        <strong>L2 游戏编程</strong>
+        <strong>L0-L2 课程任务</strong>
         <div class="chunky-track">
           <i style="width: 25%"></i>
         </div>
-        <small>L2-01 到 L2-06 是当前可玩 MVP，其余课程先进入任务页和课程详情。</small>
+        <small>课程页按 L0 兴趣、L1 规则、L2 创作与代码过渡逐步展开。</small>
       </div>
     </aside>
 
     <main class="workspace">
       <section class="hero-panel">
         <div class="hero-copy-wrap">
-          <span class="chapter-pill" id="lessonEyebrow">AI 伴学式游戏编程平台 · 第 1 关</span>
-          <h1 id="lessonHeading">控制诊断场</h1>
+          <span class="chapter-pill" id="lessonEyebrow">L0 · AI 创作启蒙 · 第 01 课</span>
+          <h1 id="lessonHeading">让角色动起来</h1>
           <p id="lessonIntro">
-            先试玩一个“坏掉”的游戏，再用规则修好它。你选择喜欢的游戏类型，平台把同一个编程概念映射到不同玩法里。
+            每一课都从一个清楚目标出发：先观察作品要完成什么，再做一个最小作品证据，最后用自己的话讲清规则。
           </p>
         </div>
 
         <div class="coach-bubble">
           <div class="mascot">AI</div>
-          <p>先观察现象，再修复规则。最后讲清楚你做了什么。</p>
+          <p>先看目标，再做最小实验。卡住时，把目标、现象和猜测告诉我。</p>
         </div>
       </section>
 
@@ -97,26 +97,26 @@
         <div class="card-head compact">
           <div>
             <p class="section-kicker">自学任务单</p>
-            <h2 id="guideTitle">这一关到底要学会什么？</h2>
+            <h2 id="guideTitle">先做一个最小作品证据</h2>
           </div>
-          <span class="mini-badge" id="guideBadge">Self Learn</span>
+          <span class="mini-badge" id="guideBadge">Response</span>
         </div>
         <div class="guide-grid">
           <article>
             <span>目标</span>
-            <p id="guideGoal">把玩家输入和角色移动之间的关系讲清楚。</p>
+            <p id="guideGoal">完成这节课的最小作品证据，并能说清规则为什么会让作品变化。</p>
           </article>
           <article>
             <span>观察</span>
-            <p id="guideObserve">先按方向键，看角色、坐标和提示分别有没有变化。</p>
+            <p id="guideObserve">先看作品目标，再观察现在的画面、对象和反馈各自承担什么作用。</p>
           </article>
           <article>
             <span>实验</span>
-            <p id="guideExperiment">每次只修一条规则，再回到游戏区测试差异。</p>
+            <p id="guideExperiment">每次只完成一个最小变化，再回到任务区测试差异。</p>
           </article>
           <article>
             <span>出口</span>
-            <p id="guideCheckpoint">不用背语句，能用自己的话解释“事件让坐标变化”就过关。</p>
+            <p id="guideCheckpoint">不用背语句，能用自己的话解释“我加了什么规则，所以结果变了”就过关。</p>
           </article>
         </div>
       </section>
@@ -126,15 +126,15 @@
           <div class="card-head">
             <div>
               <p class="section-kicker">游戏运行区</p>
-              <h2 id="routeTitle">星际射击路线</h2>
+              <h2 id="routeTitle">AI 创作启蒙 · Response Lab</h2>
             </div>
-            <div class="status-pill" id="runStatus">等待修复</div>
+            <div class="status-pill" id="runStatus">课程待开始</div>
           </div>
 
           <div class="game-frame">
             <canvas id="gameCanvas" width="960" height="540" aria-label="游戏运行画布"></canvas>
             <div class="game-hint" id="gameHint">
-              按 WASD 或方向键试试看：角色现在不会动，因为输入规则还没连接。
+              先读这节课的目标，再点击“开启本课任务”或“试运行”，观察作品会怎样回应。
             </div>
             <div class="touch-pad" aria-label="屏幕控制键">
               <button type="button" data-touch-key="ArrowUp">上</button>
@@ -147,7 +147,7 @@
           </div>
 
           <div class="game-actions">
-            <button class="primary-btn" id="applyRuleBtn" type="button">修复控制规则</button>
+            <button class="primary-btn" id="applyRuleBtn" type="button">开启本课任务</button>
             <button class="ghost-btn" id="runBtn" type="button">试运行</button>
             <button class="ghost-btn" id="resetBtn" type="button">重置关卡</button>
           </div>
@@ -155,42 +155,44 @@
 
         <aside class="mission-card">
           <p class="section-kicker">本课任务</p>
-          <h2 id="missionTitle">独立搞懂“输入 -> 坐标 -> 移动”</h2>
+          <h2 id="missionTitle">本课任务：让主角从起点走到目标</h2>
           <p id="missionCopy">
-            你要理解第一个核心概念：事件。当玩家按下某个键，游戏会触发一条规则，让角色改变坐标。
+            这节课要完成一个最小作品证据，并能解释：我加了什么规则，作品因此发生了什么变化。
           </p>
 
-          <div class="progress-list">
+          <div class="student-activity" id="studentActivity" hidden></div>
+
+          <div class="progress-list" id="progressList">
             <div class="progress-item is-done" data-step="1">
               <span>1</span>
-              <p id="stepText1">试玩坏掉的游戏</p>
+              <p id="stepText1">理解本课目标</p>
             </div>
             <div class="progress-item" data-step="2">
               <span>2</span>
-              <p id="stepText2">猜测为什么角色不动</p>
+              <p id="stepText2">观察作品现象</p>
             </div>
             <div class="progress-item" data-step="3">
               <span>3</span>
-              <p id="stepText3">启用输入事件规则</p>
+              <p id="stepText3">完成最小作品证据</p>
             </div>
             <div class="progress-item" data-step="4">
               <span>4</span>
-              <p id="stepText4">到达目标并复盘代码</p>
+              <p id="stepText4">复盘并保存成果</p>
             </div>
           </div>
 
           <div class="stats">
             <div>
-              <span id="statLabel1">X 坐标</span>
-              <strong id="statX">0</strong>
+              <span id="statLabel1">学段</span>
+              <strong id="statX">L0</strong>
             </div>
             <div>
-              <span id="statLabel2">Y 坐标</span>
-              <strong id="statY">0</strong>
+              <span id="statLabel2">课次</span>
+              <strong id="statY">01</strong>
             </div>
             <div>
-              <span id="statLabel3">速度</span>
-              <strong id="statSpeed">0</strong>
+              <span id="statLabel3">课时</span>
+              <strong id="statSpeed">35-45</strong>
             </div>
           </div>
         </aside>
@@ -200,8 +202,8 @@
         <article class="rule-card">
           <div class="card-head compact">
             <div>
-              <p class="section-kicker">规则编辑器</p>
-              <h2>像搭积木一样写规则</h2>
+              <p class="section-kicker">规则实验台</p>
+              <h2>用当 / 如果 / 就表达规则</h2>
             </div>
             <span class="mini-badge">Rule DSL</span>
           </div>
@@ -209,17 +211,18 @@
           <div class="rule-stack">
             <div class="rule-row">
               <span>当</span>
-              <button class="slot" type="button" id="eventSlot">按下方向键 / WASD</button>
+              <button class="slot" type="button" id="eventSlot">本课任务开始</button>
             </div>
             <div class="rule-row">
               <span>如果</span>
-              <button class="slot" type="button" id="conditionSlot">角色没有被锁定</button>
+              <button class="slot" type="button" id="conditionSlot">目标是完成一个最小作品证据</button>
             </div>
             <div class="rule-row">
               <span>就</span>
-              <button class="slot" type="button" id="actionSlot">改变角色坐标</button>
+              <button class="slot" type="button" id="actionSlot">观察、实验并留下复盘</button>
             </div>
           </div>
+
         </article>
 
         <article class="code-card">
@@ -248,7 +251,7 @@
 
           <div class="chat-window" id="chatWindow" aria-live="polite">
             <div class="message ai">
-              先按一下方向键观察现象。然后告诉我：你觉得角色为什么不动？
+              先告诉我：这节课你想完成什么作品？如果卡住了，再把你看到的现象和猜测告诉我。
             </div>
           </div>
 
