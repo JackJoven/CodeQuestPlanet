@@ -21,7 +21,7 @@
       </nav>
       <div class="top-actions">
         <button class="icon-btn" type="button" aria-label="通知">N</button>
-        <a class="start-btn" href="./lesson.html">继续学习</a>
+        <a class="start-btn" href="./state-lab.html">继续学习</a>
       </div>
     </header>
 
@@ -56,7 +56,7 @@
           <h1>这不是成绩单，是一份作品证据报告</h1>
           <p>用家长能理解的语言，把孩子的编程概念、作品行为、AI 协作方式和阶段性成长讲清楚。</p>
           <div class="hero-actions">
-            <a class="primary-btn" href="./projects.html">查看作品证据</a>
+            <a class="primary-btn" href="#stateEvidencePanel">查看状态证据</a>
             <a class="ghost-btn" href="./achievements.html">查看成就星星</a>
           </div>
         </div>
@@ -66,41 +66,41 @@
         </div>
       </section>
 
-      <section class="report-dashboard">
-        <article class="metric-card">
+      <section class="report-dashboard" id="reportDashboard">
+        <article class="metric-card" id="completedMetric">
           <span>本阶段完成</span>
-          <strong>2 / 6 课</strong>
-          <p>已经掌握事件、坐标和变量计分的基础表达。</p>
+          <strong>0 / 1 课</strong>
+          <p>完成 L1-08 后，这里会显示状态规则实验台结果。</p>
         </article>
-        <article class="metric-card">
+        <article class="metric-card" id="evidenceMetric">
           <span>作品证据</span>
-          <strong>3 条</strong>
-          <p>包含小游戏截图、规则卡、AI 问答复盘。</p>
+          <strong>待生成</strong>
+          <p>证据卡会包含规则链路、bug 修复和复盘。</p>
         </article>
-        <article class="metric-card">
+        <article class="metric-card" id="nextMetric">
           <span>下一步重点</span>
-          <strong>碰撞条件</strong>
-          <p>建议继续完成第 3 课，理解 if 条件和对象状态。</p>
+          <strong>状态调试</strong>
+          <p>先验证 hasKey、doorOpen 和 hp 的状态链路。</p>
         </article>
       </section>
 
-      <section class="report-panel">
+      <section class="report-panel" id="stateEvidencePanel">
         <div>
           <p class="section-kicker">阶段评语</p>
-          <h2>孩子正在从“玩游戏”进入“设计规则”</h2>
-          <p>
-            目前孩子已经能够观察游戏里的异常现象，并通过修复规则让角色移动、让 score 发生变化。
-            这说明孩子开始理解游戏不是固定画面，而是一组可被表达、调试和组合的规则。
+          <h2 id="reportTitle">等待 L1-08 状态证据</h2>
+          <p id="reportSummary">
+            完成钥匙门机关房后，报告会展示孩子如何用状态记住“拿过钥匙”，并修复门规则条件错误。
           </p>
         </div>
-        <div class="evidence-list">
-          <a href="./lesson.html?lesson=1">第 1 课：按键事件改变坐标</a>
-          <a href="./lesson.html?lesson=2">第 2 课：score 变量记录结果</a>
-          <a href="./projects.html">作品证据：星际晶核守卫战草稿</a>
+        <div class="evidence-list" id="reportEvidenceList">
+          <a href="./state-lab.html">进入 L1-08：状态规则实验台</a>
+          <a href="./ai-verify-lab.html">进入 L2-18：验证 AI 建议</a>
+          <a href="./prd/v0.9-L1状态规则实验台vertical-slice.md">查看 v0.9 PRD</a>
         </div>
       </section>
     </main>
 
-    <a class="floating-help" href="./lesson.html" aria-label="询问 AI 教练">AI</a>
+    <a class="floating-help" href="./state-lab.html" aria-label="询问 AI 教练">AI</a>
+    <script src="./report.js"></script>
   </body>
 </html>

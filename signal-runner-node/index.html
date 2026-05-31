@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Signal Runner | 信标无人机作品节点</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">14 岁 · 6 节课作品节点</p>
+          <h1>Signal Runner</h1>
+        </div>
+        <div class="top-status">
+          <span id="nodeProgress">0 / 6 完成</span>
+          <button class="ghost-button" id="resetProgressBtn" type="button">重置进度</button>
+        </div>
+      </header>
+
+      <nav class="mission-strip" id="missionList" aria-label="课程关卡"></nav>
+
+      <main class="workspace">
+        <section class="play-panel" aria-label="运行区">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow" id="missionKicker">Lesson 01</p>
+              <h2 id="missionTitle">启动中</h2>
+            </div>
+            <span class="pill" id="missionConcept">序列</span>
+          </div>
+          <div class="canvas-shell">
+            <canvas id="gameCanvas" width="960" height="640" aria-label="无人机任务地图"></canvas>
+            <div class="world-hud">
+              <div class="gem-counter">
+                <span class="gem-mark" aria-hidden="true"></span>
+                <strong id="worldBeaconCounter">0/1</strong>
+              </div>
+              <button class="sound-button" type="button" aria-label="声音"></button>
+            </div>
+            <div class="run-banner" id="runBanner">准备编程</div>
+            <div class="world-controls">
+              <button class="world-run-button" id="worldRunBtn" type="button">
+                <span aria-hidden="true"></span>
+                运行代码
+              </button>
+              <button class="world-hint-button" id="worldHintBtn" type="button">提示</button>
+            </div>
+          </div>
+          <div class="hud-grid" id="stateHud"></div>
+        </section>
+
+        <section class="control-panel" aria-label="编程区">
+          <div class="mission-brief">
+            <p id="missionStory"></p>
+            <strong id="missionTarget"></strong>
+          </div>
+
+          <div class="tool-row">
+            <button class="primary-button" id="runBtn" type="button">运行</button>
+            <button class="tool-button" id="stepBtn" type="button">单步</button>
+            <button class="tool-button" id="resetBtn" type="button">复位</button>
+            <button class="tool-button" id="undoBtn" type="button">撤销</button>
+            <button class="tool-button" id="clearBtn" type="button">清空</button>
+          </div>
+
+          <div class="program-tabs" id="programTabs">
+            <button class="tab-button is-active" data-board="main" type="button">主程序</button>
+            <button class="tab-button" data-board="route" type="button">routeA()</button>
+          </div>
+
+          <div class="palette-panel">
+            <div class="panel-title">
+              <span>指令库</span>
+              <small id="commandLimit">0 / 0</small>
+            </div>
+            <div class="command-palette" id="commandPalette"></div>
+          </div>
+
+          <div class="program-panel">
+            <div class="panel-title">
+              <span id="programTitle">主程序</span>
+              <small id="activeBoardHint">点击指令加入这里</small>
+            </div>
+            <ol class="program-list" id="programList"></ol>
+          </div>
+
+          <div class="code-panel">
+            <div class="panel-title">
+              <span>代码视图</span>
+              <button class="inline-button" id="loadReferenceBtn" type="button">载入参考</button>
+            </div>
+            <pre id="codeView"></pre>
+          </div>
+        </section>
+
+        <section class="insight-panel" aria-label="反馈和作品卡">
+          <div class="lesson-note">
+            <p class="eyebrow">本关能力</p>
+            <h2 id="lessonFocus">读取任务目标</h2>
+            <p id="lessonCheckpoint"></p>
+          </div>
+
+          <div class="log-panel">
+            <div class="panel-title">
+              <span>运行日志</span>
+              <small id="runState">未运行</small>
+            </div>
+            <ul id="runLog"></ul>
+          </div>
+
+          <div class="evidence-panel" id="evidencePanel">
+            <p class="eyebrow">作品节点</p>
+            <h2>信标无人机作品卡</h2>
+            <div id="evidenceCard"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
