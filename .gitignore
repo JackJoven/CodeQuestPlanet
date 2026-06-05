@@ -60,6 +60,7 @@ tmp/
 temp/
 
 # Generated media and manual backup archives
+archive/
 backups/
 *.zip
 *.7z

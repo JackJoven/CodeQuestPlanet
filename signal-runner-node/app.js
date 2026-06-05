@@ -1,5 +1,3 @@
-import * as THREE from "./vendor/three.module.js";
-
 function showStartupError(message) {
   const text = `初始化错误：${message}`;
   const display = () => {

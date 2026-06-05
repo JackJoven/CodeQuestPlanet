@@ -13,11 +13,23 @@
 
 打开方式：
 
+可以直接用 Edge / Chrome 打开：
+
 ```text
-直接用浏览器打开 signal-runner-node/index.html
+signal-runner-node/index.html
 ```
 
-如果浏览器或预览工具不允许直接打开本地文件，也可以运行：
+页面使用本地全局版 Three.js，不依赖 CDN、构建工具或本地服务。
+
+如果后续改回 ES Module、引入 `fetch()`、加载外部模型贴图，浏览器直接打开本地文件可能再次受限；那时可以使用本地服务。
+
+Windows 可以双击：
+
+```text
+signal-runner-node/open-preview.cmd
+```
+
+也可以手动运行：
 
 ```text
 cd signal-runner-node
@@ -30,6 +42,8 @@ node server.mjs 4173
 http://127.0.0.1:4173
 ```
 
+当前版本已经改成普通脚本加载，所以真实浏览器可以直接打开本地 `index.html`。
+
 课程结构：
 
 1. 指令序列：让无人机按顺序移动、采集、上传。
@@ -39,4 +53,4 @@ http://127.0.0.1:4173
 5. 函数封装：定义 routeA，再在主程序里调用。
 6. 综合作品：采集三座信标并上传，形成完整作品卡。
 
-这是全新节点，不依赖仓库里已有的 L1 状态课或 L2 AI 验证课。
+这是当前主项目，不依赖已归档的 L1 状态课或 L2 AI 验证课。
