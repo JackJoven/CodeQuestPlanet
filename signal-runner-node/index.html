@@ -3,41 +3,54 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Signal Runner | 信标无人机作品节点</title>
+    <title>Signal Runner | 信标跑者标准课</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
-  <body>
+  <body class="student-page">
     <div class="app-shell">
       <header class="topbar">
-        <div>
-          <p class="eyebrow">14 岁 · 6 节课作品节点</p>
-          <h1>Signal Runner</h1>
+        <button class="course-home-button" id="courseHomeBtn" type="button" hidden>
+          <span aria-hidden="true">&#8592;</span>
+          <span id="courseHomeLabel">课程地图</span>
+        </button>
+        <div class="topbar-title">
+          <p id="appKicker">Signal Runner</p>
+          <h1 id="pageTitle">课程地图</h1>
         </div>
         <div class="top-status">
-          <span id="nodeProgress">0 / 6 完成</span>
-          <button class="ghost-button" id="resetProgressBtn" type="button">重置进度</button>
+          <span id="nodeProgress">学习进度 0 / 48</span>
+          <div class="lesson-pager" id="lessonPager" hidden>
+            <button id="prevLessonBtn" type="button" aria-label="上一关" title="上一关">&#8592;</button>
+            <button id="nextLessonBtn" type="button" aria-label="下一关" title="下一关">&#8594;</button>
+          </div>
         </div>
       </header>
 
-      <nav class="mission-strip" id="missionList" aria-label="课程关卡"></nav>
+      <section class="course-browser" id="courseBrowser" aria-label="课程浏览"></section>
 
       <main class="workspace">
-        <section class="play-panel" aria-label="运行区">
-          <div class="section-head">
+        <section class="play-panel" aria-label="3D 任务区">
+          <div class="world-heading">
             <div>
-              <p class="eyebrow" id="missionKicker">Lesson 01</p>
-              <h2 id="missionTitle">启动中</h2>
+              <strong>3D 任务</strong>
+              <span>观察旋转地图，再运行你的程序</span>
             </div>
-            <span class="pill" id="missionConcept">序列</span>
+            <span class="world-state" id="worldState">等待运行</span>
           </div>
           <div class="canvas-shell">
-            <canvas id="gameCanvas" width="960" height="640" aria-label="无人机任务地图"></canvas>
+            <canvas id="gameCanvas" width="960" height="640" aria-label="无人机任务地图，地图左上方外侧包含随视角旋转的三维N向三角箭头"></canvas>
             <div class="world-hud">
               <div class="gem-counter">
                 <span class="gem-mark" aria-hidden="true"></span>
                 <strong id="worldBeaconCounter">0/1</strong>
               </div>
-              <button class="sound-button" type="button" aria-label="声音"></button>
+            </div>
+            <div class="world-failure-indicator" id="worldFailureIndicator" data-kind="action-fail" aria-live="polite" hidden>
+              <span class="failure-symbol" aria-hidden="true">!</span>
+              <div>
+                <strong id="worldFailureTitle">动作失败</strong>
+                <small id="worldFailureDetail">检查失败位置和最后一步指令。</small>
+              </div>
             </div>
             <div class="run-banner" id="runBanner">准备编程</div>
             <div class="world-controls">
@@ -51,75 +64,394 @@
           <div class="hud-grid" id="stateHud"></div>
         </section>
 
-        <section class="control-panel" aria-label="编程区">
-          <div class="mission-brief">
-            <p id="missionStory"></p>
-            <strong id="missionTarget"></strong>
-          </div>
-
-          <div class="tool-row">
-            <button class="primary-button" id="runBtn" type="button">运行</button>
-            <button class="tool-button" id="stepBtn" type="button">单步</button>
-            <button class="tool-button" id="resetBtn" type="button">复位</button>
-            <button class="tool-button" id="undoBtn" type="button">撤销</button>
-            <button class="tool-button" id="clearBtn" type="button">清空</button>
-          </div>
-
-          <div class="program-tabs" id="programTabs">
-            <button class="tab-button is-active" data-board="main" type="button">主程序</button>
-            <button class="tab-button" data-board="route" type="button">routeA()</button>
-          </div>
-
-          <div class="palette-panel">
-            <div class="panel-title">
-              <span>指令库</span>
-              <small id="commandLimit">0 / 0</small>
+        <section class="control-panel" aria-label="课程讲解与编程区">
+          <div class="mission-brief" id="missionBrief">
+            <div id="standardMissionBrief">
+              <div class="mission-brief-title">
+                <span>本关任务</span>
+                <span class="pill" id="missionConcept">序列</span>
+              </div>
+              <strong id="missionTarget"></strong>
+              <div class="lesson-explanation">
+                <span>知识讲解</span>
+                <p id="lessonCheckpoint"></p>
+                <div id="evidenceCard"></div>
+              </div>
             </div>
-            <div class="command-palette" id="commandPalette"></div>
+
+            <article class="playground-lesson-brief" id="sequenceLessonBrief" hidden>
+              <p class="playground-challenge"><strong>挑战：</strong>信标已经发出启动信号。让探测员向前移动两格，站到信标所在的格子，再完成采集。</p>
+              <p>程序里的指令会从上到下，一条接一条地发生：</p>
+              <ul>
+                <li><span class="lesson-command">move()</span> 会让探测员沿当前朝向前进一格，并改变它的位置。</li>
+                <li>排在上面的指令会先执行。下一条指令要等上一条完成后才会开始。</li>
+                <li><span class="lesson-command">collect()</span> 只有在探测员已经站到信标格时才会成功。</li>
+              </ul>
+              <p class="playground-goal"><strong>完成挑战：</strong>依次放入两条 <span class="lesson-command">move()</span>，最后放入 <span class="lesson-command">collect()</span>，再运行你的程序。</p>
+            </article>
+
+            <article class="playground-lesson-brief" id="directionLessonBrief" hidden>
+              <p class="playground-challenge"><strong>挑战：</strong>探测员开始时面向东，但正前方被岩石挡住。让它先转向南走两格，再转向东抵达信标并完成采集。</p>
+              <p>屏幕上的方向不会替探测员做决定。程序执行时，要以探测员自己的朝向为准：</p>
+              <ul>
+                <li><span class="lesson-command">turnRight()</span> 和 <span class="lesson-command">turnLeft()</span> 只改变朝向，不会移动位置。</li>
+                <li><span class="lesson-command">move()</span> 会沿探测员此刻面对的方向前进一格。</li>
+                <li>每次转向后，先看朝向罗盘，再决定下一次前进会走向哪里。</li>
+              </ul>
+              <p class="playground-goal"><strong>完成挑战：</strong>按照“右转 → 前进两格 → 左转 → 前进 → 采集”的路线排列程序，然后运行验证。</p>
+            </article>
+
+            <article class="playground-lesson-brief" id="routeLessonBrief" hidden>
+              <p class="playground-challenge"><strong>挑战：</strong>同一个信标可以从两条路线到达。先比较路线，再把你选择的路线翻译成程序并完成采集。</p>
+              <p>不要急着点击指令。先判断每条路线是否可行，再比较它们的代价：</p>
+              <ul>
+                <li>动作数量越多，程序越长，需要检查的步骤也越多。</li>
+                <li>每次转向都会改变后续前进方向，也会增加出错机会。</li>
+                <li>路线能到达信标只是第一步，还要在正确位置执行 <span class="lesson-command">collect()</span>。</li>
+              </ul>
+              <p class="playground-goal"><strong>完成挑战：</strong>在路线比较板中选择方案，按照路线说明排列程序，然后运行验证你的选择。</p>
+            </article>
+
+            <article class="playground-lesson-brief" id="playgroundLessonBrief" hidden>
+              <p class="playground-challenge"><strong>挑战：</strong>导航程序在接近信标时转错了方向。运行这段错误程序，找出第一次偏离正确路线的步骤并修复它。</p>
+              <p>程序会从上到下逐步执行。先运行一次，观察探测员从哪一步开始偏离正确路线：</p>
+              <ul>
+                <li><span class="lesson-command">move()</span> 让探测员沿当前方向前进一格。</li>
+                <li><span class="lesson-command">turnLeft()</span> 和 <span class="lesson-command">turnRight()</span> 会改变下一次前进的方向。</li>
+                <li>日志会记录步骤编号，以及动作后的关键位置或朝向。第一处与预期不同的步骤，通常就是错误源头。</li>
+              </ul>
+              <p class="playground-goal"><strong>完成挑战：</strong>运行错误程序，点选一条指令并替换它，然后再次运行验证。只修改一处。</p>
+              <p class="playground-optional">如果不知道怎样比较步骤，可以打开左侧的“调试侦探社（可选）”。</p>
+            </article>
+
+            <article class="playground-lesson-brief" id="coordinateLessonBrief" hidden>
+              <p class="playground-challenge"><strong>挑战：</strong>地图上有两座信标。根据坐标档案，先到达信标 A，再转向前往信标 B，并完成两次采集。</p>
+              <p>坐标用一对数字记录格子的位置。第一项是 x，第二项是 y：</p>
+              <ul>
+                <li>向右移动一格，x 增加 1；向下移动一格，y 增加 1。</li>
+                <li><span class="lesson-command">turnLeft()</span> 和 <span class="lesson-command">turnRight()</span> 只改变朝向，不会立刻改变坐标。</li>
+                <li>旋转观察地图不会改变任何格子的坐标。坐标描述的是地图，不是镜头。</li>
+              </ul>
+              <p class="playground-goal"><strong>完成挑战：</strong>按照坐标档案依次找到两座信标，每到一座信标就执行一次 <span class="lesson-command">collect()</span>。</p>
+            </article>
+
+            <article class="playground-lesson-brief" id="segmentLessonBrief" hidden>
+              <p class="playground-challenge"><strong>挑战：</strong>这次任务分成三段：采集信标 A、采集信标 B、把两份信号带到中继站上传。</p>
+              <p>长程序可以用几个有完成条件的子目标来理解：</p>
+              <ul>
+                <li>站在信标格执行 <span class="lesson-command">collect()</span> 后，携带状态会从 0 变为 1，再变为 2。</li>
+                <li>必须先完成两次采集，最后才前往中继站。</li>
+                <li><span class="lesson-command">upload()</span> 只有在中继站且携带 2 份信号时才会成功。</li>
+              </ul>
+              <p class="playground-goal"><strong>完成挑战：</strong>把程序按三段排列，观察携带状态逐段变化，最后在中继站执行 <span class="lesson-command">upload()</span>。</p>
+            </article>
+
+            <article class="playground-lesson-brief" id="creatorLessonBrief" hidden>
+              <p class="playground-challenge"><strong>挑战：</strong>制作你的第一张原创路线关。选择一座信标的位置，再决定采用严格还是宽松的步数限制。</p>
+              <p>一张能交给别人玩的关卡，需要同时满足三条规则：</p>
+              <ul>
+                <li>起点和目标必须清楚，信标不能放在岩石或地图外。</li>
+                <li>起点到信标必须存在一条可走的路线。</li>
+                <li>步数限制不能小于参考解法，否则关卡没有办法完成。</li>
+              </ul>
+              <p class="playground-goal"><strong>完成挑战：</strong>在原创路线工作台选择目标和限制，观察左侧 3D 地图改变，再写出程序并运行验证。</p>
+            </article>
+
+            <article class="playground-lesson-brief" id="capstoneLessonBrief" hidden>
+              <p class="playground-challenge"><strong>挑战：</strong>陨石干扰了信号网络。穿过一张更长的陌生地图，采集两座信标，再抵达中继站完成最终上传。</p>
+              <p>这一关没有新指令。你要把前七课的方法组合起来：</p>
+              <ul>
+                <li>先观察起点、朝向、坐标和完整路线，再开始编程。</li>
+                <li>把长任务拆成“采集 A → 采集 B → 上传”三个子目标。</li>
+                <li>运行失败时查看带步骤编号的日志，只修复第一处偏离。</li>
+              </ul>
+              <p class="playground-goal"><strong>完成挑战：</strong>完成两次采集和最终上传，逐项点亮综合能力档案。不限重试次数。</p>
+            </article>
+
+            <article class="playground-lesson-brief" id="advancedLessonBrief" hidden>
+              <p class="playground-challenge"><strong>挑战：</strong><span id="advancedChallenge"></span></p>
+              <p id="advancedBriefIntro"></p>
+              <ul id="advancedBriefBullets"></ul>
+              <p class="playground-goal"><strong>完成挑战：</strong><span id="advancedBriefGoal"></span></p>
+            </article>
+
+            <section class="sequence-timeline-panel" id="sequenceTimelinePanel" aria-label="程序执行时间线" hidden>
+              <div class="sequence-timeline-heading">
+                <strong>执行时间线</strong>
+                <span id="sequenceTimelineState">按顺序放入 3 条指令</span>
+              </div>
+              <ol class="sequence-timeline" id="sequenceTimeline"></ol>
+            </section>
+
+            <section class="direction-learning-panel" id="directionLearningPanel" aria-label="朝向罗盘与变化表" hidden>
+              <div class="direction-learning-heading">
+                <strong>朝向罗盘与变化表</strong>
+                <span id="directionLearningState">实际朝向：东</span>
+              </div>
+              <div class="direction-learning-layout">
+                <div class="direction-compass" id="directionCompass" data-direction="E" role="img" aria-label="探测员当前朝向东">
+                  <span class="compass-north">北</span>
+                  <span class="compass-east">东</span>
+                  <span class="compass-south">南</span>
+                  <span class="compass-west">西</span>
+                  <span class="compass-needle" aria-hidden="true"></span>
+                  <strong id="directionCompassValue">东</strong>
+                </div>
+                <div class="direction-change-table" role="table" aria-label="程序朝向变化预览">
+                  <div class="direction-change-head" role="row">
+                    <span role="columnheader">指令</span>
+                    <span role="columnheader">执行后朝向</span>
+                    <span role="columnheader">位置变化</span>
+                  </div>
+                  <div id="directionChangeRows"></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="route-comparison-panel" id="routeComparisonPanel" aria-label="路线比较板" hidden>
+              <div class="route-comparison-heading">
+                <strong>路线比较板</strong>
+                <span id="routeSelectionState">先选择一条路线</span>
+              </div>
+              <div class="route-choice-list" id="routeChoiceList"></div>
+              <p class="route-comparison-note">比较顺序：先确认能完成，再比较动作数量、转向次数和出错风险。</p>
+            </section>
+
+            <section class="coordinate-scanner-panel" id="coordinateScannerPanel" aria-label="坐标扫描器" hidden>
+              <div class="lesson-tool-heading">
+                <strong>坐标扫描器</strong>
+                <span id="coordinateScannerState">读取地图坐标</span>
+              </div>
+              <div class="coordinate-readout">
+                <span>Neo 当前坐标</span>
+                <strong id="coordinateCurrentValue">(1, 6)</strong>
+                <small>x → 向右增加　y → 向下增加</small>
+              </div>
+              <ol class="coordinate-archive" id="coordinateArchive"></ol>
+            </section>
+
+            <section class="segment-mission-panel" id="segmentMissionPanel" aria-label="分段任务板" hidden>
+              <div class="lesson-tool-heading">
+                <strong>分段任务板</strong>
+                <span id="segmentMissionState">从子目标 1 开始</span>
+              </div>
+              <div class="carrying-state" id="carryingState">
+                <span>携带状态</span>
+                <strong>0 / 2 份信号</strong>
+              </div>
+              <ol class="segment-mission-steps" id="segmentMissionSteps"></ol>
+            </section>
+
+            <section class="creator-workbench-panel" id="creatorWorkbenchPanel" aria-label="原创路线工作台" hidden>
+              <div class="lesson-tool-heading">
+                <strong>原创路线工作台</strong>
+                <span id="creatorValidationState">关卡规则通过检查</span>
+              </div>
+              <p class="creator-workbench-instruction">选择一个带坐标的候选格，3D 地图会立即移动信标。</p>
+              <div class="creator-map-editor" id="creatorMapEditor" role="group" aria-label="信标位置候选地图"></div>
+              <div class="creator-settings">
+                <div>
+                  <span>信标位置</span>
+                  <div class="creator-choice-row" id="creatorTargetOptions"></div>
+                </div>
+                <div>
+                  <span>步数限制</span>
+                  <div class="creator-choice-row" id="creatorLimitOptions">
+                    <button data-creator-limit="strict" type="button">严格限制</button>
+                    <button data-creator-limit="relaxed" type="button">宽松限制</button>
+                  </div>
+                </div>
+              </div>
+              <ul class="creator-validation-list" id="creatorValidationList"></ul>
+            </section>
+
+            <section class="capstone-profile-panel" id="capstoneProfilePanel" aria-label="综合能力档案" hidden>
+              <div class="lesson-tool-heading">
+                <strong>综合能力档案</strong>
+                <span id="capstoneProfileState">已证明 0 / 6 项</span>
+              </div>
+              <ul class="capstone-profile-gates" id="capstoneProfileGates"></ul>
+            </section>
+
+            <section class="advanced-learning-panel" id="advancedLearningPanel" aria-label="本课学习工具" hidden>
+              <div class="lesson-tool-heading">
+                <strong id="advancedToolTitle">学习工具</strong>
+                <span id="advancedToolState">等待操作</span>
+              </div>
+              <div class="advanced-learning-content" id="advancedLearningContent"></div>
+              <div class="advanced-evidence-save" id="advancedEvidenceSave">
+                <span>学习证据</span>
+                <strong id="advancedEvidenceName"></strong>
+                <b id="advancedEvidenceState">完成运行后保存</b>
+              </div>
+            </section>
           </div>
 
-          <div class="program-panel">
-            <div class="panel-title">
-              <span id="programTitle">主程序</span>
-              <small id="activeBoardHint">点击指令加入这里</small>
+          <section class="detective-guide-panel" id="detectiveGuidePanel" aria-label="调试侦探社学习提示" hidden>
+            <div class="detective-guide-heading">
+              <div>
+                <span>可选学习</span>
+                <h3>调试侦探社</h3>
+              </div>
+              <strong>只找第一处不同</strong>
             </div>
-            <ol class="program-list" id="programList"></ol>
-          </div>
-
-          <div class="code-panel">
-            <div class="panel-title">
-              <span>代码视图</span>
-              <button class="inline-button" id="loadReferenceBtn" type="button">载入参考</button>
+            <ol class="detective-method">
+              <li><b>1</b><span><strong>先预测</strong>写下每一步后应该在哪里、朝向哪里。</span></li>
+              <li><b>2</b><span><strong>再单步</strong>用“单步”运行，对照位置和朝向。</span></li>
+              <li><b>3</b><span><strong>找分叉</strong>停在第一次与预测不同的步骤。</span></li>
+              <li><b>4</b><span><strong>只改一处</strong>替换这条指令，再从头验证。</span></li>
+            </ol>
+            <div class="detective-comparison" role="table" aria-label="前三步对照示例">
+              <div class="comparison-row comparison-head" role="row">
+                <span role="columnheader">步骤</span><span role="columnheader">正确预期</span><span role="columnheader">现在程序</span>
+              </div>
+              <div class="comparison-row" role="row"><span role="cell">1</span><span role="cell">turnRight()</span><span role="cell">turnRight()</span></div>
+              <div class="comparison-row" role="row"><span role="cell">2</span><span role="cell">move()</span><span role="cell">move()</span></div>
+              <div class="comparison-row" role="row"><span role="cell">3</span><span role="cell">move()</span><span role="cell">move()</span></div>
+              <div class="comparison-row is-difference" role="row"><span role="cell">4</span><span role="cell">turnLeft()</span><span role="cell">turnRight() ← 第一处不同</span></div>
             </div>
-            <pre id="codeView"></pre>
-          </div>
-        </section>
+          </section>
 
-        <section class="insight-panel" aria-label="反馈和作品卡">
-          <div class="lesson-note">
-            <p class="eyebrow">本关能力</p>
-            <h2 id="lessonFocus">读取任务目标</h2>
-            <p id="lessonCheckpoint"></p>
-          </div>
+          <section class="operation-panel" id="operationPanel" aria-label="编程操作区">
+            <div class="code-studio-heading">
+              <div>
+                <h3>开始编程</h3>
+                <small id="commandLimit">0 / 0 个指令</small>
+              </div>
+              <button class="inline-button" id="loadReferenceBtn" type="button">查看示例</button>
+            </div>
 
-          <div class="log-panel">
+            <div class="program-tabs" id="programTabs">
+              <button class="tab-button is-active" data-board="main" type="button">主程序</button>
+              <button class="tab-button" data-board="route" type="button">routeA()</button>
+            </div>
+
+            <div class="builder-grid">
+              <section class="palette-panel">
+                <div class="panel-title">
+                  <span class="step-label"><b>1</b>选择指令</span>
+                  <small id="paletteInstruction">点击加入</small>
+                </div>
+                <div class="command-palette" id="commandPalette"></div>
+              </section>
+
+              <section class="program-panel">
+                <div class="panel-title">
+                  <span class="step-label"><b>2</b><span id="programTitle">我的程序</span></span>
+                  <small id="activeBoardHint">按顺序执行</small>
+                </div>
+                <ol class="program-list" id="programList"></ol>
+              </section>
+            </div>
+
+            <section class="code-panel">
+              <div class="panel-title">
+                <span>生成代码</span>
+              </div>
+              <pre id="codeView"></pre>
+            </section>
+
+            <div class="tool-row" aria-label="程序工具">
+              <button class="tool-button primary-run-button" id="runBtn" type="button">
+                <span class="tool-run-icon" aria-hidden="true"></span>
+                运行
+              </button>
+              <button class="tool-button" id="stepBtn" type="button">单步</button>
+              <button class="tool-button" id="undoBtn" type="button">撤销</button>
+              <button class="tool-button" id="resetBtn" type="button">复位</button>
+              <button class="tool-button" id="clearBtn" type="button">清空</button>
+            </div>
+          </section>
+
+          <section class="python-lesson-studio" id="pythonLessonStudio" aria-labelledby="pythonStudioTitle" hidden>
+            <div class="python-studio-heading">
+              <div>
+                <span id="pythonStudioKicker">第 13 课 · 简单 if</span>
+                <h3 id="pythonStudioTitle">修复危险判断</h3>
+              </div>
+              <strong class="python-save-state" id="pythonSaveState" data-state="saved">草稿已保存</strong>
+            </div>
+
+            <div class="python-first-task">
+              <span id="pythonTaskBadge">修改第 2 行</span>
+              <p id="pythonTaskText">把 <code>is_blocked_ahead()</code>（前方是否被阻挡）改成 <code>is_hazard_ahead()</code>（前方是否危险）。</p>
+            </div>
+
+            <div class="python-code-workspace">
+              <aside class="python-template-rail" id="pythonTemplateRail" aria-labelledby="pythonTemplateTitle">
+                <div>
+                  <span id="pythonTemplateEyebrow">第 2 行需要替换</span>
+                  <h4 id="pythonTemplateTitle">选择正确条件</h4>
+                </div>
+                <div class="python-template-list" id="pythonTemplateList"></div>
+              </aside>
+
+              <div class="python-editor-column">
+                <div class="python-editor-toolbar">
+                  <span><i aria-hidden="true"></i> student.py</span>
+                  <small id="pythonLineState">等待运行</small>
+                </div>
+                <div class="python-editor-frame" id="pythonEditorFrame">
+                  <div class="python-edit-target" id="pythonEditTarget" aria-hidden="true"></div>
+                  <div class="python-editor-line-highlight" id="pythonEditorLineHighlight" hidden></div>
+                  <div class="python-line-numbers" id="pythonLineNumbers" aria-hidden="true"></div>
+                  <textarea id="pythonEditor" aria-label="Python 代码编辑器" aria-describedby="pythonTranslationHelp" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+                </div>
+                <div class="python-translation-strip" id="pythonTranslationHelp">
+                  <span><code>move()</code> 前进一格</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="python-run-controls" aria-label="Python 运行工具">
+              <button class="python-primary-button" id="pythonRunBtn" type="button"><span aria-hidden="true">▶</span>运行代码</button>
+              <button id="pythonStepBtn" type="button">单步</button>
+              <button id="pythonStopBtn" type="button" disabled>停止</button>
+              <button id="pythonResetBtn" type="button">恢复起始程序</button>
+            </div>
+
+            <section class="python-state-panel" id="pythonStatePanel" aria-labelledby="pythonStateTitle" hidden>
+              <div>
+                <h4 id="pythonStateTitle">变量追踪表</h4>
+                <p id="pythonStateDescription">每次赋值都会显示在这里。</p>
+              </div>
+              <div class="python-state-list" id="pythonStateList" aria-live="polite"></div>
+            </section>
+
+            <section class="python-feedback-panel" aria-labelledby="pythonFeedbackTitle">
+              <div>
+                <h4 id="pythonFeedbackTitle">调试反馈</h4>
+                <span id="pythonFeedbackKind">等待运行</span>
+              </div>
+              <p id="pythonFeedbackMessage" aria-live="polite">先运行错误程序，看看它为什么会停在危险格。</p>
+              <ol id="pythonExecutionLog"></ol>
+            </section>
+
+            <div class="python-evidence-row" id="pythonEvidenceRow">
+              <span aria-hidden="true">◇</span>
+              <div>
+                <small>本课学习证据</small>
+                <strong id="pythonEvidenceState">等待独立运行成功</strong>
+              </div>
+            </div>
+          </section>
+
+          <div class="log-panel" id="standardLogPanel">
             <div class="panel-title">
-              <span>运行日志</span>
+              <span>调试反馈</span>
               <small id="runState">未运行</small>
             </div>
             <ul id="runLog"></ul>
           </div>
-
-          <div class="evidence-panel" id="evidencePanel">
-            <p class="eyebrow">作品节点</p>
-            <h2>信标无人机作品卡</h2>
-            <div id="evidenceCard"></div>
-          </div>
         </section>
       </main>
+
     </div>
 
     <script src="./vendor/three.global.js"></script>
+    <script src="./vendor/skulpt-1.2.0.min.js"></script>
+    <script src="./python-runtime-core.js"></script>
+    <script src="./course-data.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

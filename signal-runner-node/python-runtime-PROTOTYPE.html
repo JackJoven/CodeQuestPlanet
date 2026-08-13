@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>Python → 3D 技术验证</title>
+    <link rel="stylesheet" href="./python-runtime-prototype.css">
+  </head>
+  <body>
+    <header class="prototype-topbar">
+      <a class="back-link" href="./index.html" aria-label="返回课程页面">← 返回课程</a>
+      <div class="prototype-title">
+        <span>第 13 课前置验证</span>
+        <h1>Python → 3D</h1>
+      </div>
+      <div class="runtime-badge" id="runtimeBadge" data-state="loading">
+        <span aria-hidden="true"></span>
+        <strong id="runtimeBadgeText">正在检查运行器</strong>
+      </div>
+    </header>
+
+    <main class="prototype-shell">
+      <section class="prototype-intro" aria-labelledby="prototypeIntroTitle">
+        <div>
+          <p class="prototype-kicker">这一页不属于正式课程</p>
+          <h2 id="prototypeIntroTitle">验证学生写的 Python 能不能真正改变左侧世界</h2>
+        </div>
+        <p>语法错误会在行动前指出；语法正确但逻辑错误的程序会真实运行到失败步骤。越过终点或朝通道外移动时，探测员会从边缘跌落。</p>
+      </section>
+
+      <div class="prototype-workspace">
+        <section class="world-panel" aria-labelledby="worldTitle">
+          <div class="panel-heading">
+            <div>
+              <span>左侧世界</span>
+              <h2 id="worldTitle">维修桥验证场</h2>
+            </div>
+            <strong id="worldStatus">等待运行</strong>
+          </div>
+
+          <div class="world-canvas-wrap">
+            <canvas id="prototypeCanvas" aria-label="探测员、危险格和信标组成的 3D 维修桥"></canvas>
+            <div class="world-callout" id="worldCallout" aria-live="polite">运行 Python 后，探测员会从这里出发。</div>
+          </div>
+
+          <dl class="world-hud" aria-label="世界状态">
+            <div><dt>位置</dt><dd id="positionValue">0 / 4</dd></div>
+            <div><dt>能量</dt><dd id="energyValue">8</dd></div>
+            <div><dt>护盾</dt><dd id="shieldValue">关闭</dd></div>
+            <div><dt>信标</dt><dd id="beaconValue">未采集</dd></div>
+          </dl>
+        </section>
+
+        <section class="code-panel" aria-labelledby="codeTitle">
+          <div class="panel-heading">
+            <div>
+              <span>右侧代码</span>
+              <h2 id="codeTitle">学生源代码</h2>
+            </div>
+            <strong id="runState">尚未运行</strong>
+          </div>
+
+          <div class="preset-row" aria-label="验证预设">
+            <button class="preset-button is-active" type="button" data-preset="success">正确程序</button>
+            <button class="preset-button" type="button" data-preset="syntax">语法错误</button>
+            <button class="preset-button" type="button" data-preset="loop">不会停止的循环</button>
+            <button class="preset-button" type="button" data-preset="overshoot">走过终点</button>
+            <button class="preset-button" type="button" data-preset="sidefall">走下边缘</button>
+          </div>
+
+          <div class="editor-frame" id="editorFrame">
+            <div class="editor-line-highlight" id="editorLineHighlight" hidden></div>
+            <div class="line-numbers" id="lineNumbers" aria-hidden="true"></div>
+            <textarea id="pythonEditor" aria-label="Python 代码编辑器" aria-describedby="translationHelp" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+          </div>
+
+          <div class="translation-strip" id="translationHelp">
+            <span><code>move()</code> 前进一格</span>
+            <span><code>is_hazard_ahead()</code> 前方是否危险</span>
+            <span><code>shield()</code> 开启护盾</span>
+          </div>
+
+          <div class="run-controls">
+            <button class="primary-button" id="runButton" type="button"><span aria-hidden="true">▶</span>运行 Python</button>
+            <button id="stepButton" type="button">单步</button>
+            <button id="stopButton" type="button" disabled>停止</button>
+            <button id="resetButton" type="button">复位</button>
+          </div>
+
+          <section class="feedback-panel" aria-labelledby="feedbackTitle">
+            <div>
+              <h3 id="feedbackTitle">运行反馈</h3>
+              <span id="feedbackKind">等待代码</span>
+            </div>
+            <p id="feedbackMessage" aria-live="polite">选择一个预设或直接修改代码，然后运行。</p>
+            <ol id="executionLog"></ol>
+          </section>
+        </section>
+      </div>
+
+      <section class="verification-list" aria-labelledby="verificationTitle">
+        <div>
+          <p class="prototype-kicker">本轮验收</p>
+          <h2 id="verificationTitle">四个结果必须同时成立</h2>
+        </div>
+        <ul>
+          <li data-check="python"><span>1</span><strong>真实 Python</strong><small>条件由浏览器 Python 运行器判断</small></li>
+          <li data-check="world"><span>2</span><strong>驱动世界</strong><small>每个游戏函数产生可见的 3D 动作</small></li>
+          <li data-check="line"><span>3</span><strong>定位代码行</strong><small>语法或运行错误回到学生写的原始行号</small></li>
+          <li data-check="loop"><span>4</span><strong>循环保护</strong><small>错误循环被终止，页面保持可操作</small></li>
+        </ul>
+      </section>
+    </main>
+
+    <script src="./vendor/three.global.js"></script>
+    <script src="./vendor/skulpt-1.2.0.min.js"></script>
+    <script src="./python-runtime-core.js"></script>
+    <script src="./python-runtime-prototype.js"></script>
+  </body>
+</html>

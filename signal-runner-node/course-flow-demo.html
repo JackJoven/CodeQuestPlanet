@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Signal Runner | 课程流程 Demo</title>
+    <link rel="stylesheet" href="./course-flow-demo.css" />
+  </head>
+  <body>
+    <div class="demo-shell">
+      <header class="app-header">
+        <button class="brand-button" id="homeButton" type="button" aria-label="返回首页">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span>
+            <small>Signal Runner</small>
+            <strong>课程中心 Demo</strong>
+          </span>
+        </button>
+        <nav class="header-actions" aria-label="全局导航">
+          <button class="nav-button is-active" data-route="home" type="button">首页</button>
+          <button class="nav-button" data-route="course" type="button">标准课程</button>
+          <button class="nav-button" data-route="demo" type="button">Demo 节点</button>
+        </nav>
+      </header>
+
+      <main id="appRoot" class="app-root" aria-live="polite"></main>
+    </div>
+
+    <script src="./course-flow-demo.js"></script>
+  </body>
+</html>

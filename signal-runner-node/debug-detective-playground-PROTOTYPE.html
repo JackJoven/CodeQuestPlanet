@@ -1,0 +1,1148 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>调试侦探社｜Playgrounds 精简原型</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #17212b;
+        --muted: #596878;
+        --line: #d8e0e8;
+        --navy: #071842;
+        --blue: #176ad6;
+        --blue-soft: #eaf3ff;
+        --coral: #c94535;
+        --coral-dark: #a93328;
+        --green: #16835f;
+        --green-soft: #e3f5ed;
+        --danger: #bd3f36;
+        --danger-soft: #fff0ed;
+        --sky: #d9edff;
+        --surface: #ffffff;
+        --focus: #155fd2;
+        --space-1: 4px;
+        --space-2: 8px;
+        --space-3: 12px;
+        --space-4: 16px;
+        --space-5: 24px;
+        --space-6: 32px;
+        --space-7: 48px;
+        --z-world: 1;
+        --z-overlay: 2;
+        --z-header: 10;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { min-height: 100%; margin: 0; }
+
+      body {
+        overflow: hidden;
+        background: var(--navy);
+        color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      }
+
+      button { font: inherit; }
+      button:focus-visible { outline: 3px solid rgba(21, 95, 210, 0.35); outline-offset: 3px; }
+
+      .app { min-height: 100vh; display: flex; flex-direction: column; }
+
+      .topbar {
+        position: relative;
+        z-index: var(--z-header);
+        min-height: 56px;
+        display: grid;
+        grid-template-columns: minmax(170px, 1fr) auto minmax(170px, 1fr);
+        align-items: center;
+        gap: var(--space-4);
+        padding: 0 var(--space-4);
+        border-bottom: 1px solid rgba(255,255,255,0.14);
+        background: var(--navy);
+        color: #fff;
+      }
+
+      .topbar-side { display: flex; align-items: center; gap: var(--space-2); }
+      .topbar-side:last-child { justify-content: flex-end; }
+      .topbar-title { text-align: center; }
+      .topbar-title strong { display: block; font-size: 0.95rem; }
+      .topbar-title small { display: block; margin-top: var(--space-1); color: #a9c3ea; font-size: 0.72rem; }
+
+      .icon-button {
+        width: 44px;
+        min-height: 44px;
+        display: grid;
+        place-items: center;
+        border: 0;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.08);
+        color: #fff;
+        cursor: pointer;
+        font-size: 1.25rem;
+      }
+
+      .lesson-position { color: #cbd9f0; font-size: 0.8rem; font-weight: 750; }
+
+      .lesson-layout {
+        min-height: 0;
+        flex: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(420px, 0.85fr);
+      }
+
+      .reading-pane {
+        grid-column: 2;
+        grid-row: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 0;
+        border-left: 1px solid var(--line);
+        background: #f5f8fc;
+      }
+
+      .reading-content { width: 100%; min-height: 100%; margin: 0; }
+      .reading-content h1 { margin: 0; font-size: 1.35rem; line-height: 1.3; text-wrap: balance; }
+      .reading-content h2 { margin: var(--space-5) 0 var(--space-2); font-size: 1rem; }
+      .reading-content p, .reading-content li { font-size: 0.95rem; line-height: 1.68; }
+      .reading-content p { margin: var(--space-2) 0; }
+      .reading-content ul { margin: var(--space-2) 0; padding-left: var(--space-5); }
+      .reading-content li + li { margin-top: var(--space-2); }
+      .reading-content em { color: var(--coral-dark); font-style: normal; font-weight: 850; }
+
+      .lesson-note { color: var(--muted); }
+
+      .task-intro {
+        margin: var(--space-3) 0 var(--space-4);
+        padding: var(--space-3) var(--space-4);
+        border-radius: 8px;
+        background: var(--blue-soft);
+        color: #174b83;
+        font-size: 0.88rem;
+        line-height: 1.55;
+      }
+
+      .task-intro.is-error { background: var(--danger-soft); color: #8e3029; }
+
+      .small-action {
+        min-height: 44px;
+        padding: var(--space-2) var(--space-3);
+        border: 1px solid #b8c8dc;
+        border-radius: 8px;
+        background: #fff;
+        color: #274058;
+        cursor: pointer;
+        font-weight: 800;
+      }
+
+      .small-action:hover { border-color: var(--blue); color: #0e56ac; }
+      .small-action { margin-top: var(--space-5); }
+
+      .detective-badge {
+        width: 48px;
+        height: 48px;
+        display: grid;
+        place-items: center;
+        margin-bottom: var(--space-4);
+        border-radius: 50%;
+        background: var(--blue-soft);
+        color: var(--blue);
+        font-size: 1.4rem;
+        font-weight: 950;
+      }
+
+      .method-steps {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+        margin: var(--space-4) 0 var(--space-5);
+        color: #344c64;
+        font-size: 0.82rem;
+        font-weight: 850;
+      }
+
+      .method-steps span { padding: var(--space-2); border-radius: 8px; background: #eef3f8; }
+      .method-steps b { color: #8b9aad; }
+
+      .comparison { width: 100%; border-collapse: collapse; margin-top: var(--space-4); font-size: 0.82rem; }
+      .comparison th, .comparison td { padding: var(--space-2); border-bottom: 1px solid var(--line); text-align: left; }
+      .comparison th { color: var(--muted); font-size: 0.74rem; }
+      .comparison tr.is-focus { background: #fff1dc; }
+      .comparison tr.is-first-difference { background: var(--danger-soft); color: #8c2f28; font-weight: 850; }
+
+      .guide-message {
+        min-height: 56px;
+        margin-top: var(--space-4);
+        padding: var(--space-3) var(--space-4);
+        border-radius: 8px;
+        background: #f1f5f9;
+        color: #334b62;
+        line-height: 1.55;
+        font-size: 0.87rem;
+      }
+
+      .completion-mark {
+        width: 56px;
+        height: 56px;
+        display: grid;
+        place-items: center;
+        margin-bottom: var(--space-4);
+        border-radius: 50%;
+        background: var(--green-soft);
+        color: var(--green);
+        font-size: 1.7rem;
+        font-weight: 950;
+      }
+
+      .evidence-line { margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--line); }
+      .evidence-line strong { color: var(--green); }
+
+      .world-pane {
+        grid-column: 1;
+        grid-row: 1;
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        background: var(--sky);
+      }
+
+      .world-heading {
+        min-height: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        padding: 0 var(--space-5);
+        color: #27445f;
+      }
+
+      .world-heading > div { display: grid; gap: var(--space-1); }
+      .world-heading strong { font-size: 0.92rem; }
+      .world-heading small { color: #56738d; font-size: 0.72rem; }
+      .world-state { color: #426783; font-size: 0.78rem; font-weight: 800; }
+      .world-state[data-state="error"] { color: var(--danger); }
+      .world-state[data-state="success"] { color: var(--green); }
+
+      .world-stage {
+        position: relative;
+        min-height: 0;
+        flex: 1;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        padding: var(--space-6);
+        background: linear-gradient(180deg, #bfe1ff 0%, #e8f5ff 74%, #cceaff 100%);
+      }
+
+      .world-stage::before,
+      .world-stage::after {
+        content: "";
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.58);
+        filter: blur(1px);
+      }
+
+      .world-stage::before { width: 152px; height: 48px; top: 12%; right: 8%; }
+      .world-stage::after { width: 112px; height: 32px; left: 8%; bottom: 16%; }
+
+      .map-shell {
+        position: relative;
+        z-index: var(--z-world);
+        width: min(72vh, 608px, 88%);
+        aspect-ratio: 1;
+        padding: 16px;
+        border-radius: 12px;
+        background: #a96537;
+        box-shadow: 0 8px 0 #754329, 0 12px 8px rgba(48, 80, 104, 0.24);
+      }
+
+      .map {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        grid-template-rows: repeat(5, 1fr);
+        gap: var(--space-1);
+      }
+
+      .tile {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-width: 0;
+        border-radius: 4px;
+        background: #dfb26f;
+        box-shadow: inset 0 -4px 0 rgba(120,72,42,0.14);
+      }
+
+      .tile:nth-child(3n) { background: #d8a667; }
+      .tile.is-wall { background: #596879; box-shadow: inset 0 -4px 0 #3c4856; }
+      .tile.is-beacon::before {
+        content: "◆";
+        color: #e83d5a;
+        font-size: clamp(1.35rem, 3vw, 2.4rem);
+        text-shadow: 0 3px 0 rgba(124,31,47,0.2);
+      }
+
+      .probe {
+        width: 55%;
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        border: 3px solid #fff;
+        border-radius: 50%;
+        background: #146bd3;
+        color: #fff;
+        box-shadow: 0 4px 0 #0d4c96;
+        font-size: clamp(0.85rem, 2vw, 1.35rem);
+        font-weight: 950;
+        transition: transform 180ms ease-out;
+      }
+
+      .world-feedback {
+        position: absolute;
+        z-index: var(--z-overlay);
+        left: 50%;
+        bottom: var(--space-5);
+        width: min(608px, calc(100% - 48px));
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--space-3) var(--space-4);
+        transform: translateX(-50%);
+        border-radius: 8px;
+        background: rgba(7, 24, 66, 0.9);
+        color: #fff;
+        font-size: 0.84rem;
+        font-weight: 800;
+        text-align: center;
+      }
+
+      .world-controls {
+        min-height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-3);
+        padding: var(--space-3) var(--space-4);
+        background: rgba(255,255,255,0.82);
+      }
+
+      .run-button,
+      .detective-button {
+        min-height: 48px;
+        padding: var(--space-3) var(--space-5);
+        border-radius: 999px;
+        cursor: pointer;
+        font-weight: 900;
+      }
+
+      .run-button {
+        min-width: 168px;
+        border: 0;
+        background: var(--coral);
+        color: #fff;
+      }
+
+      .run-button:hover { background: var(--coral-dark); }
+      .run-button:disabled { cursor: wait; opacity: 0.58; }
+
+      .detective-button {
+        border: 1px solid #b7cce0;
+        background: #fff;
+        color: #2b526f;
+      }
+
+      .detective-button:hover { border-color: var(--blue); color: var(--blue); }
+      .detective-button:disabled { cursor: wait; opacity: 0.55; }
+
+      .mission-brief {
+        padding: var(--space-5);
+        border-bottom: 1px solid var(--line);
+        background: var(--surface);
+      }
+
+      .code-studio-heading,
+      .panel-title,
+      .log-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+      }
+
+      .playground-copy { max-width: 66ch; }
+      .playground-copy p, .playground-copy li { font-size: 0.9rem; line-height: 1.65; }
+      .playground-copy p { margin: 0; }
+      .playground-copy p + p { margin-top: var(--space-4); }
+      .playground-copy ul { margin: var(--space-3) 0 0; padding-left: var(--space-5); }
+      .playground-copy li + li { margin-top: var(--space-2); }
+
+      .playground-challenge { font-size: 0.96rem !important; }
+      .playground-challenge strong,
+      .playground-goal strong { color: var(--ink); font-weight: 950; }
+
+      .lesson-command {
+        padding: 0;
+        background: transparent;
+        color: var(--coral-dark);
+        font: 850 0.88em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+
+      .lesson-emphasis { color: #0e59ad; font-weight: 900; }
+
+      .playground-goal {
+        margin-top: var(--space-5) !important;
+        padding-top: var(--space-4);
+        border-top: 1px solid var(--line);
+      }
+
+      .playground-optional {
+        margin-top: var(--space-4) !important;
+        color: var(--muted);
+        font-size: 0.78rem !important;
+      }
+
+      .operation-panel {
+        padding: var(--space-4) var(--space-5) var(--space-5);
+        border-bottom: 1px solid var(--line);
+        background: #f5f8fc;
+      }
+
+      .code-studio-heading h2 { margin: 0; font-size: 1rem; }
+      .code-studio-heading small { display: block; margin-top: var(--space-1); color: var(--muted); font-size: 0.72rem; }
+
+      .inline-button,
+      .tool-button {
+        min-height: 44px;
+        padding: var(--space-2) var(--space-3);
+        border: 1px solid #b7c7d8;
+        border-radius: 8px;
+        background: #fff;
+        color: #284159;
+        cursor: pointer;
+        font-weight: 800;
+      }
+
+      .inline-button:hover,
+      .tool-button:hover { border-color: var(--blue); color: #0f58af; }
+      .inline-button:disabled,
+      .tool-button:disabled { cursor: not-allowed; opacity: 0.5; }
+
+      .builder-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+        gap: var(--space-3);
+        margin-top: var(--space-4);
+      }
+
+      .palette-panel,
+      .program-panel,
+      .code-panel { min-width: 0; }
+
+      .panel-title { min-height: 28px; margin-bottom: var(--space-2); color: #334b62; font-size: 0.82rem; font-weight: 900; }
+      .panel-title small { color: var(--muted); font-size: 0.7rem; font-weight: 700; }
+
+      .command-palette {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-2);
+      }
+
+      .command-button {
+        min-height: 52px;
+        padding: var(--space-2);
+        border: 1px solid #c3d0de;
+        border-radius: 8px;
+        background: #fff;
+        color: #1d3850;
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .command-button:hover { border-color: var(--blue); background: #edf5ff; }
+      .command-button:disabled { cursor: not-allowed; opacity: 0.45; }
+      .command-button strong { display: block; overflow: hidden; font: 800 0.78rem/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-overflow: ellipsis; white-space: nowrap; }
+      .command-button small { display: block; margin-top: var(--space-1); color: var(--muted); font-size: 0.66rem; }
+
+      .program-list {
+        min-height: 148px;
+        max-height: 220px;
+        display: grid;
+        align-content: start;
+        gap: var(--space-1);
+        margin: 0;
+        padding: var(--space-2);
+        overflow-y: auto;
+        border: 1px solid #c3d0de;
+        border-radius: 8px;
+        background: #fff;
+        list-style: none;
+      }
+
+      .program-list.is-empty { place-items: center; color: var(--muted); font-size: 0.78rem; }
+      .program-chip { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: var(--space-1); }
+
+      .program-select {
+        min-width: 0;
+        min-height: 44px;
+        display: grid;
+        grid-template-columns: 24px minmax(0, 1fr);
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-1) var(--space-2);
+        border: 0;
+        border-radius: 8px;
+        background: #edf2f7;
+        color: #263c53;
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .program-select:hover { background: #e3edfa; }
+      .program-select.is-selected { background: #dcecff; color: #0d55a9; }
+      .program-select.is-running { background: #fff1cf; }
+      .program-select span { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #fff; font-size: 0.68rem; font-weight: 900; }
+      .program-select strong { overflow: hidden; font: 800 0.78rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-overflow: ellipsis; white-space: nowrap; }
+
+      .remove-command {
+        min-height: 44px;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: #718096;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+
+      .remove-command:hover { background: var(--danger-soft); color: var(--danger); }
+
+      .code-panel { margin-top: var(--space-4); }
+      .code-view {
+        min-height: 96px;
+        max-height: 176px;
+        margin: 0;
+        padding: var(--space-3);
+        overflow: auto;
+        border-radius: 8px;
+        background: #0a1738;
+        color: #dcecff;
+        font: 700 0.76rem/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+
+      .tool-row {
+        display: grid;
+        grid-template-columns: minmax(104px, 1.2fr) repeat(4, minmax(0, 1fr));
+        gap: var(--space-2);
+        margin-top: var(--space-3);
+      }
+
+      .tool-button { min-width: 0; padding-inline: var(--space-2); font-size: 0.76rem; }
+      .tool-button.is-primary { border-color: var(--coral); background: var(--coral); color: #fff; }
+      .tool-button.is-primary:hover { border-color: var(--coral-dark); background: var(--coral-dark); color: #fff; }
+
+      .log-panel { padding: var(--space-4) var(--space-5) var(--space-5); background: #fff; }
+      .log-heading { margin-bottom: var(--space-2); color: #334b62; font-size: 0.8rem; font-weight: 900; }
+      .log-heading small { color: var(--muted); font-size: 0.7rem; }
+      .log-message { margin: 0 !important; padding: var(--space-3); border-radius: 8px; background: #f1f5f9; color: #334b62; font-size: 0.78rem !important; line-height: 1.5 !important; }
+      .log-message.is-error { background: var(--danger-soft); color: #8e3029; }
+      .log-message.is-success { background: var(--green-soft); color: #116847; }
+
+      @media (max-width: 860px) {
+        body { overflow: auto; }
+        .lesson-layout { grid-template-columns: 1fr; }
+        .world-pane { grid-column: 1; grid-row: 1; min-height: 640px; }
+        .reading-pane { grid-column: 1; grid-row: 2; overflow: visible; border-left: 0; }
+        .topbar { grid-template-columns: 1fr auto; }
+        .topbar-title { text-align: left; }
+        .topbar-side:first-child { display: none; }
+      }
+
+      @media (max-width: 520px) {
+        .topbar { padding: 0 var(--space-3); }
+        .lesson-position { display: none; }
+        .reading-content h1 { font-size: 1.3rem; }
+        .world-stage { padding: var(--space-4) var(--space-3) 80px; }
+        .map-shell { width: 96%; padding: var(--space-3); }
+        .world-controls { flex-direction: column; align-items: stretch; }
+        .run-button, .detective-button { width: 100%; }
+        .mission-brief, .operation-panel, .log-panel { padding-inline: var(--space-4); }
+        .builder-grid { grid-template-columns: 1fr; }
+        .tool-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .tool-button.is-primary { grid-column: 1 / -1; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="topbar-side">
+          <button class="icon-button" type="button" aria-label="返回课程地图">‹</button>
+          <span class="lesson-position">共同核心 · 第 6 课</span>
+        </div>
+        <div class="topbar-title">
+          <strong>维修通道故障</strong>
+          <small>第 6 课 · 找到程序第一次走偏的位置</small>
+        </div>
+        <div class="topbar-side">
+          <span class="lesson-position">任务 1 / 1</span>
+          <button class="icon-button" id="restartButton" type="button" aria-label="重新开始" title="重新开始">↻</button>
+        </div>
+      </header>
+
+      <main class="lesson-layout">
+        <section class="world-pane" aria-label="3D 任务地图">
+          <div class="world-heading">
+            <div>
+              <strong>3D 任务</strong>
+              <small>观察地图，再运行你的程序</small>
+            </div>
+            <span class="world-state" id="worldState" data-state="idle">等待运行</span>
+          </div>
+          <div class="world-stage">
+            <div class="map-shell">
+              <div class="map" id="map" role="img" aria-label="五乘五维修通道地图"></div>
+            </div>
+            <div class="world-feedback" id="worldFeedback">读完任务说明后，直接运行这段程序。</div>
+          </div>
+          <div class="world-controls">
+            <button class="run-button" id="runButton" type="button">▶&nbsp;&nbsp;运行代码</button>
+            <button class="detective-button" id="detectiveButton" type="button">调试侦探社（可选）</button>
+          </div>
+        </section>
+
+        <aside class="reading-pane" aria-live="polite" aria-label="课程讲解与编程区">
+          <div class="reading-content" id="readingContent"></div>
+        </aside>
+      </main>
+    </div>
+
+    <script>
+      (() => {
+        const definition = {
+          width: 5,
+          height: 5,
+          start: { x: 1, y: 3, dir: "E" },
+          walls: [[2, 4]],
+          beacon: [3, 2],
+          expected: ["move()", "turnLeft()", "move()", "turnRight()", "move()", "collect()"],
+          buggy: ["move()", "turnRight()", "move()", "turnRight()", "move()", "collect()"]
+        };
+
+        const directions = ["N", "E", "S", "W"];
+        const directionArrows = { N: "↑", E: "→", S: "↓", W: "←" };
+        const commandLabels = {
+          "move()": "向前移动",
+          "turnLeft()": "向左转向",
+          "turnRight()": "向右转向",
+          "collect()": "采集信标"
+        };
+
+        const readingContent = document.getElementById("readingContent");
+        const map = document.getElementById("map");
+        const worldState = document.getElementById("worldState");
+        const worldFeedback = document.getElementById("worldFeedback");
+        const runButton = document.getElementById("runButton");
+        const detectiveButton = document.getElementById("detectiveButton");
+        const restartButton = document.getElementById("restartButton");
+
+        const freshWorld = () => ({ ...definition.start, collected: false, status: "idle", error: "" });
+
+        const state = {
+          view: "brief",
+          returnView: "brief",
+          program: [...definition.buggy],
+          selectedLine: null,
+          changedLine: null,
+          world: freshWorld(),
+          activeStep: -1,
+          stepCursor: 0,
+          running: false,
+          feedback: "读完任务说明后，直接运行这段程序。",
+          guideStep: 0,
+          history: []
+        };
+
+        function escapeHtml(value) {
+          return String(value ?? "").replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]);
+        }
+
+        function renderCodeView() {
+          const lines = state.program.length
+            ? state.program.map((command) => `  ${command}`)
+            : ["  // 从上方选择第一条指令"];
+          return `function main() {\n${lines.join("\n")}\n}`;
+        }
+
+        function renderProgramWorkspace() {
+          const atLimit = state.program.length >= definition.expected.length;
+          const paletteHint = state.selectedLine !== null
+            ? `替换第 ${state.selectedLine + 1} 步`
+            : atLimit
+              ? "先在右侧选中一步"
+              : "点击加入程序";
+          const feedbackType = state.world.status === "error" ? " is-error" : state.world.status === "success" ? " is-success" : "";
+
+          return `
+            <section class="operation-panel" aria-label="编程操作区">
+              <div class="code-studio-heading">
+                <div>
+                  <h2>开始编程</h2>
+                  <small>${state.program.length} / ${definition.expected.length} 个指令 · 选中程序行后可替换</small>
+                </div>
+                <button class="inline-button" data-action="reset-program" type="button" ${state.running ? "disabled" : ""}>恢复原程序</button>
+              </div>
+
+              <div class="builder-grid">
+                <section class="palette-panel">
+                  <div class="panel-title"><span>选择指令</span><small>${paletteHint}</small></div>
+                  <div class="command-palette">
+                    ${Object.entries(commandLabels).map(([command, label]) => {
+                      const disabled = state.running || (atLimit && state.selectedLine === null);
+                      return `<button class="command-button" data-command="${escapeHtml(command)}" type="button" ${disabled ? "disabled" : ""}><strong>${escapeHtml(command)}</strong><small>${escapeHtml(label)}</small></button>`;
+                    }).join("")}
+                  </div>
+                </section>
+
+                <section class="program-panel">
+                  <div class="panel-title"><span>我的程序</span><small>点击一行选中</small></div>
+                  ${state.program.length ? `
+                    <ol class="program-list">
+                      ${state.program.map((command, index) => `
+                        <li class="program-chip">
+                          <button class="program-select${state.selectedLine === index ? " is-selected" : ""}${state.activeStep === index ? " is-running" : ""}" data-line="${index}" type="button" ${state.running ? "disabled" : ""}>
+                            <span>${index + 1}</span><strong>${escapeHtml(command)}</strong>
+                          </button>
+                          <button class="remove-command" data-remove="${index}" type="button" aria-label="移除第 ${index + 1} 步" ${state.running ? "disabled" : ""}>×</button>
+                        </li>
+                      `).join("")}
+                    </ol>
+                  ` : `<ol class="program-list is-empty"><li>从左侧选择第一条指令</li></ol>`}
+                </section>
+              </div>
+
+              <section class="code-panel">
+                <div class="panel-title"><span>生成代码</span><small>按顺序执行</small></div>
+                <pre class="code-view">${escapeHtml(renderCodeView())}</pre>
+              </section>
+
+              <div class="tool-row" aria-label="程序工具">
+                <button class="tool-button is-primary" data-action="run-code" type="button" ${state.running || !state.program.length ? "disabled" : ""}>▶ 运行</button>
+                <button class="tool-button" data-action="step-code" type="button" ${state.running || !state.program.length ? "disabled" : ""}>单步</button>
+                <button class="tool-button" data-action="undo-code" type="button" ${state.running || !state.history.length ? "disabled" : ""}>撤销</button>
+                <button class="tool-button" data-action="reset-world" type="button" ${state.running ? "disabled" : ""}>复位</button>
+                <button class="tool-button" data-action="clear-code" type="button" ${state.running || !state.program.length ? "disabled" : ""}>清空</button>
+              </div>
+            </section>
+
+            <section class="log-panel" aria-label="调试反馈">
+              <div class="log-heading"><span>调试反馈</span><small>${state.world.status === "error" ? "需调试" : state.world.status === "success" ? "已过关" : state.stepCursor ? `已到第 ${state.stepCursor} 步` : "未运行"}</small></div>
+              <p class="log-message${feedbackType}">${escapeHtml(state.feedback)}</p>
+            </section>
+          `;
+        }
+
+        function renderPlaygroundLesson(statusMessage = "", statusType = "") {
+          return `
+            <section class="mission-brief">
+              <div class="playground-copy">
+                <p class="playground-challenge"><strong>挑战：</strong>维修通道中的程序会把探测员带向障碍。修复它，让探测员抵达信标并完成采集。</p>
+                <p>程序会按照从上到下的顺序执行。下面三个线索会影响探测员走向哪里：</p>
+                <ul>
+                  <li><code class="lesson-command">move()</code> 让探测员朝当前方向前进一格。</li>
+                  <li><code class="lesson-command">turnLeft()</code> 向左转，<code class="lesson-command">turnRight()</code> 向右转。</li>
+                  <li>调试时寻找实际路线与预想路线<span class="lesson-emphasis">第一次不同</span>的位置，不要只盯着最后的撞墙提示。</li>
+                </ul>
+                <p class="playground-goal"><strong>完成挑战：</strong>先运行程序观察路线，再选中一行代码替换指令，最后重新运行验证。只需要修改一个指令。</p>
+                ${statusMessage ? `<div class="task-intro${statusType === "error" ? " is-error" : ""}">${escapeHtml(statusMessage)}</div>` : ""}
+                <p class="playground-optional">如果还不明白“第一次不同”，可以点击左侧任务区下方的“调试侦探社”。这是可选学习，不影响直接完成任务。</p>
+              </div>
+            </section>
+          `;
+        }
+
+        function renderBrief() {
+          readingContent.innerHTML = `
+            ${renderPlaygroundLesson()}
+            ${renderProgramWorkspace()}
+          `;
+        }
+
+        function renderTask() {
+          const failed = state.world.status === "error";
+          const intro = failed
+            ? state.activeStep >= 0
+              ? `程序在第 ${state.activeStep + 1} 步停下了。撞墙是最后结果，真正的原因可能更早。点击一行，只改一个指令。`
+              : "程序已经执行完，但还没有完成采集。检查路线在哪一步第一次偏离目标。"
+            : state.changedLine !== null
+              ? `你修改了第 ${state.changedLine + 1} 步。点击“运行代码”验证这次修改。`
+              : state.stepCursor
+                ? `已经单步执行到第 ${state.stepCursor} 步。继续单步，或比较程序与地图状态。`
+                : "先运行观察路线。失败后，点击你认为最早导致路线错误的代码行。";
+
+          readingContent.innerHTML = `
+            ${renderPlaygroundLesson(intro, failed ? "error" : "info")}
+            ${renderProgramWorkspace()}
+          `;
+        }
+
+        function renderDetective() {
+          const messages = [
+            "第一步先说出预想：执行 move() 后，探测员应该向东前进一格。",
+            "逐步比较预想和实际。第 1 步相同，所以它不是根因。",
+            "第 2 步第一次不同：预想向左转，实际却向右转。修这里，而不是修第 3 步的撞墙。"
+          ];
+          readingContent.innerHTML = `
+            <section class="mission-brief">
+              <div class="detective-badge" aria-hidden="true">?</div>
+              <h1>调试侦探社：一分钟方法</h1>
+              <p class="lesson-note">这里只学一种方法。看懂后就回到原任务，不需要做额外测验。</p>
+              <div class="method-steps" aria-label="调试方法">
+                <span>先预测</span><b>→</b><span>逐步比较</span><b>→</b><span>找第一次不同</span><b>→</b><span>只改这一处</span>
+              </div>
+              <table class="comparison">
+                <thead><tr><th>步骤</th><th>预想</th><th>实际</th></tr></thead>
+                <tbody>
+                  <tr class="${state.guideStep === 1 ? "is-focus" : ""}"><td>1</td><td>move() → 向东</td><td>move() → 向东</td></tr>
+                  <tr class="${state.guideStep >= 2 ? "is-first-difference" : ""}"><td>2</td><td>turnLeft() → 向北</td><td>turnRight() → 向南</td></tr>
+                  <tr><td>3</td><td>向北移动</td><td>撞上障碍</td></tr>
+                </tbody>
+              </table>
+              <div class="guide-message">${messages[state.guideStep]}</div>
+              ${state.guideStep < 2
+                ? `<button class="small-action" data-action="guide-next" type="button">看下一步</button>`
+                : `<button class="small-action" data-action="return-task" type="button">我懂了，回到任务</button>`}
+            </section>
+          `;
+        }
+
+        function renderComplete() {
+          readingContent.innerHTML = `
+            <section class="mission-brief">
+              <div class="completion-mark" aria-hidden="true">✓</div>
+              <h1>任务完成</h1>
+              <p>探测员沿正确路线抵达信标，并完成了采集。</p>
+              <div class="evidence-line">
+                <p><strong>你的关键修改：</strong>第 2 步从 turnRight() 改为 turnLeft()。</p>
+                <p><strong>这节课学会的方法：</strong>找到程序第一次偏离预想的位置，只修改真正的原因。</p>
+              </div>
+              <button class="small-action" data-action="restart" type="button">再做一次</button>
+            </section>
+            <section class="operation-panel">
+              <div class="panel-title"><span>最终代码</span><small>验证通过</small></div>
+              <pre class="code-view">${escapeHtml(renderCodeView())}</pre>
+            </section>
+          `;
+        }
+
+        function renderReading() {
+          if (state.view === "brief") renderBrief();
+          if (state.view === "task") renderTask();
+          if (state.view === "detective") renderDetective();
+          if (state.view === "complete") renderComplete();
+        }
+
+        function renderMap() {
+          const cells = [];
+          for (let y = 0; y < definition.height; y += 1) {
+            for (let x = 0; x < definition.width; x += 1) {
+              const wall = definition.walls.some(([wallX, wallY]) => wallX === x && wallY === y);
+              const beacon = definition.beacon[0] === x && definition.beacon[1] === y && !state.world.collected;
+              const probe = state.world.x === x && state.world.y === y;
+              cells.push(`<div class="tile${wall ? " is-wall" : ""}${beacon ? " is-beacon" : ""}">${probe ? `<span class="probe" aria-label="探测员朝向${directionArrows[state.world.dir]}">${directionArrows[state.world.dir]}</span>` : ""}</div>`);
+            }
+          }
+          map.innerHTML = cells.join("");
+          worldFeedback.textContent = state.feedback;
+          worldState.textContent = state.running ? "运行中" : state.world.status === "success" ? "任务完成" : state.world.status === "error" ? "需要修复" : state.stepCursor ? `已到第 ${state.stepCursor} 步` : "等待运行";
+          worldState.dataset.state = state.world.status;
+        }
+
+        function renderControls() {
+          runButton.disabled = state.running || (!state.program.length && state.view !== "detective" && state.view !== "complete");
+          runButton.textContent = state.view === "detective" ? "返回任务" : state.view === "complete" ? "再做一次" : state.running ? "运行中…" : "▶  运行代码";
+          detectiveButton.disabled = state.running;
+          detectiveButton.hidden = state.view === "detective" || state.view === "complete";
+        }
+
+        function render() {
+          renderReading();
+          renderMap();
+          renderControls();
+        }
+
+        function applyCommand(source, command) {
+          const world = { ...source, error: "" };
+          if (command === "turnLeft()" || command === "turnRight()") {
+            const delta = command === "turnLeft()" ? -1 : 1;
+            world.dir = directions[(directions.indexOf(world.dir) + delta + 4) % 4];
+            return world;
+          }
+          if (command === "move()") {
+            const [dx, dy] = { N: [0,-1], E: [1,0], S: [0,1], W: [-1,0] }[world.dir];
+            const nextX = world.x + dx;
+            const nextY = world.y + dy;
+            const blocked = nextX < 0 || nextY < 0 || nextX >= definition.width || nextY >= definition.height || definition.walls.some(([x,y]) => x === nextX && y === nextY);
+            if (blocked) return { ...world, status: "error", error: "撞上障碍" };
+            world.x = nextX;
+            world.y = nextY;
+            return world;
+          }
+          if (command === "collect()") {
+            const onBeacon = world.x === definition.beacon[0] && world.y === definition.beacon[1];
+            if (!onBeacon) return { ...world, status: "error", error: "当前位置没有信标" };
+            world.collected = true;
+            return world;
+          }
+          return { ...world, status: "error", error: "未知指令" };
+        }
+
+        function finishRun() {
+          state.running = false;
+          state.activeStep = -1;
+          state.stepCursor = state.program.length;
+          if (state.world.collected) {
+            state.world.status = "success";
+            state.feedback = "采集成功！你修复了真正导致路线错误的指令。";
+            state.view = "complete";
+          } else if (state.world.status !== "error") {
+            state.world.status = "error";
+            state.world.error = "任务未完成";
+            state.feedback = "程序运行结束，但还没有采集到信标。";
+          }
+          render();
+        }
+
+        function runProgram() {
+          if (state.running) return;
+          if (state.view === "detective") {
+            state.view = state.returnView === "brief" ? "task" : state.returnView;
+            render();
+            return;
+          }
+          if (state.view === "complete") {
+            resetLesson();
+            return;
+          }
+          if (!state.program.length) {
+            state.view = "task";
+            state.feedback = "程序还是空的。请先从指令面板加入指令。";
+            render();
+            return;
+          }
+
+          state.view = "task";
+          state.world = freshWorld();
+          state.world.status = "running";
+          state.running = true;
+          state.activeStep = -1;
+          state.stepCursor = 0;
+          state.feedback = "程序开始运行。观察每一步的位置和朝向。";
+          render();
+
+          let index = 0;
+          const advance = () => {
+            if (index >= state.program.length) { finishRun(); return; }
+            state.activeStep = index;
+            state.world = applyCommand(state.world, state.program[index]);
+            state.stepCursor = index + 1;
+            state.feedback = `第 ${index + 1} 步：${commandLabels[state.program[index]] || state.program[index]}`;
+            render();
+            if (state.world.status === "error") {
+              state.running = false;
+              state.feedback = `第 ${index + 1} 步${state.world.error}。先找更早让路线改变的指令。`;
+              render();
+              return;
+            }
+            index += 1;
+            window.setTimeout(advance, 480);
+          };
+          window.setTimeout(advance, 280);
+        }
+
+        function saveProgramHistory() {
+          state.history.push([...state.program]);
+          if (state.history.length > 20) state.history.shift();
+        }
+
+        function prepareAfterEdit(message) {
+          state.view = "task";
+          state.world = freshWorld();
+          state.activeStep = -1;
+          state.stepCursor = 0;
+          state.feedback = message;
+          render();
+        }
+
+        function stepProgram() {
+          if (state.running) return;
+          if (!state.program.length) {
+            state.view = "task";
+            state.feedback = "程序还是空的。请先加入指令。";
+            render();
+            return;
+          }
+          if (state.view === "detective") state.view = "task";
+          if (["error", "success"].includes(state.world.status) || state.stepCursor >= state.program.length) {
+            state.world = freshWorld();
+            state.stepCursor = 0;
+          }
+
+          state.view = "task";
+          state.activeStep = state.stepCursor;
+          state.world.status = "running";
+          state.world = applyCommand(state.world, state.program[state.stepCursor]);
+          state.stepCursor += 1;
+
+          if (state.world.status === "error") {
+            state.feedback = `第 ${state.stepCursor} 步${state.world.error}。比较它之前的位置和朝向。`;
+          } else if (state.world.collected) {
+            state.world.status = "success";
+            state.feedback = "采集成功！你修复了真正导致路线错误的指令。";
+            state.view = "complete";
+          } else if (state.stepCursor >= state.program.length) {
+            state.world.status = "error";
+            state.world.error = "任务未完成";
+            state.feedback = "程序已经执行完，但还没有采集到信标。";
+          } else {
+            state.world.status = "idle";
+            state.feedback = `已执行第 ${state.stepCursor} 步：${commandLabels[state.program[state.stepCursor - 1]] || state.program[state.stepCursor - 1]}。`;
+          }
+          render();
+        }
+
+        function undoProgram() {
+          if (!state.history.length || state.running) return;
+          state.program = state.history.pop();
+          state.selectedLine = null;
+          state.changedLine = null;
+          prepareAfterEdit("已撤销上一次程序修改。");
+        }
+
+        function resetWorld() {
+          if (state.running) return;
+          state.view = "task";
+          state.world = freshWorld();
+          state.activeStep = -1;
+          state.stepCursor = 0;
+          state.feedback = "任务世界已复位，程序保持不变。";
+          render();
+        }
+
+        function clearProgram() {
+          if (state.running || !state.program.length) return;
+          saveProgramHistory();
+          state.program = [];
+          state.selectedLine = null;
+          state.changedLine = null;
+          prepareAfterEdit("程序已清空。请从指令面板重新加入指令。");
+        }
+
+        function removeCommand(index) {
+          if (state.running || index < 0 || index >= state.program.length) return;
+          saveProgramHistory();
+          state.program.splice(index, 1);
+          state.selectedLine = null;
+          state.changedLine = null;
+          prepareAfterEdit(`已移除第 ${index + 1} 步。`);
+        }
+
+        function openDetective() {
+          state.returnView = state.view === "brief" ? "brief" : "task";
+          state.view = "detective";
+          state.guideStep = 0;
+          state.feedback = "侦探社不会替你完成任务，只示范怎样找到第一次偏离。";
+          render();
+        }
+
+        function resetProgram() {
+          if (state.running) return;
+          saveProgramHistory();
+          state.program = [...definition.buggy];
+          state.selectedLine = null;
+          state.changedLine = null;
+          state.world = freshWorld();
+          state.activeStep = -1;
+          state.stepCursor = 0;
+          state.view = "task";
+          state.feedback = "已恢复原程序。你可以重新运行观察。";
+          render();
+        }
+
+        function resetLesson() {
+          state.view = "brief";
+          state.returnView = "brief";
+          state.program = [...definition.buggy];
+          state.selectedLine = null;
+          state.changedLine = null;
+          state.world = freshWorld();
+          state.activeStep = -1;
+          state.stepCursor = 0;
+          state.running = false;
+          state.feedback = "读完任务说明后，直接运行这段程序。";
+          state.guideStep = 0;
+          state.history = [];
+          render();
+        }
+
+        readingContent.addEventListener("click", (event) => {
+          const lineButton = event.target.closest("[data-line]");
+          const commandButton = event.target.closest("[data-command]");
+          const removeButton = event.target.closest("[data-remove]");
+          const actionButton = event.target.closest("[data-action]");
+
+          if (removeButton && !state.running) {
+            removeCommand(Number(removeButton.dataset.remove));
+            return;
+          }
+
+          if (lineButton && !state.running) {
+            state.selectedLine = Number(lineButton.dataset.line);
+            renderReading();
+            return;
+          }
+
+          if (commandButton && !state.running) {
+            const command = commandButton.dataset.command;
+            if (state.selectedLine !== null && state.selectedLine < state.program.length) {
+              saveProgramHistory();
+              state.program[state.selectedLine] = command;
+              state.changedLine = state.selectedLine;
+              prepareAfterEdit(`已把第 ${state.changedLine + 1} 步替换为 ${command}。运行程序验证修改。`);
+            } else if (state.program.length < definition.expected.length) {
+              saveProgramHistory();
+              state.program.push(command);
+              state.changedLine = state.program.length - 1;
+              prepareAfterEdit(`已加入第 ${state.program.length} 步 ${command}。`);
+            }
+            return;
+          }
+
+          const action = actionButton?.dataset.action;
+          if (action === "reset-program") resetProgram();
+          if (action === "run-code") runProgram();
+          if (action === "step-code") stepProgram();
+          if (action === "undo-code") undoProgram();
+          if (action === "reset-world") resetWorld();
+          if (action === "clear-code") clearProgram();
+          if (action === "guide-next") { state.guideStep = Math.min(2, state.guideStep + 1); renderReading(); }
+          if (action === "return-task") { state.view = state.returnView === "brief" ? "task" : state.returnView; render(); }
+          if (action === "restart") resetLesson();
+        });
+
+        runButton.addEventListener("click", runProgram);
+        detectiveButton.addEventListener("click", openDetective);
+        restartButton.addEventListener("click", resetLesson);
+        render();
+      })();
+    </script>
+  </body>
+</html>

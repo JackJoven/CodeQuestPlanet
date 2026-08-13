@@ -1,0 +1,20 @@
+:80 {
+  encode zstd gzip
+
+  route {
+    @private path /.env* /backend* /deploy* /docs* /archive* /compose.yaml /AGENTS.md /README.md /.git* /.DS_Store
+    respond @private 404
+
+    handle /api/* {
+      reverse_proxy api:3001
+    }
+
+    handle {
+      root * /srv/codequestplanet
+      try_files {path} {path}/ /index.html
+      file_server {
+        hide .env .env.example .git .DS_Store backend deploy docs archive compose.yaml AGENTS.md README.md
+      }
+    }
+  }
+}

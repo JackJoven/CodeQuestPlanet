@@ -1,0 +1,1378 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>临时原型｜调试侦探社学习状态</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #182033;
+        --muted: #657087;
+        --line: #dce2ee;
+        --panel: #ffffff;
+        --soft: #f5f7fb;
+        --accent: #315fdb;
+        --accent-soft: #e9efff;
+        --success: #15734f;
+        --success-soft: #e8f6ef;
+        --warning: #9a5b08;
+        --warning-soft: #fff3da;
+        --danger: #ad3342;
+        --danger-soft: #ffecee;
+        --shadow: 0 18px 48px rgba(34, 49, 84, 0.1);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        background: #eef2f8;
+        color: var(--ink);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+
+      button, select { font: inherit; }
+
+      button {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--panel);
+        color: var(--ink);
+        cursor: pointer;
+        padding: 10px 13px;
+        text-align: left;
+      }
+
+      button:hover { border-color: var(--accent); }
+      button:focus-visible { outline: 3px solid rgba(49, 95, 219, 0.24); outline-offset: 2px; }
+
+      .shell {
+        width: min(1500px, calc(100% - 32px));
+        margin: 24px auto 60px;
+      }
+
+      .prototype-flag {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        border: 1px solid #f0bf66;
+        border-radius: 999px;
+        background: var(--warning-soft);
+        color: #784205;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        padding: 7px 11px;
+        text-transform: uppercase;
+      }
+
+      .hero {
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        padding: clamp(22px, 4vw, 42px);
+      }
+
+      .hero h1 {
+        margin: 18px 0 10px;
+        max-width: 900px;
+        font-size: clamp(30px, 4vw, 52px);
+        letter-spacing: -0.045em;
+        line-height: 1.02;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 950px;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.75;
+      }
+
+      .question {
+        margin-top: 22px;
+        border-left: 4px solid var(--accent);
+        background: var(--accent-soft);
+        border-radius: 0 14px 14px 0;
+        padding: 15px 18px;
+        color: #253a76;
+        font-weight: 650;
+        line-height: 1.65;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(340px, 0.75fr);
+        gap: 18px;
+        margin-top: 18px;
+        align-items: start;
+      }
+
+      .stack { display: grid; gap: 18px; }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--panel);
+        box-shadow: 0 10px 34px rgba(34, 49, 84, 0.06);
+        padding: 20px;
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        align-items: flex-start;
+        margin-bottom: 16px;
+      }
+
+      .card-header h2, .card-header h3 { margin: 0; }
+      .card-header p { margin: 6px 0 0; color: var(--muted); line-height: 1.55; }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        background: var(--soft);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+        padding: 7px 10px;
+        white-space: nowrap;
+      }
+
+      .status-pill.is-success { background: var(--success-soft); color: var(--success); }
+      .status-pill.is-warning { background: var(--warning-soft); color: var(--warning); }
+      .status-pill.is-danger { background: var(--danger-soft); color: var(--danger); }
+
+      .state-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .state-field {
+        min-height: 82px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--soft);
+        padding: 12px;
+      }
+
+      .state-field small { display: block; color: var(--muted); margin-bottom: 6px; }
+      .state-field strong { display: block; line-height: 1.35; overflow-wrap: anywhere; }
+
+      .last-change {
+        margin-top: 12px;
+        border-radius: 12px;
+        background: var(--accent-soft);
+        color: #294486;
+        padding: 12px 14px;
+        line-height: 1.55;
+      }
+
+      .progress-row {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(100px, 1fr));
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+
+      .progress-step {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px;
+        min-width: 110px;
+        background: var(--soft);
+      }
+
+      .progress-step small { color: var(--muted); display: block; margin-bottom: 5px; }
+      .progress-step strong { font-size: 13px; }
+      .progress-step.is-current { border-color: var(--accent); background: var(--accent-soft); }
+      .progress-step.is-done { border-color: #9fd7bf; background: var(--success-soft); }
+
+      .case-layout {
+        display: grid;
+        grid-template-columns: minmax(260px, 0.7fr) minmax(360px, 1.3fr);
+        gap: 16px;
+      }
+
+      .map-panel, .program-panel {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--soft);
+        padding: 14px;
+      }
+
+      .map-panel h3, .program-panel h3 { margin: 0 0 12px; font-size: 15px; }
+
+      .map-grid {
+        display: grid;
+        gap: 4px;
+        width: min(100%, 360px);
+        aspect-ratio: 1;
+      }
+
+      .cell {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-width: 0;
+        border: 1px solid #d9dfeb;
+        border-radius: 7px;
+        background: #fff;
+        color: #536079;
+        font-size: 12px;
+      }
+
+      .cell.is-wall { background: #596275; border-color: #596275; color: #fff; }
+      .cell.is-beacon { background: #e9f8ef; border-color: #85cdaa; }
+      .cell.is-relay { background: #fff0d8; border-color: #e7b86d; }
+      .cell.is-robot { outline: 3px solid var(--accent); outline-offset: -3px; }
+
+      .robot {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 900;
+      }
+
+      .map-legend { display: flex; flex-wrap: wrap; gap: 8px 12px; margin-top: 10px; color: var(--muted); font-size: 12px; }
+
+      .program-lines { display: grid; gap: 6px; }
+      .program-line {
+        display: grid;
+        grid-template-columns: 28px 1fr auto;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: #fff;
+        padding: 8px 10px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 13px;
+      }
+
+      .program-line.is-active { border-color: var(--accent); background: var(--accent-soft); }
+      .program-line.is-divergence { border-color: var(--danger); background: var(--danger-soft); }
+      .program-line small { color: var(--muted); font-family: inherit; }
+
+      .evidence-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .evidence-item {
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        background: #fff;
+        padding: 10px;
+      }
+
+      .evidence-item small { color: var(--muted); display: block; margin-bottom: 5px; }
+      .evidence-item strong { font-size: 13px; line-height: 1.45; }
+
+      .timeline-wrap { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      th, td { border-bottom: 1px solid var(--line); padding: 9px 8px; text-align: left; white-space: nowrap; }
+      th { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+      tr.is-selected td { background: var(--warning-soft); }
+      tr.is-actual-divergence td { background: var(--danger-soft); }
+
+      .control-group + .control-group { margin-top: 16px; }
+      .control-group h3 { margin: 0 0 9px; font-size: 13px; color: var(--muted); }
+      .button-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .button-grid button { min-height: 44px; }
+      .button-grid button.is-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+      .button-grid button.is-warning { background: var(--warning-soft); border-color: #efc777; color: #75440b; }
+
+      .walkthroughs { margin-top: 18px; }
+      .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+      .tab-button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+      .scenario-copy { color: var(--muted); line-height: 1.6; }
+      .scenario-steps { display: grid; gap: 8px; margin-top: 14px; }
+      .scenario-step {
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px;
+        background: var(--soft);
+      }
+
+      .scenario-step.is-done { opacity: 0.58; }
+      .scenario-step.is-next { border-color: var(--accent); background: var(--accent-soft); }
+      .scenario-step b { display: grid; place-items: center; width: 25px; height: 25px; border-radius: 50%; background: #fff; }
+      .scenario-step button { padding: 7px 10px; }
+
+      .event-list { display: grid; gap: 7px; max-height: 360px; overflow-y: auto; }
+      .event-item { border-left: 3px solid var(--line); padding: 7px 10px; color: var(--muted); line-height: 1.45; }
+      .event-item strong { color: var(--ink); }
+
+      .empty-state { border: 1px dashed var(--line); border-radius: 12px; color: var(--muted); padding: 22px; text-align: center; }
+
+      .footer-note { margin-top: 18px; color: var(--muted); text-align: center; font-size: 12px; }
+
+      @media (max-width: 1050px) {
+        .layout, .case-layout { grid-template-columns: 1fr; }
+        .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+
+      @media (max-width: 620px) {
+        .shell { width: min(100% - 18px, 1500px); margin-top: 9px; }
+        .hero, .card { border-radius: 14px; padding: 16px; }
+        .state-grid, .evidence-grid, .button-grid { grid-template-columns: 1fr; }
+        .scenario-step { grid-template-columns: 26px 1fr; }
+        .scenario-step button { grid-column: 1 / -1; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <span class="prototype-flag">PROTOTYPE · 刷新即清空</span>
+        <h1>调试侦探社：学习状态模型</h1>
+        <p>这是可点击的临时逻辑原型，不是正式课程，也不验证最终视觉。它把资格检查、讲解、案件、提示、学习证据和掌握判定全部放进内存状态，方便你观察每一步是否合法、留下了什么证据。</p>
+        <div class="question">要回答的问题：学生能否在没有教师补充答案的情况下，通过证据找到程序的第一次偏离；使用强提示后，系统又能否阻止“完成”被误记成“掌握”，并正确分配等价新任务？</div>
+      </section>
+
+      <section class="layout">
+        <div class="stack">
+          <section class="card" aria-labelledby="stateTitle">
+            <div class="card-header">
+              <div>
+                <h2 id="stateTitle">当前完整学习状态</h2>
+                <p>每次操作后都会重新呈现。蓝色提示说明刚刚发生的状态变化。</p>
+              </div>
+              <span id="masteryPill" class="status-pill">尚未评测</span>
+            </div>
+            <div id="stateGrid" class="state-grid"></div>
+            <div id="lastChange" class="last-change"></div>
+          </section>
+
+          <section class="card" aria-labelledby="journeyTitle">
+            <div class="card-header">
+              <div>
+                <h2 id="journeyTitle">标准课学习旅程</h2>
+                <p>共同骨架稳定，但每个挑战单元承担不同的教学作用。</p>
+              </div>
+            </div>
+            <div id="progressRow" class="progress-row"></div>
+          </section>
+
+          <section class="card" aria-labelledby="caseTitle">
+            <div class="card-header">
+              <div>
+                <h2 id="caseTitle">当前案件</h2>
+                <p id="caseSummary">完成讲解后载入第一个案件。</p>
+              </div>
+              <span id="casePill" class="status-pill">未载入</span>
+            </div>
+            <div id="caseWorkspace" class="empty-state">还没有活动案件。</div>
+          </section>
+
+          <section class="card" aria-labelledby="timelineTitle">
+            <div class="card-header">
+              <div>
+                <h2 id="timelineTitle">预期 / 实际双时间线</h2>
+                <p>原型观察视角会显示系统校验基准；正式学生界面应按支持程度逐步隐藏答案。</p>
+              </div>
+            </div>
+            <div id="timeline" class="empty-state">运行案件后，这里会出现逐步证据。</div>
+          </section>
+        </div>
+
+        <aside class="stack">
+          <section class="card" aria-labelledby="controlsTitle">
+            <div class="card-header">
+              <div>
+                <h2 id="controlsTitle">自由操作</h2>
+                <p>按钮始终保留。过早或非法操作不会偷偷生效，而会留下阻止原因。</p>
+              </div>
+            </div>
+            <div id="controls"></div>
+          </section>
+
+          <section class="card" aria-labelledby="eventsTitle">
+            <div class="card-header">
+              <div>
+                <h2 id="eventsTitle">学习证据事件</h2>
+                <p>只保存在当前页面内存中。</p>
+              </div>
+            </div>
+            <div id="eventList" class="event-list"></div>
+          </section>
+        </aside>
+      </section>
+
+      <section class="card walkthroughs" aria-labelledby="walkthroughTitle">
+        <div class="card-header">
+          <div>
+            <h2 id="walkthroughTitle">引导式压测场景</h2>
+            <p>每个步骤都是真实操作。开始场景会重置到可重复的已知状态。</p>
+          </div>
+          <button id="restartScenario" type="button">重新开始当前场景</button>
+        </div>
+        <div id="scenarioTabs" class="tabs" role="tablist" aria-label="压测场景"></div>
+        <div id="scenarioPanel"></div>
+      </section>
+
+      <p class="footer-note">临时逻辑原型 · 无账号 · 无数据库 · 不写入正式学习进度</p>
+    </main>
+
+    <script>
+      /*
+       * Portable logic module: no DOM access. The page below is a throwaway shell.
+       */
+      const DebugLessonMachine = (() => {
+        const DIRECTIONS = ["N", "E", "S", "W"];
+        const DIRECTION_LABELS = { N: "北 ↑", E: "东 →", S: "南 ↓", W: "西 ←" };
+        const ROOT_LABELS = {
+          orientation: "朝向错误",
+          timing: "动作时机错误",
+          position: "位置错误",
+          sequence: "执行顺序错误"
+        };
+
+        const CASES = {
+          guided: {
+            id: "guided",
+            stage: "guided",
+            title: "案件一：错误转向",
+            support: "引导",
+            summary: "第二步转错方向，第三步才撞墙。请不要把撞墙步骤当成根因。",
+            width: 5,
+            height: 5,
+            start: { x: 1, y: 3, dir: "E" },
+            walls: [[2, 4]],
+            beacon: [3, 2],
+            relay: null,
+            expectedProgram: ["move()", "turnLeft()", "move()", "turnRight()", "move()", "collect()"],
+            buggyProgram: ["move()", "turnRight()", "move()", "turnLeft()", "move()", "collect()"],
+            rootCause: "orientation"
+          },
+          semi: {
+            id: "semi",
+            stage: "semi",
+            title: "案件二：过早采集",
+            support: "半引导",
+            summary: "采集动作本身没有写错，但它发生得太早。",
+            width: 5,
+            height: 4,
+            start: { x: 1, y: 2, dir: "E" },
+            walls: [],
+            beacon: [3, 2],
+            relay: null,
+            expectedProgram: ["move()", "move()", "collect()"],
+            buggyProgram: ["move()", "collect()", "move()"],
+            rootCause: "timing"
+          },
+          independent: {
+            id: "independent",
+            stage: "independent",
+            title: "案件三：多走一步",
+            support: "独立",
+            summary: "程序经过目标却继续前进；最终空采集只是后果。",
+            width: 6,
+            height: 4,
+            start: { x: 1, y: 2, dir: "E" },
+            walls: [],
+            beacon: [3, 2],
+            relay: null,
+            expectedProgram: ["move()", "move()", "collect()"],
+            buggyProgram: ["move()", "move()", "move()", "collect()"],
+            rootCause: "position"
+          },
+          transferA: {
+            id: "transferA",
+            stage: "transfer",
+            title: "迁移案件 A：错位的交付顺序",
+            support: "能力门",
+            summary: "移动和采集都是允许的指令，但第二、三步的顺序颠倒。",
+            width: 5,
+            height: 4,
+            start: { x: 1, y: 2, dir: "E" },
+            walls: [],
+            beacon: [2, 2],
+            relay: [3, 2],
+            expectedProgram: ["move()", "collect()", "move()", "upload()"],
+            buggyProgram: ["move()", "move()", "collect()", "upload()"],
+            rootCause: "sequence"
+          },
+          transferB: {
+            id: "transferB",
+            stage: "transfer",
+            title: "迁移案件 B：换图后的等价问题",
+            support: "重新评测",
+            summary: "地图、朝向和表面现象都变了，但仍要发现正确动作被交换。",
+            width: 5,
+            height: 5,
+            start: { x: 1, y: 3, dir: "N" },
+            walls: [],
+            beacon: [1, 2],
+            relay: [2, 2],
+            expectedProgram: ["move()", "collect()", "turnRight()", "move()", "upload()"],
+            buggyProgram: ["move()", "turnRight()", "collect()", "move()", "upload()"],
+            rootCause: "sequence"
+          }
+        };
+
+        const STAGES = ["readiness", "explanation", "guided", "semi", "independent", "transfer", "reflection"];
+
+        const clone = (value) => JSON.parse(JSON.stringify(value));
+        const pointKey = (x, y) => `${x},${y}`;
+
+        function initialWorld(definition) {
+          return {
+            x: definition.start.x,
+            y: definition.start.y,
+            dir: definition.start.dir,
+            carrying: false,
+            collected: false,
+            uploaded: false,
+            status: "准备",
+            error: ""
+          };
+        }
+
+        function applyCommand(definition, sourceWorld, command) {
+          const world = clone(sourceWorld);
+          world.error = "";
+          world.status = "运行中";
+
+          if (command === "turnLeft()" || command === "turnRight()") {
+            const delta = command === "turnLeft()" ? -1 : 1;
+            const index = (DIRECTIONS.indexOf(world.dir) + delta + DIRECTIONS.length) % DIRECTIONS.length;
+            world.dir = DIRECTIONS[index];
+            return world;
+          }
+
+          if (command === "move()") {
+            const delta = { N: [0, -1], E: [1, 0], S: [0, 1], W: [-1, 0] }[world.dir];
+            const nextX = world.x + delta[0];
+            const nextY = world.y + delta[1];
+            const blocked = nextX < 0 || nextY < 0 || nextX >= definition.width || nextY >= definition.height || definition.walls.some(([x, y]) => x === nextX && y === nextY);
+            if (blocked) {
+              world.status = "失败";
+              world.error = "撞墙：当前位置不能继续前进";
+              return world;
+            }
+            world.x = nextX;
+            world.y = nextY;
+            return world;
+          }
+
+          if (command === "collect()") {
+            const onBeacon = definition.beacon && world.x === definition.beacon[0] && world.y === definition.beacon[1];
+            if (!onBeacon || world.collected) {
+              world.status = "失败";
+              world.error = "空采集：当前位置没有可采集信标";
+              return world;
+            }
+            world.collected = true;
+            world.carrying = true;
+            return world;
+          }
+
+          if (command === "upload()") {
+            const onRelay = definition.relay && world.x === definition.relay[0] && world.y === definition.relay[1];
+            if (!onRelay || !world.carrying) {
+              world.status = "失败";
+              world.error = onRelay ? "上传失败：没有携带信标" : "上传失败：不在中继站";
+              return world;
+            }
+            world.carrying = false;
+            world.uploaded = true;
+            world.status = "成功";
+            return world;
+          }
+
+          world.status = "失败";
+          world.error = `未知指令：${command}`;
+          return world;
+        }
+
+        function runProgram(definition, program, limit = Infinity) {
+          let world = initialWorld(definition);
+          const trace = [];
+          for (let index = 0; index < program.length && index < limit; index += 1) {
+            world = applyCommand(definition, world, program[index]);
+            trace.push({ step: index + 1, command: program[index], world: clone(world) });
+            if (world.status === "失败") break;
+          }
+
+          if (trace.length && world.status !== "失败" && world.status !== "成功") {
+            const goalReached = definition.relay ? world.uploaded : world.collected;
+            world.status = goalReached ? "成功" : "未完成";
+            trace[trace.length - 1].world.status = world.status;
+          }
+
+          return { world, trace };
+        }
+
+        function comparable(world) {
+          return [world.x, world.y, world.dir, world.carrying, world.collected, world.uploaded].join("|");
+        }
+
+        function inspectCase(caseId) {
+          const definition = CASES[caseId];
+          const expected = runProgram(definition, definition.expectedProgram);
+          const actual = runProgram(definition, definition.buggyProgram);
+          const length = Math.max(expected.trace.length, actual.trace.length);
+          let firstDivergence = null;
+          for (let index = 0; index < length; index += 1) {
+            const expectedRow = expected.trace[index];
+            const actualRow = actual.trace[index];
+            if (!expectedRow || !actualRow || comparable(expectedRow.world) !== comparable(actualRow.world)) {
+              firstDivergence = index + 1;
+              break;
+            }
+          }
+          return { definition, expected, actual, firstDivergence };
+        }
+
+        function emptyProgress() {
+          return { guided: "locked", semi: "locked", independent: "locked", transfer: "locked", reflection: "locked" };
+        }
+
+        function initialState() {
+          return {
+            phase: "readiness",
+            readiness: "unchecked",
+            remediationUsed: false,
+            explanationComplete: false,
+            progress: emptyProgress(),
+            activeCase: null,
+            lessonMastery: "not_evaluated",
+            requiredEquivalent: null,
+            lastChange: "原型已重置：先进行侦探资格检查。",
+            events: [{ no: 1, label: "课程开始", detail: "学习状态只保存在本页面内存中。" }],
+            eventNo: 1
+          };
+        }
+
+        function addEvent(state, label, detail) {
+          state.eventNo += 1;
+          state.events.unshift({ no: state.eventNo, label, detail });
+          state.events = state.events.slice(0, 30);
+        }
+
+        function block(state, reason) {
+          state.lastChange = `已阻止：${reason}`;
+          addEvent(state, "非法操作被阻止", reason);
+          return state;
+        }
+
+        function caseState(caseId) {
+          const inspected = inspectCase(caseId);
+          return {
+            id: caseId,
+            predictionSaved: false,
+            shownSteps: 0,
+            selectedDivergence: null,
+            selectedRoot: null,
+            hintLevel: 0,
+            strongHintUsed: false,
+            repairApplied: false,
+            repairRun: null,
+            explanation: "",
+            attempts: 0,
+            evaluation: "not_evaluated",
+            latestRun: null,
+            firstDivergence: inspected.firstDivergence
+          };
+        }
+
+        function loadCase(state, caseId, force = false) {
+          const definition = CASES[caseId];
+          if (!definition) return block(state, "找不到这个案件。" );
+          if (!force) {
+            const status = state.progress[definition.stage];
+            if (status === "locked") return block(state, `${definition.title} 还没有解锁。`);
+          }
+          state.activeCase = caseState(caseId);
+          state.phase = definition.stage;
+          if (state.progress[definition.stage] !== "mastered") state.progress[definition.stage] = "in_progress";
+          state.lastChange = `已载入 ${definition.title}。先保存运行前预测，再运行程序。`;
+          addEvent(state, "载入案件", `${definition.title} · ${definition.support}`);
+          return state;
+        }
+
+        function preparedTransferState(caseId = "transferA") {
+          const state = initialState();
+          state.readiness = "passed";
+          state.explanationComplete = true;
+          state.progress = { guided: "completed", semi: "completed", independent: "completed", transfer: "available", reflection: "locked" };
+          state.phase = "transfer";
+          state.events = [{ no: 1, label: "场景准备", detail: "前三个案件已经完成，直接检查迁移能力门。" }];
+          state.eventNo = 1;
+          return loadCase(state, caseId, true);
+        }
+
+        function evaluateActiveCase(state) {
+          const active = state.activeCase;
+          if (!active) return block(state, "没有可以评测的案件。" );
+          const inspected = inspectCase(active.id);
+          const repairedSuccess = active.repairRun && active.repairRun.world.status === "成功";
+          const checks = {
+            prediction: active.predictionSaved,
+            ranProgram: active.attempts > 0,
+            divergence: active.selectedDivergence === inspected.firstDivergence,
+            root: active.selectedRoot === inspected.definition.rootCause,
+            repaired: active.repairApplied && repairedSuccess,
+            explanation: Boolean(active.explanation)
+          };
+          const missing = Object.entries(checks).filter(([, passed]) => !passed).map(([name]) => ({
+            prediction: "缺少运行前预测",
+            ranProgram: "还没有运行错误程序",
+            divergence: "第一次偏离步骤不正确",
+            root: "根因分类不正确",
+            repaired: "局部修改尚未成功运行",
+            explanation: "缺少一句修改理由"
+          })[name]);
+
+          if (missing.length) {
+            active.evaluation = "needs_revision";
+            state.lastChange = `尚未通过：${missing.join("；")}。`;
+            addEvent(state, "能力门未通过", missing.join("；"));
+            return state;
+          }
+
+          const definition = inspected.definition;
+          if (definition.stage === "transfer") {
+            if (active.strongHintUsed) {
+              active.evaluation = "completed_with_strong_hint";
+              state.progress.transfer = "completed";
+              state.lessonMastery = "completed";
+              state.requiredEquivalent = active.id === "transferA" ? "transferB" : "transferA";
+              state.lastChange = "当前迁移案件已完成，但使用过强提示，不能记为掌握。必须进入等价新任务。";
+              addEvent(state, "只记为已完成", `强提示已使用；下一任务：${CASES[state.requiredEquivalent].title}`);
+              return state;
+            }
+            active.evaluation = "mastered";
+            state.progress.transfer = "mastered";
+            state.progress.reflection = "available";
+            state.lessonMastery = "mastered";
+            state.phase = "reflection";
+            state.requiredEquivalent = null;
+            state.lastChange = "迁移能力门通过：无强提示找到第一次偏离并完成修复，已掌握。";
+            addEvent(state, "课程已掌握", `${definition.title} 无强提示通过。`);
+            return state;
+          }
+
+          active.evaluation = "completed";
+          state.progress[definition.stage] = "completed";
+          const next = { guided: "semi", semi: "independent", independent: "transfer" }[definition.stage];
+          if (next) state.progress[next] = "available";
+          state.lastChange = `${definition.title} 已完成。下一挑战已解锁。`;
+          addEvent(state, "案件完成", `${definition.title} 的证据已保存。`);
+          return state;
+        }
+
+        function reduce(sourceState, action) {
+          let state = clone(sourceState);
+
+          if (action.type === "RESET_LESSON") return initialState();
+          if (action.type === "START_SCENARIO") {
+            if (action.scenario === "journey") return initialState();
+            if (["mastery", "strong_hint", "shortcut"].includes(action.scenario)) return preparedTransferState("transferA");
+          }
+
+          if (action.type === "READINESS_FAIL") {
+            if (state.phase !== "readiness") return block(state, "资格检查只在课程入口进行。" );
+            state.readiness = "failed";
+            state.lastChange = "资格检查未通过：先进入针对性补讲，不把前置缺口误判成不会调试。";
+            addEvent(state, "资格检查未通过", "需要顺序、朝向和路线预测补讲。" );
+            return state;
+          }
+
+          if (action.type === "REMEDIATE") {
+            if (state.readiness !== "failed") return block(state, "只有资格检查未通过时才需要补讲。" );
+            state.remediationUsed = true;
+            state.lastChange = "已完成针对性补讲，可以重新进行资格检查。";
+            addEvent(state, "完成前置补讲", "补讲时间将与标准课时间分开记录。" );
+            return state;
+          }
+
+          if (action.type === "READINESS_PASS") {
+            if (state.phase !== "readiness") return block(state, "资格检查阶段已经结束。" );
+            if (state.readiness === "failed" && !state.remediationUsed) return block(state, "检查未通过后必须先完成针对性补讲。" );
+            state.readiness = "passed";
+            state.phase = "explanation";
+            state.lastChange = "侦探资格检查通过，完整知识讲解已解锁。";
+            addEvent(state, "资格检查通过", state.remediationUsed ? "补讲后通过。" : "直接通过。" );
+            return state;
+          }
+
+          if (action.type === "COMPLETE_EXPLANATION") {
+            if (state.readiness !== "passed") return block(state, "必须先通过侦探资格检查。" );
+            if (state.explanationComplete) return block(state, "完整知识讲解已经完成。" );
+            state.explanationComplete = true;
+            state.progress.guided = "available";
+            state.phase = "guided";
+            state.lastChange = "完整讲解与两次关键状态预测已完成，引导案件已解锁。";
+            addEvent(state, "完成完整知识讲解", "固定调试方法：预测、单步、比较、定位、归因、单点修改、验证。" );
+            return state;
+          }
+
+          if (action.type === "LOAD_CASE") return loadCase(state, action.caseId);
+
+          if (action.type === "LOAD_REQUIRED_EQUIVALENT") {
+            if (!state.requiredEquivalent) return block(state, "当前没有必须完成的等价新任务。" );
+            const nextId = state.requiredEquivalent;
+            state.requiredEquivalent = null;
+            return loadCase(state, nextId, true);
+          }
+
+          if (action.type === "NEXT_CASE") {
+            if (!state.activeCase) return block(state, "还没有完成当前案件。" );
+            const definition = CASES[state.activeCase.id];
+            if (!["completed", "mastered"].includes(state.activeCase.evaluation)) return block(state, "必须先通过当前案件的证据检查。" );
+            const next = { guided: "semi", semi: "independent", independent: "transfer" }[definition.stage];
+            const nextId = { semi: "semi", independent: "independent", transfer: "transferA" }[next];
+            if (!nextId) return block(state, "当前阶段没有普通下一案件。" );
+            return loadCase(state, nextId);
+          }
+
+          if (action.type === "COMPLETE_REFLECTION") {
+            if (state.lessonMastery !== "mastered") return block(state, "只有通过迁移能力门后才能完成证据复盘。" );
+            state.progress.reflection = "completed";
+            state.phase = "finished";
+            state.lastChange = "证据复盘完成：课程闭环结束。";
+            addEvent(state, "课程闭环完成", "预测、运行、提示、修改、结果和解释均可检查。" );
+            return state;
+          }
+
+          const active = state.activeCase;
+          if (!active) return block(state, "请先载入一个已解锁的案件。" );
+          const inspected = inspectCase(active.id);
+
+          if (action.type === "SAVE_PREDICTION") {
+            active.predictionSaved = true;
+            state.lastChange = "运行前预测已保存，现在可以单步或运行。";
+            addEvent(state, "保存运行前预测", `${inspected.definition.title} · 预测关键状态已留痕。`);
+            return state;
+          }
+
+          if (action.type === "STEP_PROGRAM") {
+            if (!active.predictionSaved) return block(state, "必须先留下运行前预测。" );
+            if (active.repairApplied) return block(state, "已应用局部修改，请使用“运行当前程序”验证修复。" );
+            const nextLimit = Math.min(active.shownSteps + 1, inspected.definition.buggyProgram.length);
+            active.shownSteps = nextLimit;
+            active.latestRun = runProgram(inspected.definition, inspected.definition.buggyProgram, nextLimit);
+            active.attempts += 1;
+            state.lastChange = `已单步到第 ${active.latestRun.trace.length} 步。请比较预期与实际。`;
+            addEvent(state, "单步运行", `显示到第 ${active.latestRun.trace.length} 步。`);
+            return state;
+          }
+
+          if (action.type === "RUN_PROGRAM") {
+            if (!active.predictionSaved) return block(state, "必须先留下运行前预测。" );
+            const program = active.repairApplied ? inspected.definition.expectedProgram : inspected.definition.buggyProgram;
+            const result = runProgram(inspected.definition, program);
+            active.latestRun = result;
+            active.shownSteps = result.trace.length;
+            active.attempts += 1;
+            if (active.repairApplied) active.repairRun = result;
+            state.lastChange = active.repairApplied ? `修改后运行结果：${result.world.status}。` : `错误程序运行结束：${result.world.error || result.world.status}。`;
+            addEvent(state, active.repairApplied ? "验证修改" : "运行错误程序", active.latestRun.world.error || active.latestRun.world.status);
+            return state;
+          }
+
+          if (action.type === "REQUEST_HINT") {
+            active.hintLevel = Math.min(3, active.hintLevel + 1);
+            if (active.hintLevel === 3) active.strongHintUsed = true;
+            const hintCopy = {
+              1: "一级：比较每一步预期与实际状态。",
+              2: `二级：重点检查第 ${Math.max(1, inspected.firstDivergence - 1)}–${inspected.firstDivergence + 1} 步。`,
+              3: `三级强提示：局部根因属于“${ROOT_LABELS[inspected.definition.rootCause]}”，请只修改相关位置。`
+            }[active.hintLevel];
+            state.lastChange = hintCopy;
+            addEvent(state, active.hintLevel === 3 ? "使用强提示" : `使用 ${active.hintLevel} 级提示`, hintCopy);
+            return state;
+          }
+
+          if (action.type === "MARK_DIVERGENCE") {
+            if (!active.latestRun) return block(state, "请先运行或单步观察程序。" );
+            active.selectedDivergence = action.step;
+            state.lastChange = `已把第 ${action.step} 步标记为第一次偏离，评测时会与证据核对。`;
+            addEvent(state, "标记第一次偏离", `学生选择第 ${action.step} 步。`);
+            return state;
+          }
+
+          if (action.type === "CLASSIFY_ROOT") {
+            if (!active.latestRun) return block(state, "请先运行并观察证据。" );
+            active.selectedRoot = action.root;
+            state.lastChange = `已将根因归为“${ROOT_LABELS[action.root]}”。`;
+            addEvent(state, "提交根因分类", ROOT_LABELS[action.root]);
+            return state;
+          }
+
+          if (action.type === "APPLY_LOCAL_REPAIR") {
+            if (!active.selectedDivergence || !active.selectedRoot) return block(state, "必须先标记第一次偏离并选择根因。" );
+            active.repairApplied = true;
+            active.repairRun = null;
+            state.lastChange = "已应用一次局部修改。现在重新运行，检查是否真正修复。";
+            addEvent(state, "应用局部修改", `只替换第一次偏离附近的指令；旧程序仍保留在证据中。`);
+            return state;
+          }
+
+          if (action.type === "SUBMIT_EXPLANATION") {
+            if (!active.repairRun || active.repairRun.world.status !== "成功") return block(state, "必须先让修改后的程序成功运行。" );
+            active.explanation = `我修改第 ${active.selectedDivergence} 步，因为实际状态第一次在这里与预测不同。`;
+            state.lastChange = "一句修改理由已保存。";
+            addEvent(state, "提交修改理由", active.explanation);
+            return state;
+          }
+
+          if (action.type === "EVALUATE_CASE") return evaluateActiveCase(state);
+
+          return block(state, `未知操作：${action.type}`);
+        }
+
+        return {
+          initialState,
+          reduce,
+          inspectCase,
+          cases: CASES,
+          stages: STAGES,
+          rootLabels: ROOT_LABELS,
+          directionLabels: DIRECTION_LABELS
+        };
+      })();
+
+      /* Throwaway presentation shell */
+      (() => {
+        const stageLabels = {
+          readiness: "资格检查",
+          explanation: "完整讲解",
+          guided: "引导案件",
+          semi: "半引导案件",
+          independent: "独立案件",
+          transfer: "迁移能力门",
+          reflection: "证据复盘",
+          finished: "课程完成"
+        };
+
+        const progressLabels = {
+          locked: "未解锁",
+          available: "可进入",
+          in_progress: "进行中",
+          completed: "已完成",
+          mastered: "已掌握"
+        };
+
+        const masteryLabels = {
+          not_evaluated: "尚未评测",
+          completed: "已完成，未掌握",
+          mastered: "已掌握"
+        };
+
+        const controls = [
+          {
+            title: "课程入口",
+            items: [
+              ["重置整节课", { type: "RESET_LESSON" }],
+              ["资格检查：未通过", { type: "READINESS_FAIL" }],
+              ["完成针对性补讲", { type: "REMEDIATE" }],
+              ["资格检查：通过", { type: "READINESS_PASS" }],
+              ["完成讲解与互动示范", { type: "COMPLETE_EXPLANATION" }]
+            ]
+          },
+          {
+            title: "案件导航",
+            items: [
+              ["载入引导案件", { type: "LOAD_CASE", caseId: "guided" }],
+              ["载入半引导案件", { type: "LOAD_CASE", caseId: "semi" }],
+              ["载入独立案件", { type: "LOAD_CASE", caseId: "independent" }],
+              ["载入迁移案件 A", { type: "LOAD_CASE", caseId: "transferA" }],
+              ["进入要求的等价任务", { type: "LOAD_REQUIRED_EQUIVALENT" }],
+              ["进入下一案件", { type: "NEXT_CASE" }]
+            ]
+          },
+          {
+            title: "调查与运行",
+            items: [
+              ["保存运行前预测", { type: "SAVE_PREDICTION" }, "primary"],
+              ["单步运行", { type: "STEP_PROGRAM" }],
+              ["运行当前程序", { type: "RUN_PROGRAM" }, "primary"],
+              ["请求下一层提示", { type: "REQUEST_HINT" }, "warning"]
+            ]
+          },
+          {
+            title: "标记第一次偏离",
+            dynamic: "divergence"
+          },
+          {
+            title: "根因分类",
+            items: Object.entries(DebugLessonMachine.rootLabels).map(([root, label]) => [label, { type: "CLASSIFY_ROOT", root }])
+          },
+          {
+            title: "修改、解释与评测",
+            items: [
+              ["应用一次局部修改", { type: "APPLY_LOCAL_REPAIR" }],
+              ["提交一句修改理由", { type: "SUBMIT_EXPLANATION" }],
+              ["检查当前能力门", { type: "EVALUATE_CASE" }, "primary"],
+              ["完成证据复盘", { type: "COMPLETE_REFLECTION" }]
+            ]
+          }
+        ];
+
+        const scenarios = [
+          {
+            id: "journey",
+            label: "资格不足时",
+            description: "验证前置能力不足不会被误判为调试失败：系统应先路由到补讲，再解锁完整知识讲解和引导案件。",
+            setup: { type: "START_SCENARIO", scenario: "journey" },
+            steps: [
+              ["资格检查未通过", { type: "READINESS_FAIL" }],
+              ["完成针对性补讲", { type: "REMEDIATE" }],
+              ["重新检查并通过", { type: "READINESS_PASS" }],
+              ["完成完整讲解", { type: "COMPLETE_EXPLANATION" }],
+              ["载入引导案件", { type: "LOAD_CASE", caseId: "guided" }]
+            ]
+          },
+          {
+            id: "mastery",
+            label: "无强提示掌握",
+            description: "验证完整能力门：先预测、运行、找到第一次偏离、归因、局部修改、重新验证并解释，最后才能记为已掌握。",
+            setup: { type: "START_SCENARIO", scenario: "mastery" },
+            steps: [
+              ["保存运行前预测", { type: "SAVE_PREDICTION" }],
+              ["运行错误程序", { type: "RUN_PROGRAM" }],
+              ["标记正确的第一次偏离", { type: "MARK_DIVERGENCE", step: "correct" }],
+              ["根因归为执行顺序", { type: "CLASSIFY_ROOT", root: "sequence" }],
+              ["应用局部修改", { type: "APPLY_LOCAL_REPAIR" }],
+              ["运行修改后的程序", { type: "RUN_PROGRAM" }],
+              ["提交一句修改理由", { type: "SUBMIT_EXPLANATION" }],
+              ["检查能力门", { type: "EVALUATE_CASE" }],
+              ["完成证据复盘", { type: "COMPLETE_REFLECTION" }]
+            ]
+          },
+          {
+            id: "strong_hint",
+            label: "强提示后再评测",
+            description: "验证强提示不会被偷换成掌握：案件 A 只能记为完成，系统必须分配地图和现象不同的等价案件 B。",
+            setup: { type: "START_SCENARIO", scenario: "strong_hint" },
+            steps: [
+              ["保存案件 A 预测", { type: "SAVE_PREDICTION" }],
+              ["连续请求一级提示", { type: "REQUEST_HINT" }],
+              ["继续请求二级提示", { type: "REQUEST_HINT" }],
+              ["请求三级强提示", { type: "REQUEST_HINT" }],
+              ["运行案件 A", { type: "RUN_PROGRAM" }],
+              ["标记案件 A 第一次偏离", { type: "MARK_DIVERGENCE", step: "correct" }],
+              ["案件 A 根因归类", { type: "CLASSIFY_ROOT", root: "sequence" }],
+              ["修改案件 A", { type: "APPLY_LOCAL_REPAIR" }],
+              ["验证案件 A", { type: "RUN_PROGRAM" }],
+              ["解释案件 A", { type: "SUBMIT_EXPLANATION" }],
+              ["评测案件 A", { type: "EVALUATE_CASE" }],
+              ["进入等价案件 B", { type: "LOAD_REQUIRED_EQUIVALENT" }],
+              ["保存案件 B 预测", { type: "SAVE_PREDICTION" }],
+              ["运行案件 B", { type: "RUN_PROGRAM" }],
+              ["标记案件 B 第一次偏离", { type: "MARK_DIVERGENCE", step: "correct" }],
+              ["案件 B 根因归类", { type: "CLASSIFY_ROOT", root: "sequence" }],
+              ["修改案件 B", { type: "APPLY_LOCAL_REPAIR" }],
+              ["验证案件 B", { type: "RUN_PROGRAM" }],
+              ["解释案件 B", { type: "SUBMIT_EXPLANATION" }],
+              ["重新检查能力门", { type: "EVALUATE_CASE" }]
+            ]
+          },
+          {
+            id: "shortcut",
+            label: "捷径应被阻止",
+            description: "故意乱按：不预测就运行、没证据就修改、把最后症状当第一次偏离、提前提交。观察状态机是否拒绝这些捷径。",
+            setup: { type: "START_SCENARIO", scenario: "shortcut" },
+            steps: [
+              ["不做预测直接运行", { type: "RUN_PROGRAM" }],
+              ["没有定位就直接修改", { type: "APPLY_LOCAL_REPAIR" }],
+              ["提前检查能力门", { type: "EVALUATE_CASE" }],
+              ["现在保存预测", { type: "SAVE_PREDICTION" }],
+              ["运行错误程序", { type: "RUN_PROGRAM" }],
+              ["误把最后一步标成根因", { type: "MARK_DIVERGENCE", step: "last" }],
+              ["选择错误根因：位置", { type: "CLASSIFY_ROOT", root: "position" }],
+              ["应用局部修改", { type: "APPLY_LOCAL_REPAIR" }],
+              ["运行修改后的程序", { type: "RUN_PROGRAM" }],
+              ["提交解释", { type: "SUBMIT_EXPLANATION" }],
+              ["再次检查能力门", { type: "EVALUATE_CASE" }]
+            ]
+          }
+        ];
+
+        let state = DebugLessonMachine.initialState();
+        let activeScenarioId = scenarios[0].id;
+        let scenarioStep = 0;
+
+        const byId = (id) => document.getElementById(id);
+        const escapeHtml = (value) => String(value ?? "").replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]);
+
+        function resolveAction(action) {
+          const next = { ...action };
+          if (next.type === "MARK_DIVERGENCE" && typeof next.step === "string") {
+            const active = state.activeCase;
+            if (!active) return { type: "MARK_DIVERGENCE", step: 1 };
+            const inspected = DebugLessonMachine.inspectCase(active.id);
+            next.step = next.step === "correct" ? inspected.firstDivergence : Math.max(1, inspected.actual.trace.length);
+          }
+          return next;
+        }
+
+        function dispatch(action, fromScenario = false) {
+          state = DebugLessonMachine.reduce(state, resolveAction(action));
+          if (fromScenario) scenarioStep += 1;
+          render();
+        }
+
+        function statusClass(value) {
+          if (["mastered", "completed", "passed", "成功"].includes(value)) return "is-success";
+          if (["failed", "needs_revision", "completed_with_strong_hint", "失败"].includes(value)) return "is-danger";
+          if (["available", "in_progress"].includes(value)) return "is-warning";
+          return "";
+        }
+
+        function renderState() {
+          const active = state.activeCase;
+          const definition = active ? DebugLessonMachine.cases[active.id] : null;
+          const fields = [
+            ["当前环节", stageLabels[state.phase] || state.phase],
+            ["资格检查", state.readiness === "passed" ? "已通过" : state.readiness === "failed" ? "未通过" : "未检查"],
+            ["前置补讲", state.remediationUsed ? "已使用" : "未使用"],
+            ["完整讲解", state.explanationComplete ? "已完成" : "未完成"],
+            ["活动案件", definition?.title || "无"],
+            ["最高提示", active ? `${active.hintLevel} 级${active.strongHintUsed ? "（强提示）" : ""}` : "无"],
+            ["案件评测", active ? progressLabels[active.evaluation] || active.evaluation : "无"],
+            ["等价新任务", state.requiredEquivalent ? DebugLessonMachine.cases[state.requiredEquivalent].title : "无"]
+          ];
+
+          byId("stateGrid").innerHTML = fields.map(([label, value]) => `<div class="state-field"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong></div>`).join("");
+          byId("lastChange").textContent = state.lastChange;
+          const masteryPill = byId("masteryPill");
+          masteryPill.textContent = masteryLabels[state.lessonMastery] || state.lessonMastery;
+          masteryPill.className = `status-pill ${statusClass(state.lessonMastery)}`;
+        }
+
+        function renderProgress() {
+          const phase = state.phase === "finished" ? "reflection" : state.phase;
+          byId("progressRow").innerHTML = DebugLessonMachine.stages.map((stage, index) => {
+            let status = "未开始";
+            let done = false;
+            if (stage === "readiness") {
+              status = state.readiness === "passed" ? "已通过" : state.readiness === "failed" ? "需补讲" : "进行中";
+              done = state.readiness === "passed";
+            } else if (stage === "explanation") {
+              status = state.explanationComplete ? "已完成" : state.readiness === "passed" ? "可进入" : "未解锁";
+              done = state.explanationComplete;
+            } else {
+              status = progressLabels[state.progress[stage]] || "未解锁";
+              done = ["completed", "mastered"].includes(state.progress[stage]);
+            }
+            return `<div class="progress-step${phase === stage ? " is-current" : ""}${done ? " is-done" : ""}"><small>${String(index + 1).padStart(2, "0")}</small><strong>${escapeHtml(stageLabels[stage])}</strong><small>${escapeHtml(status)}</small></div>`;
+          }).join("");
+        }
+
+        function cellContent(definition, world, x, y) {
+          const isRobot = world && world.x === x && world.y === y;
+          const isWall = definition.walls.some(([wallX, wallY]) => wallX === x && wallY === y);
+          const isBeacon = definition.beacon && definition.beacon[0] === x && definition.beacon[1] === y;
+          const isRelay = definition.relay && definition.relay[0] === x && definition.relay[1] === y;
+          const classes = ["cell", isWall && "is-wall", isBeacon && "is-beacon", isRelay && "is-relay", isRobot && "is-robot"].filter(Boolean).join(" ");
+          let content = "";
+          if (isWall) content = "墙";
+          if (isBeacon) content = world?.collected ? "已采集" : "信标";
+          if (isRelay) content = "中继站";
+          if (isRobot) content = `<span class="robot" title="${escapeHtml(DebugLessonMachine.directionLabels[world.dir])}">${escapeHtml(world.dir)}</span>`;
+          return `<div class="${classes}" title="(${x}, ${y})">${content}</div>`;
+        }
+
+        function renderCase() {
+          const active = state.activeCase;
+          const workspace = byId("caseWorkspace");
+          const casePill = byId("casePill");
+          if (!active) {
+            byId("caseSummary").textContent = "完成讲解后载入第一个案件。";
+            casePill.textContent = "未载入";
+            casePill.className = "status-pill";
+            workspace.className = "empty-state";
+            workspace.textContent = "还没有活动案件。";
+            return;
+          }
+
+          const inspected = DebugLessonMachine.inspectCase(active.id);
+          const definition = inspected.definition;
+          const currentProgram = active.repairApplied ? definition.expectedProgram : definition.buggyProgram;
+          const world = active.latestRun?.world || { ...definition.start, carrying: false, collected: false, uploaded: false };
+          byId("caseSummary").textContent = definition.summary;
+          casePill.textContent = `${definition.support} · ${progressLabels[active.evaluation] || "调查中"}`;
+          casePill.className = `status-pill ${statusClass(active.evaluation)}`;
+          workspace.className = "case-layout";
+
+          const cells = [];
+          for (let y = 0; y < definition.height; y += 1) {
+            for (let x = 0; x < definition.width; x += 1) cells.push(cellContent(definition, world, x, y));
+          }
+
+          workspace.innerHTML = `
+            <div class="map-panel">
+              <h3>案件地图 · 当前实际状态</h3>
+              <div class="map-grid" style="grid-template-columns: repeat(${definition.width}, 1fr); grid-template-rows: repeat(${definition.height}, 1fr)">${cells.join("")}</div>
+              <div class="map-legend"><span>机器人：${escapeHtml(DebugLessonMachine.directionLabels[world.dir])}</span><span>携带：${world.carrying ? "是" : "否"}</span><span>结果：${escapeHtml(world.error || world.status || "准备")}</span></div>
+            </div>
+            <div class="program-panel">
+              <h3>${active.repairApplied ? "局部修改后的程序" : "待调查的错误程序"}</h3>
+              <div class="program-lines">
+                ${currentProgram.map((command, index) => {
+                  const step = index + 1;
+                  const activeLine = active.latestRun && step === active.latestRun.trace.length;
+                  const selected = active.selectedDivergence === step;
+                  return `<div class="program-line${activeLine ? " is-active" : ""}${selected ? " is-divergence" : ""}"><small>${step}</small><code>${escapeHtml(command)}</code><small>${selected ? "学生标记" : ""}</small></div>`;
+                }).join("")}
+              </div>
+              <div class="evidence-grid">
+                <div class="evidence-item"><small>运行前预测</small><strong>${active.predictionSaved ? "已保存" : "缺少"}</strong></div>
+                <div class="evidence-item"><small>运行 / 单步次数</small><strong>${active.attempts}</strong></div>
+                <div class="evidence-item"><small>最高提示等级</small><strong>${active.hintLevel}${active.strongHintUsed ? " · 强提示" : ""}</strong></div>
+                <div class="evidence-item"><small>学生标记步骤</small><strong>${active.selectedDivergence ? `第 ${active.selectedDivergence} 步` : "未标记"}</strong></div>
+                <div class="evidence-item"><small>学生根因分类</small><strong>${active.selectedRoot ? DebugLessonMachine.rootLabels[active.selectedRoot] : "未分类"}</strong></div>
+                <div class="evidence-item"><small>修改理由</small><strong>${active.explanation || "未提交"}</strong></div>
+              </div>
+              <div class="last-change" style="margin-top: 12px"><strong>原型校验基准：</strong>第一次偏离为第 ${inspected.firstDivergence} 步，根因为“${escapeHtml(DebugLessonMachine.rootLabels[definition.rootCause])}”。</div>
+            </div>`;
+        }
+
+        function worldSummary(world) {
+          if (!world) return "—";
+          return `(${world.x},${world.y}) · ${DebugLessonMachine.directionLabels[world.dir]} · 携带${world.carrying ? "是" : "否"}${world.error ? ` · ${world.error}` : ""}`;
+        }
+
+        function renderTimeline() {
+          const active = state.activeCase;
+          const target = byId("timeline");
+          if (!active) {
+            target.className = "empty-state";
+            target.textContent = "运行案件后，这里会出现逐步证据。";
+            return;
+          }
+          const inspected = DebugLessonMachine.inspectCase(active.id);
+          const actualTrace = active.latestRun?.trace || [];
+          const length = Math.max(inspected.expected.trace.length, actualTrace.length);
+          const rows = [];
+          for (let index = 0; index < length; index += 1) {
+            const step = index + 1;
+            const expected = inspected.expected.trace[index];
+            const actual = actualTrace[index];
+            const isActualDivergence = actual && step === inspected.firstDivergence;
+            rows.push(`<tr class="${active.selectedDivergence === step ? "is-selected" : ""}${isActualDivergence ? " is-actual-divergence" : ""}"><td>${step}</td><td>${escapeHtml(expected?.command || "—")}</td><td>${escapeHtml(worldSummary(expected?.world))}</td><td>${escapeHtml(actual?.command || "尚未运行")}</td><td>${escapeHtml(worldSummary(actual?.world))}</td></tr>`);
+          }
+          target.className = "timeline-wrap";
+          target.innerHTML = `<table><thead><tr><th>步骤</th><th>预期指令</th><th>预期状态</th><th>实际指令</th><th>实际状态</th></tr></thead><tbody>${rows.join("")}</tbody></table>`;
+        }
+
+        function makeButton(label, action, tone = "") {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.textContent = label;
+          if (tone) button.classList.add(`is-${tone}`);
+          button.addEventListener("click", () => dispatch(action));
+          return button;
+        }
+
+        function renderControls() {
+          const root = byId("controls");
+          root.replaceChildren();
+          const active = state.activeCase;
+          const inspected = active ? DebugLessonMachine.inspectCase(active.id) : null;
+          controls.forEach((group) => {
+            const section = document.createElement("section");
+            section.className = "control-group";
+            const title = document.createElement("h3");
+            title.textContent = group.title;
+            const grid = document.createElement("div");
+            grid.className = "button-grid";
+            let items = group.items;
+            if (group.dynamic === "divergence") {
+              const total = inspected ? Math.max(inspected.expected.trace.length, inspected.actual.trace.length) : 4;
+              items = Array.from({ length: total }, (_, index) => [`标记第 ${index + 1} 步`, { type: "MARK_DIVERGENCE", step: index + 1 }]);
+            }
+            items.forEach(([label, action, tone]) => grid.append(makeButton(label, action, tone)));
+            section.append(title, grid);
+            root.append(section);
+          });
+        }
+
+        function renderEvents() {
+          byId("eventList").innerHTML = state.events.map((event) => `<div class="event-item"><strong>${escapeHtml(event.label)}</strong><br>${escapeHtml(event.detail)}</div>`).join("");
+        }
+
+        function startScenario(id) {
+          activeScenarioId = id;
+          scenarioStep = 0;
+          const scenario = scenarios.find((item) => item.id === id);
+          state = DebugLessonMachine.reduce(state, scenario.setup);
+          render();
+        }
+
+        function renderScenarios() {
+          const tabs = byId("scenarioTabs");
+          tabs.replaceChildren();
+          scenarios.forEach((scenario) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "tab-button";
+            button.setAttribute("role", "tab");
+            button.setAttribute("aria-selected", String(scenario.id === activeScenarioId));
+            button.textContent = scenario.label;
+            button.addEventListener("click", () => startScenario(scenario.id));
+            tabs.append(button);
+          });
+
+          const scenario = scenarios.find((item) => item.id === activeScenarioId);
+          const panel = byId("scenarioPanel");
+          panel.innerHTML = `<p class="scenario-copy">${escapeHtml(scenario.description)}</p><div class="scenario-steps"></div>`;
+          const steps = panel.querySelector(".scenario-steps");
+          scenario.steps.forEach(([label, action], index) => {
+            const row = document.createElement("div");
+            row.className = `scenario-step${index < scenarioStep ? " is-done" : ""}${index === scenarioStep ? " is-next" : ""}`;
+            row.innerHTML = `<b>${index + 1}</b><span>${escapeHtml(label)}</span>`;
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = index < scenarioStep ? "已执行" : index === scenarioStep ? "执行这一步" : "等待前一步";
+            button.disabled = index !== scenarioStep;
+            if (index === scenarioStep) button.addEventListener("click", () => dispatch(action, true));
+            row.append(button);
+            steps.append(row);
+          });
+          if (scenarioStep >= scenario.steps.length) {
+            const done = document.createElement("div");
+            done.className = "last-change";
+            done.textContent = "场景步骤已经完成。请检查上方完整状态，确认结果是否符合你的预期。";
+            panel.append(done);
+          }
+        }
+
+        function render() {
+          renderState();
+          renderProgress();
+          renderCase();
+          renderTimeline();
+          renderControls();
+          renderEvents();
+          renderScenarios();
+        }
+
+        byId("restartScenario").addEventListener("click", () => startScenario(activeScenarioId));
+        startScenario(activeScenarioId);
+      })();
+    </script>
+  </body>
+</html>

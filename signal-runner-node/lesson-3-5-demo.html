@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Signal Runner | 第 3/5 课采集 Demo</title>
+    <link rel="stylesheet" href="./lesson-3-5-demo.css" />
+  </head>
+  <body>
+    <div class="demo-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">星际救援编程营</p>
+          <h1>第 3/5 课采集 Demo</h1>
+        </div>
+        <div class="lesson-tabs" aria-label="课程切换">
+          <button class="is-active" data-lesson="lesson3" type="button">第 3 课</button>
+          <button data-lesson="lesson5" type="button">第 5 课</button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="scene-panel" aria-label="任务地图">
+          <div class="mission-head">
+            <div>
+              <p class="eyebrow" id="lessonKicker">Lesson 03</p>
+              <h2 id="lessonTitle">能源搜救队</h2>
+            </div>
+            <span class="concept-pill" id="lessonConcept">路线规划</span>
+          </div>
+
+          <div class="canvas-wrap">
+            <canvas id="missionCanvas" width="960" height="680" aria-label="课程任务地图"></canvas>
+            <div class="run-state" id="runState">准备规划</div>
+          </div>
+
+          <div class="hud-grid" id="hudGrid"></div>
+        </section>
+
+        <section class="control-panel" aria-label="编程工作台">
+          <div class="mission-brief">
+            <p id="lessonStory"></p>
+            <strong id="lessonTarget"></strong>
+          </div>
+
+          <div class="preset-panel">
+            <div class="panel-title">
+              <span>任务方案</span>
+              <small id="presetHint">选择一条路线</small>
+            </div>
+            <div class="preset-grid" id="presetGrid"></div>
+          </div>
+
+          <div class="tool-row">
+            <button class="primary-button" id="runBtn" type="button">运行</button>
+            <button class="tool-button" id="stepBtn" type="button">单步</button>
+            <button class="tool-button" id="resetBtn" type="button">复位</button>
+            <button class="tool-button" id="clearBtn" type="button">清空</button>
+          </div>
+
+          <div class="palette-panel">
+            <div class="panel-title">
+              <span>指令库</span>
+              <small id="programCount">0 / 0</small>
+            </div>
+            <div class="command-palette" id="commandPalette"></div>
+          </div>
+
+          <div class="program-panel">
+            <div class="panel-title">
+              <span>主程序</span>
+              <button class="inline-button" id="loadBestBtn" type="button">载入推荐</button>
+            </div>
+            <ol class="program-list" id="programList"></ol>
+          </div>
+
+          <div class="code-panel">
+            <div class="panel-title">
+              <span>代码视图</span>
+              <small id="codeMetric">未运行</small>
+            </div>
+            <pre id="codeView"></pre>
+          </div>
+        </section>
+
+        <aside class="insight-panel" aria-label="课堂反馈">
+          <section class="objective-panel">
+            <p class="eyebrow">课堂目标</p>
+            <h2 id="objectiveTitle">路线规划</h2>
+            <p id="objectiveBody"></p>
+          </section>
+
+          <section class="compare-panel">
+            <div class="panel-title">
+              <span>方案比较</span>
+              <small id="compareLabel">步数和代码块</small>
+            </div>
+            <div id="compareGrid" class="compare-grid"></div>
+          </section>
+
+          <section class="log-panel">
+            <div class="panel-title">
+              <span>运行日志</span>
+              <small id="logStatus">未运行</small>
+            </div>
+            <ul id="runLog"></ul>
+          </section>
+
+          <section class="artifact-panel">
+            <p class="eyebrow">学生产出</p>
+            <h2 id="artifactTitle">路线草图和步数比较</h2>
+            <div id="artifactList"></div>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <script src="./lesson-3-5-demo.js"></script>
+  </body>
+</html>

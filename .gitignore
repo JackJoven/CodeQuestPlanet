@@ -39,6 +39,7 @@ pnpm-debug.log*
 
 # Local caches
 .cache/
+.pnpm-store/
 .eslintcache
 *.tsbuildinfo
 
@@ -75,3 +76,4 @@ backups/
 # AI/tooling scratch files
 .codex/
 .cursor/
+.impeccable/

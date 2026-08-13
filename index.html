@@ -3,34 +3,279 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="refresh" content="0; url=./signal-runner-node/index.html" />
-    <title>Signal Runner</title>
-    <style>
-      body {
-        margin: 0;
-        min-height: 100vh;
-        display: grid;
-        place-items: center;
-        background: #edf7f4;
-        color: #17212b;
-        font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
-      }
-
-      main {
-        max-width: 520px;
-        padding: 28px;
-      }
-
-      a {
-        color: #0e8878;
-        font-weight: 800;
-      }
-    </style>
+    <meta name="theme-color" content="#06122f" />
+    <meta
+      name="description"
+      content="CodeQuestPlanet 是沉浸式 3D 星际编程学习世界。通过课程闯关、创作发布与 Remix，在玩中学习编程，在创造中改变世界。"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:title" content="CodeQuestPlanet｜在玩中学编程" />
+    <meta
+      property="og:description"
+      content="进入持续生长的星际世界，用代码闯关、创作和分享。"
+    />
+    <meta property="og:image" content="https://codequestplanet.travischester58251.chatgpt.site/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CodeQuestPlanet｜在玩中学编程" />
+    <meta
+      name="twitter:description"
+      content="进入持续生长的星际世界，用代码闯关、创作和分享。"
+    />
+    <meta name="twitter:image" content="https://codequestplanet.travischester58251.chatgpt.site/og.png" />
+    <title>CodeQuestPlanet｜在玩中学编程</title>
+    <link rel="icon" href="./og.png" type="image/png" />
+    <link rel="stylesheet" href="./home.css" />
   </head>
   <body>
-    <main>
-      <h1>Signal Runner</h1>
-      <p>正在打开独立 3D 原型。没有自动跳转时，进入 <a href="./signal-runner-node/index.html">Signal Runner</a>。</p>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+
+    <header class="site-header" data-header>
+      <div class="nav-shell">
+        <a class="brand" href="#top" aria-label="CodeQuestPlanet 首页">
+          <span class="brand-mark" aria-hidden="true"><i></i></span>
+          <span>CodeQuestPlanet</span>
+        </a>
+
+        <button
+          class="menu-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="primary-navigation"
+          data-menu-toggle
+        >
+          <span class="sr-only">打开导航菜单</span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+        </button>
+
+        <nav class="primary-nav" id="primary-navigation" aria-label="主导航" data-menu>
+          <a href="#world">学习世界</a>
+          <a href="#path">课程体系</a>
+          <a href="#creation">创作社区</a>
+          <a href="#growth">成长系统</a>
+        </nav>
+
+        <div class="nav-actions">
+          <a class="nav-launch" href="./signal-runner-node/index.html">
+            立即启航
+            <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <div class="hero-stars" aria-hidden="true"></div>
+        <div class="hero-shell">
+          <div class="hero-copy">
+            <p class="hero-kicker"><span></span> 沉浸式编程学习宇宙</p>
+            <h1 id="hero-title">在玩中学编程，<br />在创造中改变世界</h1>
+            <p class="hero-intro">
+              进入一个会持续生长的 3D 星际世界。用代码完成远征任务，把想法做成可玩的作品，再发布给伙伴试玩和 Remix。
+            </p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="./signal-runner-node/index.html">
+                立即启航
+                <span aria-hidden="true">→</span>
+              </a>
+              <a class="button button-secondary" href="#path">
+                查看学习路线
+                <span aria-hidden="true">↓</span>
+              </a>
+            </div>
+            <ul class="hero-proof" aria-label="课程特点">
+              <li><strong>64</strong><span>节完整课程</span></li>
+              <li><strong>3D</strong><span>星际任务世界</span></li>
+              <li><strong>0→1</strong><span>从闯关到创作</span></li>
+            </ul>
+          </div>
+
+          <div class="hero-visual" aria-label="CodeQuestPlanet 星际学习世界预览">
+            <div class="hero-art" role="img" aria-label="学生、机器人伙伴与星际飞船组成的编程探索世界"></div>
+            <div class="mission-chip mission-chip-top">
+              <span class="chip-icon chip-world" aria-hidden="true"></span>
+              <div><strong>持续世界</strong><small>每次探索都留下改变</small></div>
+            </div>
+            <div class="mission-chip mission-chip-bottom">
+              <span class="chip-icon chip-code" aria-hidden="true">&lt;/&gt;</span>
+              <div><strong>代码即规则</strong><small>让想法真正运行起来</small></div>
+            </div>
+            <div class="orbit orbit-one" aria-hidden="true"></div>
+            <div class="orbit orbit-two" aria-hidden="true"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="world-section" id="world" aria-labelledby="world-title">
+        <div class="section-shell">
+          <div class="world-heading">
+            <div>
+              <p class="section-marker">不只是一套课程</p>
+              <h2 id="world-title">一个会因为你的代码而改变的世界</h2>
+            </div>
+            <p>
+              每一次运行、失败和修改都会成为成长证据。学生不是被动完成练习，而是在持续建设自己的星舰、基地和作品宇宙。
+            </p>
+          </div>
+
+          <div class="world-grid">
+            <article class="world-story world-story-large">
+              <div class="story-orbit" aria-hidden="true"><span></span></div>
+              <div>
+                <span class="story-index">A</span>
+                <h3>持续生长的星际世界</h3>
+                <p>星舰、基地和世界地图会随学习不断演化，让每一次课程都有清晰的前进感。</p>
+              </div>
+            </article>
+            <article class="world-story world-story-code">
+              <div class="code-lines" aria-hidden="true">
+                <span>scan(target)</span><span>if path.isSafe:</span><span>&nbsp;&nbsp;move()</span>
+              </div>
+              <div>
+                <span class="story-index">B</span>
+                <h3>任务驱动的编程闯关</h3>
+                <p>从观察地图到运行验证，知识点始终服务于一个真实可见的任务。</p>
+              </div>
+            </article>
+            <article class="world-story world-story-remix" id="creation">
+              <div class="remix-nodes" aria-hidden="true"><i></i><i></i><i></i></div>
+              <div>
+                <span class="story-index">C</span>
+                <h3>创作、发布与 Remix</h3>
+                <p>把自己的关卡发布到公共星图，让伙伴试玩、反馈，再从别人的作品继续创造。</p>
+              </div>
+            </article>
+            <article class="world-story world-story-xp" id="growth">
+              <div class="xp-emblem" aria-hidden="true">XP</div>
+              <div>
+                <span class="story-index">D</span>
+                <h3>看得见的技能成长</h3>
+                <p>技能树、作品卡和失败图鉴，把“我学会了什么”变成可回顾、可展示的成长轨迹。</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="path-section" id="path" aria-labelledby="path-title">
+        <div class="section-shell">
+          <div class="path-heading">
+            <div>
+              <p class="section-marker">完整课程体系</p>
+              <h2 id="path-title">先建立共同核心，再选择你的远征方向</h2>
+            </div>
+            <p>32 节共同核心建立稳固能力，之后进入算法探索或互动创作；也可以完成全部 64 节，点亮双技能树。</p>
+          </div>
+
+          <div class="path-map" aria-label="课程学习路线">
+            <article class="path-core">
+              <div class="path-number">32</div>
+              <div class="path-copy">
+                <span>共同核心</span>
+                <h3>从程序顺序到世界建造</h3>
+                <p>序列、循环、条件、变量、函数、数据结构与多对象协作。</p>
+              </div>
+              <div class="path-planet planet-core" aria-hidden="true"><i></i></div>
+            </article>
+
+            <div class="path-branch" aria-hidden="true"><span></span><span></span></div>
+
+            <div class="path-options">
+              <article class="path-option path-algorithm">
+                <div class="path-number">16</div>
+                <span>算法探索</span>
+                <h3>让程序自己找到答案</h3>
+                <p>搜索、排序、路径规划、贪心策略与性能比较。</p>
+                <ul>
+                  <li>算法过程可视化</li>
+                  <li>自动路线规划器作品</li>
+                </ul>
+                <div class="mini-planet" aria-hidden="true"></div>
+              </article>
+              <article class="path-option path-creative">
+                <div class="path-number">16</div>
+                <span>互动创作</span>
+                <h3>把规则变成可玩的作品</h3>
+                <p>坐标图形、事件、状态、声音、组件与发布。</p>
+                <ul>
+                  <li>原创互动作品</li>
+                  <li>试玩、反馈与 Remix</li>
+                </ul>
+                <div class="mini-planet" aria-hidden="true"></div>
+              </article>
+            </div>
+          </div>
+
+          <div class="path-total">
+            <span>完成双分支</span>
+            <strong>64 节完整课程库</strong>
+            <p>从问题解决者，成长为能设计、验证和分享数字世界的创作者。</p>
+            <a href="./signal-runner-node/index.html">进入第一节任务 <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+      </section>
+
+      <section class="product-section" aria-labelledby="product-title">
+        <div class="section-shell product-shell">
+          <div class="product-copy">
+            <p class="section-marker">真实产品入口</p>
+            <h2 id="product-title">从路线规划开始，让第一段代码动起来</h2>
+            <p>
+              Signal Runner 已包含 48 节正式课程入口、3D 小岛任务、指令编排、运行日志和作品卡。现在就可以进入原型，完成第一场信标任务。
+            </p>
+            <ol class="product-steps">
+              <li><span>1</span><div><strong>观察任务</strong><small>读懂目标、地图与限制</small></div></li>
+              <li><span>2</span><div><strong>编写程序</strong><small>把行动拆成可运行指令</small></div></li>
+              <li><span>3</span><div><strong>验证与调试</strong><small>根据日志定位并修正问题</small></div></li>
+            </ol>
+            <a class="button button-primary" href="./signal-runner-node/index.html">打开 Signal Runner <span aria-hidden="true">→</span></a>
+          </div>
+
+          <figure class="product-preview">
+            <img
+              src="./homepage-blueprint.png"
+              alt="CodeQuestPlanet 首页与课程、任务、成长系统的完整界面设计预览"
+              loading="lazy"
+              width="1448"
+              height="1086"
+            />
+            <figcaption>
+              <span>CodeQuestPlanet 体验蓝图</span>
+              <small>课程 · 世界 · 创作 · 成长</small>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="final-cta" aria-labelledby="cta-title">
+        <div class="cta-planet" aria-hidden="true"><span></span></div>
+        <div class="section-shell cta-shell">
+          <p>你的第一颗信标正在等待</p>
+          <h2 id="cta-title">写下第一段代码，<br />让星际世界开始运转</h2>
+          <a class="button button-primary" href="./signal-runner-node/index.html">立即启航 <span aria-hidden="true">↗</span></a>
+          <small>无需安装，直接进入浏览器体验</small>
+        </div>
+      </section>
     </main>
+
+    <footer class="site-footer">
+      <div class="footer-shell">
+        <a class="brand footer-brand" href="#top" aria-label="返回页面顶部">
+          <span class="brand-mark" aria-hidden="true"><i></i></span>
+          <span>CodeQuestPlanet</span>
+        </a>
+        <p>在玩中学编程，在创造中改变世界。</p>
+        <nav aria-label="页脚导航">
+          <a href="#world">学习世界</a>
+          <a href="#path">课程体系</a>
+          <a href="./signal-runner-node/index.html">Signal Runner</a>
+        </nav>
+        <small>© 2026 CodeQuestPlanet</small>
+      </div>
+    </footer>
+
+    <script src="./home.js"></script>
   </body>
 </html>

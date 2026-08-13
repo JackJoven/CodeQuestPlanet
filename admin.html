@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CodeQuestPlanet Admin</title>
+    <link rel="stylesheet" href="./signal-runner-node/styles.css" />
+  </head>
+  <body class="admin-console-page">
+    <div class="console-auth" id="consoleAuth">
+      <section class="console-auth-card">
+        <div>
+          <p class="eyebrow">CodeQuestPlanet Admin</p>
+          <h1>管理后台</h1>
+          <p>用户、课程、进度、权限和订单的运营控制台。</p>
+        </div>
+
+        <form class="console-form" id="adminLoginForm">
+          <label>
+            <span>邮箱</span>
+            <input id="adminLoginEmail" type="email" autocomplete="email" required />
+          </label>
+          <label>
+            <span>密码</span>
+            <input id="adminLoginPassword" type="password" autocomplete="current-password" minlength="8" required />
+          </label>
+          <p class="console-message" id="adminLoginMessage"></p>
+          <button class="primary-button" type="submit">登录后台</button>
+        </form>
+
+        <details class="console-bootstrap">
+          <summary>初始化 Owner</summary>
+          <form class="console-form" id="ownerSetupForm">
+            <label>
+              <span>初始化口令</span>
+              <input id="ownerSetupToken" type="password" autocomplete="one-time-code" required />
+            </label>
+            <label>
+              <span>邮箱</span>
+              <input id="ownerSetupEmail" type="email" autocomplete="email" required />
+            </label>
+            <label>
+              <span>昵称</span>
+              <input id="ownerSetupName" type="text" autocomplete="nickname" maxlength="60" />
+            </label>
+            <label>
+              <span>密码</span>
+              <input id="ownerSetupPassword" type="password" autocomplete="new-password" minlength="8" required />
+            </label>
+            <p class="console-message" id="ownerSetupMessage"></p>
+            <button class="tool-button" type="submit">创建 Owner</button>
+          </form>
+        </details>
+      </section>
+    </div>
+
+    <div class="console-shell is-hidden" id="consoleShell">
+      <aside class="console-sidebar">
+        <div class="console-brand">
+          <span>CQ</span>
+          <div>
+            <strong>CodeQuestPlanet</strong>
+            <small>Learning Ops</small>
+          </div>
+        </div>
+
+        <nav class="console-nav" aria-label="后台导航">
+          <button class="is-active" data-section="overview" type="button"><span>OV</span>总览</button>
+          <button data-section="users" type="button"><span>US</span>用户</button>
+          <button data-section="progress" type="button"><span>PG</span>进度</button>
+          <button data-section="courses" type="button"><span>CS</span>课程</button>
+          <button data-section="orders" type="button"><span>OR</span>订单</button>
+          <button data-section="audit" type="button"><span>AU</span>审计</button>
+          <button data-section="settings" type="button"><span>ST</span>设置</button>
+        </nav>
+
+        <div class="console-sidebar-footer">
+          <small>业务参考 Open edX / Canvas</small>
+          <a href="./index.html">返回学习端</a>
+        </div>
+      </aside>
+
+      <main class="console-main">
+        <header class="console-topbar">
+          <div>
+            <p class="eyebrow" id="consoleSectionKicker">Dashboard</p>
+            <h1 id="consoleSectionTitle">运营总览</h1>
+          </div>
+          <div class="console-actions">
+            <input id="consoleSearch" type="search" placeholder="搜索用户、课程、事件" />
+            <span id="adminUserLabel">检查登录状态</span>
+            <button class="tool-button" id="adminRefreshBtn" type="button">刷新</button>
+            <button class="ghost-button" id="adminLogoutBtn" type="button">退出</button>
+          </div>
+        </header>
+
+        <section class="console-banner" id="consoleDenied">
+          <div>
+            <p class="eyebrow">Access</p>
+            <h2>当前账号不能访问后台</h2>
+          </div>
+        </section>
+
+        <section class="console-section" id="section-overview">
+          <div class="console-stat-grid" id="overviewStats"></div>
+          <div class="console-grid two">
+            <article class="console-panel">
+              <div class="console-panel-head">
+                <div>
+                  <p class="eyebrow">Users</p>
+                  <h2>最近用户</h2>
+                </div>
+              </div>
+              <div class="console-list" id="overviewUsers"></div>
+            </article>
+            <article class="console-panel">
+              <div class="console-panel-head">
+                <div>
+                  <p class="eyebrow">Events</p>
+                  <h2>最近登录事件</h2>
+                </div>
+              </div>
+              <div class="console-list" id="overviewEvents"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="console-section is-hidden" id="section-users">
+          <article class="console-panel">
+            <div class="console-panel-head">
+              <div>
+                <p class="eyebrow">Accounts</p>
+                <h2>用户和权限</h2>
+              </div>
+              <span class="console-count" id="usersCount">0 个用户</span>
+            </div>
+            <div class="console-table-wrap">
+              <table class="console-table">
+                <thead>
+                  <tr>
+                    <th>用户</th>
+                    <th>角色</th>
+                    <th>进度</th>
+                    <th>会话</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTable"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <section class="console-section is-hidden" id="section-progress">
+          <div class="console-grid two">
+            <article class="console-panel">
+              <div class="console-panel-head">
+                <div>
+                  <p class="eyebrow">Courses</p>
+                  <h2>课程进度聚合</h2>
+                </div>
+              </div>
+              <div class="console-list" id="courseProgressList"></div>
+            </article>
+            <article class="console-panel">
+              <div class="console-panel-head">
+                <div>
+                  <p class="eyebrow">Records</p>
+                  <h2>最近进度记录</h2>
+                </div>
+              </div>
+              <div class="console-list dense" id="progressRecords"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="console-section is-hidden" id="section-courses">
+          <div class="console-grid three">
+            <article class="console-panel roadmap">
+              <p class="eyebrow">Content</p>
+              <h2>课程目录</h2>
+              <p>对齐 Open edX 的课程、章节、课时结构，后续接入课程 CRUD。</p>
+              <strong>预留模型：course / stage / lesson / task</strong>
+            </article>
+            <article class="console-panel roadmap">
+              <p class="eyebrow">Studio</p>
+              <h2>课程创作</h2>
+              <p>对齐 Studio 思路，老师或管理员编辑课程内容、任务地图和发布状态。</p>
+              <strong>预留权限：teacher / admin / owner</strong>
+            </article>
+            <article class="console-panel roadmap">
+              <p class="eyebrow">Release</p>
+              <h2>版本发布</h2>
+              <p>课程后续支持草稿、上架、归档，避免编辑内容影响正在学习的用户。</p>
+              <strong>预留状态：draft / published / archived</strong>
+            </article>
+          </div>
+        </section>
+
+        <section class="console-section is-hidden" id="section-orders">
+          <div class="console-grid three">
+            <article class="console-panel roadmap">
+              <p class="eyebrow">Products</p>
+              <h2>课程套餐</h2>
+              <p>后续建立套餐、价格、有效期和可访问课程范围。</p>
+              <strong>预留模型：plan / entitlement</strong>
+            </article>
+            <article class="console-panel roadmap">
+              <p class="eyebrow">Payments</p>
+              <h2>支付订单</h2>
+              <p>支持支付回调、订单状态、退款和人工补单。</p>
+              <strong>预留状态：pending / paid / refunded</strong>
+            </article>
+            <article class="console-panel roadmap">
+              <p class="eyebrow">Access</p>
+              <h2>开通权限</h2>
+              <p>支付成功后把课程访问权写入后端，前端只展示后端允许的课程。</p>
+              <strong>权限以后端校验为准</strong>
+            </article>
+          </div>
+        </section>
+
+        <section class="console-section is-hidden" id="section-audit">
+          <article class="console-panel">
+            <div class="console-panel-head">
+              <div>
+                <p class="eyebrow">Audit</p>
+                <h2>登录和关键事件</h2>
+              </div>
+              <span class="console-count" id="eventsCount">0 条记录</span>
+            </div>
+            <div class="console-table-wrap">
+              <table class="console-table">
+                <thead>
+                  <tr>
+                    <th>事件</th>
+                    <th>账号</th>
+                    <th>IP</th>
+                    <th>浏览器</th>
+                    <th>时间</th>
+                  </tr>
+                </thead>
+                <tbody id="eventsTable"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <section class="console-section is-hidden" id="section-settings">
+          <div class="console-grid two">
+            <article class="console-panel">
+              <p class="eyebrow">Security</p>
+              <h2>权限边界</h2>
+              <ul class="console-checklist">
+                <li>后台只调用 `/api/admin/*`，不直接访问数据库。</li>
+                <li>角色修改只允许 owner 调用后端接口。</li>
+                <li>学习端只保存自己的进度，不能读别人的进度。</li>
+              </ul>
+            </article>
+            <article class="console-panel">
+              <p class="eyebrow">Runtime</p>
+              <h2>当前后端</h2>
+              <ul class="console-checklist">
+                <li>Node API：`/api/auth/*`、`/api/progress`、`/api/admin/*`</li>
+                <li>数据库：PostgreSQL</li>
+                <li>部署：G490 + Caddy + Cloudflare Tunnel</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./signal-runner-node/admin.js"></script>
+  </body>
+</html>
