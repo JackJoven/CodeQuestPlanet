@@ -4,29 +4,100 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Signal Runner | 信标跑者标准课</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?release=20260823.6" />
   </head>
-  <body class="student-page">
+  <body class="student-page auth-locked">
     <div class="app-shell">
       <header class="topbar">
-        <button class="course-home-button" id="courseHomeBtn" type="button" hidden>
-          <span aria-hidden="true">&#8592;</span>
-          <span id="courseHomeLabel">课程地图</span>
-        </button>
-        <div class="topbar-title">
-          <p id="appKicker">Signal Runner</p>
-          <h1 id="pageTitle">课程地图</h1>
+        <div class="global-navigation">
+          <a class="student-brand" href="/" aria-label="CodeQuestPlanet 首页">
+            <span class="student-brand-mark" aria-hidden="true"><i></i></span>
+            <span>CodeQuestPlanet</span>
+          </a>
+
+          <nav class="student-global-nav" aria-label="学习平台导航">
+            <a href="/">首页</a>
+            <a href="/#learning-path">课程体系</a>
+            <a class="is-active" href="/signal-runner-node/index.html?release=20260823.6" aria-current="page">学习世界</a>
+            <a class="admin-link is-hidden" id="adminLink" href="/admin.html">管理后台</a>
+          </nav>
+
+          <div class="top-status">
+            <span class="progress-sync" id="progressSync">本机进度</span>
+            <div class="auth-status" id="authStatus" data-state="checking">
+              <span class="user-avatar" id="authUserAvatar" aria-hidden="true">CQ</span>
+              <span id="authUserLabel">检查登录状态</span>
+              <button class="ghost-button" id="authOpenBtn" type="button">登录 / 注册</button>
+              <button class="ghost-button is-hidden" id="authLogoutBtn" type="button">退出</button>
+            </div>
+          </div>
         </div>
-        <div class="top-status">
-          <span id="nodeProgress">学习进度 0 / 48</span>
-          <div class="lesson-pager" id="lessonPager" hidden>
-            <button id="prevLessonBtn" type="button" aria-label="上一关" title="上一关">&#8592;</button>
-            <button id="nextLessonBtn" type="button" aria-label="下一关" title="下一关">&#8594;</button>
+
+        <div class="course-context-bar">
+          <button class="course-home-button" id="courseHomeBtn" type="button" hidden>
+            <span aria-hidden="true">&#8592;</span>
+            <span id="courseHomeLabel">课程地图</span>
+          </button>
+          <div class="topbar-title">
+            <p id="appKicker">Signal Runner</p>
+            <h1 id="pageTitle">课程地图</h1>
+          </div>
+          <div class="course-context-actions">
+            <span id="nodeProgress">学习进度 0 / 32</span>
+            <button class="ghost-button" id="resetProgressBtn" type="button">重置进度</button>
+            <div class="lesson-pager" id="lessonPager" hidden>
+              <button id="prevLessonBtn" type="button" aria-label="上一关" title="上一关">&#8592;</button>
+              <button id="nextLessonBtn" type="button" aria-label="下一关" title="下一关">&#8594;</button>
+            </div>
           </div>
         </div>
       </header>
 
-      <section class="course-browser" id="courseBrowser" aria-label="课程浏览"></section>
+      <section class="auth-required" id="authRequiredPanel" aria-label="登录后进入课程">
+        <div>
+          <p class="eyebrow">Signal Runner 学习账号</p>
+          <h2>登录后进入课程</h2>
+          <p>登录后可在不同电脑继续学习，并将课程进度同步到云端。</p>
+        </div>
+        <div class="auth-required-actions">
+          <button class="primary-button" id="authGateLoginBtn" type="button">登录</button>
+          <button class="tool-button" id="authGateRegisterBtn" type="button">注册</button>
+        </div>
+      </section>
+
+      <div class="learning-dashboard">
+        <section class="course-browser" id="courseBrowser" aria-label="课程浏览"></section>
+
+        <aside class="learning-account-rail" aria-label="学习账户与快捷操作">
+          <section class="learner-summary">
+            <div class="learner-avatar" id="portalUserAvatar" aria-hidden="true">CQ</div>
+            <div>
+              <span id="portalUserRole">学习者</span>
+              <strong id="portalUserName">正在载入账户</strong>
+            </div>
+          </section>
+
+          <section class="expedition-summary" style="--progress: 0%">
+            <div class="rail-section-heading">
+              <span>当前远征</span>
+              <strong id="portalProgressPercent">0%</strong>
+            </div>
+            <div class="rail-progress-track" aria-hidden="true"><i></i></div>
+            <p><strong id="portalProgressCount">0 / 32</strong> 节课程已完成</p>
+            <div class="next-mission">
+              <span>下一节</span>
+              <strong id="portalNextMission">第 01 节 · 启动任务</strong>
+            </div>
+            <button class="portal-continue-button" id="portalContinueBtn" type="button">继续学习 <span aria-hidden="true">→</span></button>
+          </section>
+
+          <nav class="account-quick-links" aria-label="账户操作">
+            <a class="admin-link is-hidden" id="portalAdminLink" href="/admin.html"><span>管理后台</span><span aria-hidden="true">→</span></a>
+            <a href="/"><span>返回学习首页</span><span aria-hidden="true">→</span></a>
+            <button id="portalLogoutBtn" type="button"><span>退出登录</span><span aria-hidden="true">→</span></button>
+          </nav>
+        </aside>
+      </div>
 
       <main class="workspace">
         <section class="play-panel" aria-label="3D 任务区">
@@ -448,10 +519,60 @@
 
     </div>
 
+    <div class="auth-modal is-hidden" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <div class="auth-card">
+        <div class="auth-card-head">
+          <div>
+            <p class="eyebrow">学习账号</p>
+            <h2 id="authTitle">登录 Signal Runner</h2>
+          </div>
+          <button class="auth-close" id="authCloseBtn" type="button" aria-label="关闭登录窗口">×</button>
+        </div>
+
+        <div class="auth-tabs" id="authTabs" role="tablist" aria-label="账号操作">
+          <button class="is-active" data-auth-mode="login" type="button">登录</button>
+          <button data-auth-mode="register" type="button">注册</button>
+        </div>
+
+        <form class="auth-form" id="authForm">
+          <label>
+            <span>邮箱</span>
+            <input id="authEmail" name="email" type="email" autocomplete="email" required />
+          </label>
+          <label class="auth-name-row is-hidden" id="authNameRow">
+            <span>昵称</span>
+            <input id="authDisplayName" name="displayName" type="text" autocomplete="nickname" maxlength="60" />
+          </label>
+          <label>
+            <span id="authPasswordLabel">密码</span>
+            <input id="authPassword" name="password" type="password" autocomplete="current-password" minlength="8" required />
+          </label>
+          <label class="auth-recovery-row is-hidden" id="authRecoveryCodeRow">
+            <span>管理员恢复码</span>
+            <input id="authRecoveryCode" name="recoveryCode" type="password" autocomplete="one-time-code" />
+          </label>
+          <label class="auth-recovery-row is-hidden" id="authConfirmPasswordRow">
+            <span>确认新密码</span>
+            <input id="authConfirmPassword" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" />
+          </label>
+          <p class="auth-recovery-help is-hidden" id="authRecoveryHelp">
+            此入口仅用于管理员和所有者账号。普通学习账号请联系管理员重设密码。
+          </p>
+          <div class="auth-form-tools">
+            <button class="auth-link-button" id="authForgotBtn" type="button">忘记密码？</button>
+            <button class="auth-link-button is-hidden" id="authBackToLoginBtn" type="button">返回登录</button>
+          </div>
+          <p class="auth-message" id="authMessage" role="status"></p>
+          <button class="primary-button auth-submit" id="authSubmitBtn" type="submit">登录</button>
+        </form>
+      </div>
+    </div>
+
     <script src="./vendor/three.global.js"></script>
     <script src="./vendor/skulpt-1.2.0.min.js"></script>
-    <script src="./python-runtime-core.js"></script>
-    <script src="./course-data.js"></script>
-    <script src="./app.js"></script>
+    <script src="./python-runtime-core.js?release=20260823.6"></script>
+    <script src="./course-data.js?release=20260823.6"></script>
+    <script src="./app.js?release=20260823.6"></script>
+    <script src="./auth.js?release=20260823.6"></script>
   </body>
 </html>
