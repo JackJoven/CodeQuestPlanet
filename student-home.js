@@ -2,7 +2,7 @@
   const isLocalPreview =
     window.location.protocol === "file:" ||
     ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
-  const courseUrl = "/signal-runner-node/index.html?release=20260823.6";
+  const courseUrl = "./signal-runner-node/index.html?release=20260823.6";
   const visibleLessonLimit = 32;
   const allMissions = window.SignalRunnerCourseData?.missions || [];
   const missions = allMissions.filter((mission) => Number(mission.lessonNo) <= visibleLessonLimit);
