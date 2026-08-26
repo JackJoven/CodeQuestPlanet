@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { ensureSchema, pool, query } from "./db.mjs";
 import { hashPassword, verifyPassword } from "./passwords.mjs";
 import {
@@ -19,10 +19,6 @@ const ownerEmails = new Set(
     .filter(Boolean)
 );
 const ownerSetupToken = String(process.env.OWNER_SETUP_TOKEN || "").trim();
-const passwordRecoveryToken = String(process.env.PASSWORD_RECOVERY_TOKEN || ownerSetupToken).trim();
-const passwordRecoveryWindowMs = 15 * 60 * 1000;
-const passwordRecoveryMaxFailures = 5;
-const passwordRecoveryFailures = new Map();
 const roleRank = {
   learner: 0,
   teacher: 1,
@@ -37,43 +33,6 @@ function validateEmail(email) {
 
 function validatePassword(password) {
   return typeof password === "string" && password.length >= 8 && password.length <= 128;
-}
-
-function secureTokenMatches(provided, expected) {
-  if (!expected) return false;
-  const providedDigest = createHash("sha256").update(String(provided || "")).digest();
-  const expectedDigest = createHash("sha256").update(expected).digest();
-  return timingSafeEqual(providedDigest, expectedDigest);
-}
-
-function passwordRecoveryFailureKey(req) {
-  return clientIp(req) || "unknown";
-}
-
-function isPasswordRecoveryRateLimited(req) {
-  const key = passwordRecoveryFailureKey(req);
-  const entry = passwordRecoveryFailures.get(key);
-  if (!entry) return false;
-  if (Date.now() - entry.startedAt >= passwordRecoveryWindowMs) {
-    passwordRecoveryFailures.delete(key);
-    return false;
-  }
-  return entry.count >= passwordRecoveryMaxFailures;
-}
-
-function recordPasswordRecoveryFailure(req) {
-  const key = passwordRecoveryFailureKey(req);
-  const now = Date.now();
-  const entry = passwordRecoveryFailures.get(key);
-  if (!entry || now - entry.startedAt >= passwordRecoveryWindowMs) {
-    passwordRecoveryFailures.set(key, { count: 1, startedAt: now });
-    return;
-  }
-  entry.count += 1;
-}
-
-function clearPasswordRecoveryFailures(req) {
-  passwordRecoveryFailures.delete(passwordRecoveryFailureKey(req));
 }
 
 function configuredRoleForEmail(email) {
@@ -250,74 +209,6 @@ async function login(req, res) {
   );
 }
 
-async function recoverAdminPassword(req, res) {
-  if (!passwordRecoveryToken) {
-    sendError(res, 503, "管理员密码恢复功能尚未配置。", "password_recovery_disabled");
-    return;
-  }
-
-  const body = await readJson(req);
-  const email = normalizeEmail(body.email).slice(0, 320);
-  const recoveryToken = String(body.recoveryToken || body.recoveryCode || "");
-  const newPassword = String(body.newPassword || "");
-
-  if (!validateEmail(email) || !recoveryToken || !validatePassword(newPassword)) {
-    sendError(res, 400, "请填写管理员邮箱、恢复码和至少 8 位的新密码。", "invalid_password_recovery_request");
-    return;
-  }
-
-  if (isPasswordRecoveryRateLimited(req)) {
-    sendError(res, 429, "尝试次数过多，请 15 分钟后再试。", "password_recovery_rate_limited");
-    return;
-  }
-
-  if (!secureTokenMatches(recoveryToken, passwordRecoveryToken)) {
-    recordPasswordRecoveryFailure(req);
-    await recordLoginEvent(req, { email, eventType: "password_recovery_failed" });
-    sendError(res, 403, "邮箱或恢复码不正确。", "invalid_password_recovery");
-    return;
-  }
-
-  const result = await query(
-    `SELECT id, email, role
-     FROM users
-     WHERE email = $1
-     LIMIT 1`,
-    [email]
-  );
-  const user = result.rows[0];
-
-  if (!user || !canAccess(user, "admin")) {
-    recordPasswordRecoveryFailure(req);
-    await recordLoginEvent(req, { email, eventType: "password_recovery_failed" });
-    sendError(res, 403, "邮箱或恢复码不正确。", "invalid_password_recovery");
-    return;
-  }
-
-  const passwordHash = await hashPassword(newPassword);
-  const client = await pool.connect();
-  try {
-    await client.query("BEGIN");
-    await client.query("UPDATE users SET password_hash = $1, updated_at = now() WHERE id = $2", [passwordHash, user.id]);
-    await client.query("DELETE FROM sessions WHERE user_id = $1", [user.id]);
-    await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
-  }
-
-  clearPasswordRecoveryFailures(req);
-  await recordLoginEvent(req, { userId: user.id, email, eventType: "password_recovery_success" });
-  sendJson(
-    res,
-    200,
-    { ok: true, message: "密码已重设，请使用新密码登录。" },
-    { "Set-Cookie": makeClearSessionCookie() }
-  );
-}
-
 async function getProgress(req, res) {
   const user = await requireUser(req, res);
   if (!user) return;
@@ -398,7 +289,7 @@ async function bootstrapOwner(req, res) {
   }
 
   const body = await readJson(req);
-  if (!secureTokenMatches(body.token, ownerSetupToken)) {
+  if (String(body.token || "") !== ownerSetupToken) {
     sendError(res, 403, "初始化口令不正确。", "invalid_owner_setup_token");
     return;
   }
@@ -662,11 +553,6 @@ async function route(req, res) {
 
   if (req.method === "POST" && path === "/api/auth/login") {
     await login(req, res);
-    return;
-  }
-
-  if (req.method === "POST" && path === "/api/auth/recover-admin") {
-    await recoverAdminPassword(req, res);
     return;
   }
 

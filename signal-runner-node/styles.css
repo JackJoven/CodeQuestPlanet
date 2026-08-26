@@ -226,8 +226,6 @@ body.auth-locked .workspace {
 
 .auth-card {
   width: min(430px, 100%);
-  max-height: calc(100vh - 40px);
-  overflow-y: auto;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #ffffff;
@@ -307,50 +305,6 @@ body.auth-locked .workspace {
   padding: 9px 11px;
   color: var(--ink);
   font: inherit;
-}
-
-.auth-form input:focus-visible {
-  outline: 3px solid rgba(24, 126, 112, 0.24);
-  border-color: var(--teal-dark);
-}
-
-.auth-form-tools {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  min-height: 24px;
-}
-
-.auth-link-button {
-  min-height: 36px;
-  padding: 4px 0;
-  border: 0;
-  background: transparent;
-  color: var(--teal-dark);
-  cursor: pointer;
-  font: inherit;
-  font-weight: 850;
-}
-
-.auth-link-button:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.auth-link-button:disabled {
-  opacity: 0.55;
-  cursor: wait;
-}
-
-.auth-recovery-help {
-  margin: 0;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: var(--panel-strong);
-  color: var(--muted);
-  font-size: 0.86rem;
-  font-weight: 700;
-  line-height: 1.55;
 }
 
 .auth-message {
@@ -2185,7 +2139,7 @@ body.student-page {
 
 .student-page .course-map-hero {
   position: relative;
-  min-height: clamp(248px, 24vw, 272px);
+  min-height: clamp(360px, 42vw, 500px);
   overflow: hidden;
   border: 1px solid rgba(83, 169, 255, 0.58);
   border-radius: 8px;
@@ -2211,14 +2165,14 @@ body.student-page {
 .student-page .course-map-hero-copy {
   position: relative;
   z-index: 1;
-  width: min(580px, 64%);
-  padding: 24px;
+  width: min(520px, 52%);
+  padding: clamp(34px, 5vw, 64px);
 }
 
 .student-page .course-map-brand {
   width: max-content;
-  margin: 0 0 8px;
-  padding: 6px 10px;
+  margin: 0 0 18px;
+  padding: 7px 11px;
   border: 1px solid rgba(102, 220, 255, 0.56);
   border-radius: 999px;
   color: #83e5ff;
@@ -2228,11 +2182,11 @@ body.student-page {
 }
 
 .student-page .course-map-hero-copy h2 {
-  max-width: 12ch;
+  max-width: 9ch;
   margin: 0;
   color: #ffffff;
-  font-size: clamp(2.1rem, 3.4vw, 2.8rem);
-  line-height: 1;
+  font-size: clamp(2.5rem, 5.6vw, 4.9rem);
+  line-height: 0.98;
   letter-spacing: 0;
   text-wrap: balance;
   text-shadow: 0 4px 16px rgba(2, 7, 32, 0.74);
@@ -2240,17 +2194,17 @@ body.student-page {
 
 .student-page .course-map-hero-copy > p:not(.course-map-brand) {
   max-width: 34rem;
-  margin: 12px 0 0;
+  margin: 20px 0 0;
   color: #d2e2ff;
-  font-size: 0.88rem;
+  font-size: 1rem;
   font-weight: 700;
-  line-height: 1.45;
+  line-height: 1.75;
   text-wrap: pretty;
 }
 
 .student-page .course-map-hero-progress {
-  width: min(320px, 100%);
-  margin-top: 12px;
+  width: min(340px, 100%);
+  margin-top: 28px;
 }
 
 .student-page .course-map-hero-progress > div,
@@ -2276,14 +2230,14 @@ body.student-page {
 .student-page .progress-track,
 .student-page .stage-card-progress {
   display: block;
-  height: 5px;
+  height: 7px;
   overflow: hidden;
   border-radius: 999px;
   background: rgba(124, 164, 237, 0.26);
 }
 
 .student-page .course-map-hero-progress > .progress-track {
-  margin: 4px 0;
+  margin: 8px 0 7px;
 }
 
 .student-page .progress-track i,
@@ -2297,8 +2251,8 @@ body.student-page {
 
 .student-page .course-map-counts {
   position: absolute;
-  right: 16px;
-  bottom: 16px;
+  right: 22px;
+  bottom: 22px;
   z-index: 1;
   display: flex;
   gap: 1px;
@@ -2308,8 +2262,8 @@ body.student-page {
 }
 
 .student-page .course-map-counts span {
-  min-width: 92px;
-  padding: 8px 12px;
+  min-width: 116px;
+  padding: 13px 16px;
   background: rgba(19, 53, 130, 0.86);
   color: #b9cdfc;
   font-size: 0.76rem;
@@ -2321,7 +2275,7 @@ body.student-page {
   display: block;
   margin-bottom: 2px;
   color: #ffffff;
-  font-size: 1rem;
+  font-size: 1.2rem;
 }
 
 .student-page .course-map-section,
@@ -2555,7 +2509,7 @@ body.student-page {
 
 .student-page .stage-spotlight {
   position: relative;
-  min-height: clamp(220px, 22vw, 240px);
+  min-height: clamp(340px, 38vw, 460px);
   overflow: hidden;
   border: 1px solid rgba(92, 176, 255, 0.58);
   border-radius: 8px;
@@ -2563,15 +2517,15 @@ body.student-page {
 }
 
 .student-page .stage-spotlight-overlay {
-  bottom: 68px;
+  bottom: 92px;
   background: linear-gradient(90deg, rgba(3, 10, 44, 0.93) 0%, rgba(3, 10, 44, 0.62) 38%, rgba(3, 10, 44, 0.04) 68%);
 }
 
 .student-page .stage-spotlight-copy {
   position: relative;
   z-index: 1;
-  width: min(580px, 66%);
-  padding: 24px;
+  width: min(520px, 52%);
+  padding: clamp(34px, 5vw, 62px);
 }
 
 .student-page .stage-spotlight-copy > span {
@@ -2581,10 +2535,10 @@ body.student-page {
 }
 
 .student-page .stage-spotlight-copy h2 {
-  max-width: 16ch;
-  margin: 8px 0 0;
+  max-width: 14ch;
+  margin: 12px 0 0;
   color: #ffffff;
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-size: clamp(2rem, 4.2vw, 3.6rem);
   line-height: 1.08;
   letter-spacing: 0;
   text-wrap: balance;
@@ -2592,9 +2546,9 @@ body.student-page {
 }
 
 .student-page .stage-spotlight-copy p {
-  margin: 8px 0 0;
+  margin: 14px 0 0;
   color: #d6e3ff;
-  font-size: 0.9rem;
+  font-size: 1.04rem;
   font-weight: 800;
 }
 
@@ -2611,11 +2565,11 @@ body.student-page {
 }
 
 .student-page .stage-mission-summary > div {
-  min-height: 68px;
+  min-height: 92px;
   display: grid;
   align-content: center;
   gap: 5px;
-  padding: 12px 16px;
+  padding: 15px 20px;
   background: rgba(5, 19, 69, 0.92);
 }
 
@@ -5816,7 +5770,7 @@ body.student-page {
 
   .student-page .course-map-hero-copy,
   .student-page .stage-spotlight-copy {
-    width: 68%;
+    width: 62%;
   }
 
   .student-page .stage-grid,
@@ -5884,7 +5838,7 @@ body.student-page {
   }
 
   .student-page .course-map-hero {
-    min-height: 272px;
+    min-height: 520px;
   }
 
   .student-page .course-map-hero > img {
@@ -5898,48 +5852,36 @@ body.student-page {
 
   .student-page .course-map-hero-copy,
   .student-page .stage-spotlight-copy {
-    width: calc(100% - 112px);
-    padding: 16px;
-  }
-
-  .student-page .stage-spotlight-copy {
-    width: min(72%, 420px);
-  }
-
-  .student-page .course-map-brand {
-    margin-bottom: 6px;
-    padding: 5px 8px;
-    font-size: 0.68rem;
+    width: 100%;
+    padding: 26px 20px;
   }
 
   .student-page .course-map-hero-copy h2 {
-    max-width: 12ch;
-    font-size: 2rem;
+    max-width: 8ch;
+    font-size: clamp(2.45rem, 12vw, 3.7rem);
   }
 
   .student-page .course-map-hero-copy > p:not(.course-map-brand) {
     max-width: 28rem;
-    margin-top: 8px;
-    font-size: 0.76rem;
-    line-height: 1.4;
+    font-size: 0.9rem;
+    line-height: 1.62;
   }
 
   .student-page .course-map-hero-progress {
-    width: min(260px, 100%);
-    margin-top: 8px;
+    width: min(290px, 100%);
+    margin-top: 20px;
   }
 
   .student-page .course-map-counts {
-    top: 16px;
-    right: 16px;
-    bottom: auto;
-    left: auto;
-    flex-direction: column;
+    right: 14px;
+    bottom: 14px;
+    left: 14px;
   }
 
   .student-page .course-map-counts span {
-    min-width: 92px;
-    padding: 7px 8px;
+    flex: 1 1 50%;
+    min-width: 0;
+    padding: 11px 8px;
   }
 
   .student-page .course-map-heading,
@@ -5974,7 +5916,7 @@ body.student-page {
   }
 
   .student-page .stage-spotlight {
-    min-height: 260px;
+    min-height: 510px;
   }
 
   .student-page .stage-spotlight > img {
@@ -5982,26 +5924,21 @@ body.student-page {
   }
 
   .student-page .stage-spotlight-overlay {
-    bottom: 72px;
+    bottom: 150px;
   }
 
   .student-page .stage-spotlight-copy h2 {
-    max-width: 16ch;
-    margin-top: 8px;
-    font-size: 2rem;
+    max-width: 12ch;
+    font-size: clamp(2rem, 10vw, 2.8rem);
   }
 
   .student-page .stage-mission-summary {
-    grid-template-columns: 1.2fr 0.8fr;
+    grid-template-columns: 1fr;
   }
 
   .student-page .stage-mission-summary > div {
-    min-height: 72px;
-    padding: 8px 12px;
-  }
-
-  .student-page .stage-mission-summary strong {
-    font-size: 0.74rem;
+    min-height: 74px;
+    padding: 11px 14px;
   }
 
   .student-page .lesson-card {
@@ -6263,611 +6200,4 @@ body.student-page {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
-}
-
-/* Authenticated learning world shell */
-.student-page .topbar {
-  min-height: 0;
-  display: block;
-  padding: 0;
-  border: 0;
-  border-bottom: 1px solid rgba(91, 166, 255, 0.3);
-  background: #050f3a;
-  box-shadow: 0 8px 24px rgba(2, 7, 33, 0.28);
-}
-
-.student-page .global-navigation,
-.student-page .course-context-bar {
-  width: min(1440px, calc(100vw - 32px));
-  margin: 0 auto;
-}
-
-.student-page .global-navigation {
-  min-height: 66px;
-  display: flex;
-  align-items: center;
-  gap: 30px;
-}
-
-.student-page .student-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  color: #f8fbff;
-  font-size: 1rem;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.student-page .student-brand-mark {
-  position: relative;
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #7ce8ff, #2f7bea 44%, #8455e8 76%);
-  box-shadow: 0 0 8px rgba(113, 113, 255, 0.48);
-}
-
-.student-page .student-brand-mark::before {
-  content: "";
-  position: absolute;
-  width: 42px;
-  height: 14px;
-  border: 2px solid #70ddff;
-  border-radius: 50%;
-  transform: rotate(-22deg);
-}
-
-.student-page .student-brand-mark i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 0 7px #ffffff;
-}
-
-.student-page .student-global-nav {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-right: auto;
-}
-
-.student-page .student-global-nav a {
-  min-height: 38px;
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 12px;
-  border-radius: 8px;
-  color: #aebfe8;
-  font-size: 0.84rem;
-  font-weight: 800;
-  text-decoration: none;
-  transition: background-color 180ms ease-out, color 180ms ease-out;
-}
-
-.student-page .student-global-nav a:hover,
-.student-page .student-global-nav a:focus-visible {
-  background: #102b75;
-  color: #ffffff;
-}
-
-.student-page .student-global-nav a.is-active {
-  background: #1642a0;
-  color: #ffffff;
-}
-
-.student-page .top-status {
-  flex: 0 0 auto;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-.student-page .progress-sync {
-  display: inline-flex;
-  align-items: center;
-  min-height: 30px;
-  border-color: rgba(98, 210, 255, 0.34);
-  background: #0b2264;
-  color: #9ee9ff;
-  white-space: nowrap;
-}
-
-.student-page .auth-status {
-  gap: 9px;
-}
-
-.student-page .user-avatar {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  border: 1px solid #6fdcff;
-  border-radius: 50%;
-  background: #173d91;
-  color: #ffffff;
-  font-size: 0.72rem;
-  font-weight: 900;
-}
-
-.student-page .auth-status > #authUserLabel {
-  max-width: 190px;
-  overflow: hidden;
-  color: #e7efff;
-  font-size: 0.78rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.student-page .ghost-button {
-  min-height: 36px;
-  border-color: rgba(103, 190, 255, 0.38);
-  border-radius: 8px;
-  background: #102b75;
-  color: #edf7ff;
-  font-size: 0.78rem;
-  font-weight: 850;
-}
-
-.student-page .ghost-button:hover,
-.student-page .ghost-button:focus-visible {
-  border-color: #69d8ff;
-  background: #173b8f;
-}
-
-.student-page .course-context-bar {
-  min-height: 58px;
-  display: grid;
-  grid-template-columns: minmax(150px, 1fr) minmax(220px, 2fr) minmax(220px, 1fr);
-  align-items: center;
-  gap: 16px;
-  padding: 8px 0;
-  border-top: 1px solid rgba(91, 166, 255, 0.2);
-}
-
-.student-page .course-context-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  color: #bed1ff;
-  font-size: 0.82rem;
-  font-weight: 800;
-}
-
-.student-page .course-context-actions > #nodeProgress {
-  white-space: nowrap;
-}
-
-.student-page .topbar-title p {
-  color: #77d9ff;
-}
-
-.student-page .learning-dashboard {
-  width: min(1440px, calc(100vw - 32px));
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
-  align-items: start;
-  gap: 18px;
-  margin: 0 auto;
-  padding: 24px 0 64px;
-}
-
-.student-page.auth-locked .learning-dashboard,
-.student-page.is-lesson-playing .learning-dashboard {
-  display: none;
-}
-
-.student-page .course-browser {
-  width: auto;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-}
-
-.student-page .learning-account-rail {
-  position: sticky;
-  top: 148px;
-  display: grid;
-  gap: 12px;
-}
-
-.student-page .learner-summary,
-.student-page .expedition-summary,
-.student-page .account-quick-links {
-  border: 1px solid rgba(91, 166, 255, 0.34);
-  border-radius: 12px;
-  background: #0c225f;
-}
-
-.student-page .learner-summary {
-  min-height: 92px;
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  padding: 16px;
-}
-
-.student-page .learner-avatar {
-  width: 52px;
-  height: 52px;
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  border: 2px solid #70dcff;
-  border-radius: 50%;
-  background: #19469f;
-  color: #ffffff;
-  font-size: 1rem;
-  font-weight: 900;
-  box-shadow: 0 0 8px rgba(69, 188, 255, 0.38);
-}
-
-.student-page .learner-summary > div:last-child {
-  min-width: 0;
-  display: grid;
-  gap: 4px;
-}
-
-.student-page .learner-summary span {
-  color: #7ddfff;
-  font-size: 0.72rem;
-  font-weight: 850;
-}
-
-.student-page .learner-summary strong {
-  overflow: hidden;
-  color: #ffffff;
-  font-size: 0.94rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.student-page .expedition-summary {
-  padding: 17px;
-}
-
-.student-page .rail-section-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.student-page .rail-section-heading span {
-  color: #dce8ff;
-  font-size: 0.8rem;
-  font-weight: 850;
-}
-
-.student-page .rail-section-heading strong {
-  color: #ffca45;
-  font-size: 1rem;
-}
-
-.student-page .rail-progress-track {
-  height: 7px;
-  overflow: hidden;
-  margin-top: 12px;
-  border-radius: 999px;
-  background: rgba(132, 169, 235, 0.25);
-}
-
-.student-page .rail-progress-track i {
-  display: block;
-  width: var(--progress);
-  height: 100%;
-  border-radius: inherit;
-  background: #ffbf2f;
-  transition: width 220ms ease-out;
-}
-
-.student-page .expedition-summary > p {
-  margin: 8px 0 0;
-  color: #9fb4e3;
-  font-size: 0.74rem;
-}
-
-.student-page .expedition-summary > p strong {
-  color: #ffffff;
-}
-
-.student-page .next-mission {
-  display: grid;
-  gap: 5px;
-  margin-top: 18px;
-  padding-top: 15px;
-  border-top: 1px solid rgba(103, 174, 255, 0.24);
-}
-
-.student-page .next-mission span {
-  color: #7fdfff;
-  font-size: 0.7rem;
-  font-weight: 850;
-}
-
-.student-page .next-mission strong {
-  color: #ffffff;
-  font-size: 0.86rem;
-  line-height: 1.45;
-}
-
-.student-page .portal-continue-button {
-  width: 100%;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 14px;
-  padding: 10px 13px;
-  border: 0;
-  border-radius: 8px;
-  background: #ffbf2f;
-  color: #211600;
-  cursor: pointer;
-  font-weight: 900;
-  transition: background-color 180ms ease-out, transform 180ms ease-out;
-}
-
-.student-page .portal-continue-button:hover,
-.student-page .portal-continue-button:focus-visible {
-  background: #ffd15d;
-  transform: translateY(-1px);
-}
-
-.student-page .portal-continue-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-  transform: none;
-}
-
-.student-page .account-quick-links {
-  overflow: hidden;
-}
-
-.student-page .account-quick-links a,
-.student-page .account-quick-links button {
-  width: 100%;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 14px;
-  border: 0;
-  border-bottom: 1px solid rgba(103, 174, 255, 0.2);
-  border-radius: 0;
-  background: transparent;
-  color: #c9d9fb;
-  cursor: pointer;
-  font-size: 0.78rem;
-  font-weight: 800;
-  text-align: left;
-  text-decoration: none;
-}
-
-.student-page .account-quick-links > :last-child {
-  border-bottom: 0;
-}
-
-.student-page .account-quick-links a:hover,
-.student-page .account-quick-links a:focus-visible,
-.student-page .account-quick-links button:hover,
-.student-page .account-quick-links button:focus-visible {
-  background: #14337f;
-  color: #ffffff;
-}
-
-.student-page .account-quick-links .admin-link {
-  color: #83e5ff;
-}
-
-@media (max-width: 1120px) {
-  .student-page .global-navigation,
-  .student-page .course-context-bar,
-  .student-page .learning-dashboard {
-    width: min(100% - 24px, 960px);
-  }
-
-  .student-page .student-global-nav a {
-    padding-inline: 9px;
-  }
-
-  .student-page .progress-sync,
-  .student-page .auth-status > #authUserLabel {
-    display: none;
-  }
-
-  .student-page .learning-dashboard {
-    grid-template-columns: 1fr;
-  }
-
-  .student-page .learning-account-rail {
-    position: static;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 760px) {
-  .student-page .global-navigation {
-    min-height: 58px;
-    gap: 12px;
-  }
-
-  .student-page .student-brand > span:last-child,
-  .student-page .student-global-nav a:not(.is-active):not(.admin-link),
-  .student-page .auth-status > #authUserLabel {
-    display: none;
-  }
-
-  .student-page .student-global-nav {
-    margin-right: auto;
-  }
-
-  .student-page .student-global-nav a {
-    min-height: 36px;
-    padding: 7px 9px;
-  }
-
-  .student-page .course-context-bar {
-    min-height: 54px;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: 8px;
-    padding: 7px 0;
-  }
-
-  .student-page .course-context-actions > #nodeProgress,
-  .student-page #resetProgressBtn {
-    display: none;
-  }
-
-  .student-page .topbar-title {
-    text-align: left;
-  }
-
-  .student-page .topbar-title p {
-    display: block;
-  }
-
-  .student-page .learning-account-rail {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 460px) {
-  .student-page .global-navigation,
-  .student-page .course-context-bar,
-  .student-page .learning-dashboard {
-    width: min(100% - 16px, 420px);
-  }
-
-  .student-page .student-global-nav .admin-link {
-    display: none;
-  }
-
-  .student-page .auth-status .ghost-button {
-    min-height: 34px;
-    padding-inline: 9px;
-  }
-
-  .student-page .user-avatar {
-    width: 32px;
-    height: 32px;
-  }
-}
-
-.student-page .auth-required {
-  width: min(920px, calc(100vw - 32px));
-  margin: 24px auto 0;
-  padding: 24px;
-  border: 1px solid rgba(91, 166, 255, 0.38);
-  border-radius: 12px;
-  background: #0c225f;
-  color: #ffffff;
-  box-shadow: none;
-}
-
-.student-page .auth-required .eyebrow {
-  color: #78ddff;
-}
-
-.student-page .auth-required h2 {
-  color: #ffffff;
-}
-
-.student-page .auth-required p:last-child {
-  color: #b8c9ee;
-}
-
-.student-page .auth-required .primary-button {
-  border: 0;
-  background: #ffbf2f;
-  color: #211600;
-}
-
-.student-page .auth-required .tool-button {
-  border-color: rgba(103, 190, 255, 0.46);
-  background: #173b8f;
-  color: #ffffff;
-}
-
-.student-page .auth-modal {
-  background: rgba(2, 7, 32, 0.76);
-}
-
-.student-page .auth-card {
-  border-color: rgba(91, 166, 255, 0.42);
-  background: #081b52;
-  color: #ffffff;
-  box-shadow: 0 24px 72px rgba(1, 5, 24, 0.56);
-}
-
-.student-page .auth-card-head h2,
-.student-page .auth-form label {
-  color: #ffffff;
-}
-
-.student-page .auth-close {
-  border-color: rgba(103, 190, 255, 0.38);
-  background: #102b75;
-  color: #ffffff;
-}
-
-.student-page .auth-tabs {
-  border-color: rgba(91, 166, 255, 0.32);
-  background: #0b2466;
-}
-
-.student-page .auth-tabs button {
-  color: #b7c9ee;
-}
-
-.student-page .auth-tabs button.is-active {
-  background: #17449f;
-  color: #ffffff;
-}
-
-.student-page .auth-form input {
-  border-color: rgba(103, 174, 255, 0.42);
-  background: #061541;
-  color: #ffffff;
-}
-
-.student-page .auth-form input:focus-visible {
-  outline-color: rgba(92, 211, 255, 0.32);
-  border-color: #70dcff;
-}
-
-.student-page .auth-link-button {
-  color: #78ddff;
-}
-
-.student-page .auth-recovery-help {
-  background: #0f2b73;
-  color: #bdcdf0;
-}
-
-.student-page .auth-message {
-  color: #aebfe8;
-}
-
-.student-page .auth-message[data-type="error"] {
-  color: #ffaaa4;
-}
-
-.student-page .auth-message[data-type="success"] {
-  color: #82ecb7;
-}
-
-.student-page .auth-submit {
-  border: 0;
-  background: #ffbf2f;
-  color: #211600;
 }
