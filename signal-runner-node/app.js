@@ -45,6 +45,11 @@ window.addEventListener("unhandledrejection", (event) => {
     nodeProgress: document.querySelector("#nodeProgress"),
     progressSync: document.querySelector("#progressSync"),
     resetProgress: document.querySelector("#resetProgressBtn"),
+    portalProgress: document.querySelector(".expedition-summary"),
+    portalProgressPercent: document.querySelector("#portalProgressPercent"),
+    portalProgressCount: document.querySelector("#portalProgressCount"),
+    portalNextMission: document.querySelector("#portalNextMission"),
+    portalContinue: document.querySelector("#portalContinueBtn"),
     missionList: document.querySelector("#missionList"),
     missionBrief: document.querySelector("#missionBrief"),
     standardMissionBrief: document.querySelector("#standardMissionBrief"),
@@ -488,8 +493,14 @@ window.addEventListener("unhandledrejection", (event) => {
       }
     ]
   };
-  const courseStages = courseCatalog.stages || [];
-  const courseMissions = courseCatalog.missions || [];
+  // Keep later course data intact while only exposing the classroom-ready range.
+  // Raise this single limit when the next course segment is ready to reopen.
+  const visibleCourseLessonLimit = 32;
+  const courseMissions = (courseCatalog.missions || [])
+    .filter((item) => Number(item.lessonNo) <= visibleCourseLessonLimit);
+  const visibleCourseStageIds = new Set(courseMissions.map((item) => item.stage));
+  const courseStages = (courseCatalog.stages || [])
+    .filter((stage) => visibleCourseStageIds.has(stage.id));
   const stageImages = {
     "stage-1": "./assets/maps/stage-01-beacon-departure.webp",
     "stage-2": "./assets/maps/stage-02-energy-rescue.webp",
@@ -507,9 +518,9 @@ window.addEventListener("unhandledrejection", (event) => {
       progressLabel: `${courseCatalog.version || "v1.3"} · ${courseMissions.length} 节`,
       evidenceKicker: "标准课作品记录",
       evidenceTitle: "课堂任务卡",
-      completeTitle: "Signal Runner Code Quest：48 节创作型课程",
+      completeTitle: `Signal Runner Code Quest：当前开放 ${courseMissions.length} 节`,
       completeSkill: "观察、规划、编码、调试、讲解和原创关卡设计。",
-      completeValidation: "48 节课程已经拆成阶段、课次和单课任务，可逐级进入和跳转。"
+      completeValidation: `${courseMissions.length} 节课程已经拆成阶段、课次和单课任务，可逐级进入和跳转。`
     },
     demo: {
       id: "demo",
@@ -618,6 +629,21 @@ window.addEventListener("unhandledrejection", (event) => {
   function setProgressSyncState(message) {
     progressSyncState = message;
     if (dom.progressSync) dom.progressSync.textContent = message;
+  }
+
+  function updatePortalProgress() {
+    if (!dom.portalProgress) return;
+    const completedCount = courseMissions.filter((item) => completed.has(item.id)).length;
+    const percent = courseMissions.length ? Math.round((completedCount / courseMissions.length) * 100) : 0;
+    const nextMission = courseMissions.find((item) => !completed.has(item.id)) || courseMissions.at(-1);
+
+    dom.portalProgress.style.setProperty("--progress", `${percent}%`);
+    dom.portalProgressPercent.textContent = `${percent}%`;
+    dom.portalProgressCount.textContent = `${completedCount} / ${courseMissions.length}`;
+    dom.portalNextMission.textContent = nextMission ? `${nextMission.lesson} · ${nextMission.title}` : "课程即将开放";
+    dom.portalContinue.disabled = !nextMission;
+    if (nextMission) dom.portalContinue.dataset.lessonId = nextMission.id;
+    else delete dom.portalContinue.dataset.lessonId;
   }
 
   async function requestJson(url, options = {}) {
@@ -1663,6 +1689,7 @@ window.addEventListener("unhandledrejection", (event) => {
 
   function renderCourseBrowser() {
     const browsing = isCourseTrack() && courseView !== "lesson";
+    updatePortalProgress();
     dom.courseBrowser.classList.toggle("is-hidden", !browsing);
     dom.workspace.classList.toggle("is-hidden", browsing);
     document.body.classList.toggle("is-course-browsing", browsing);
@@ -1680,12 +1707,12 @@ window.addEventListener("unhandledrejection", (event) => {
     if (courseView === "stages") {
       dom.courseBrowser.innerHTML = `
         <section class="course-map-hero" aria-labelledby="courseMapTitle">
-          <img src="./assets/maps/learning-world-overview.webp" alt="六个编程任务星区围绕能量核心相互连接">
+          <img src="./assets/maps/learning-world-overview.webp" alt="当前开放的 ${courseStages.length} 个编程任务星区围绕能量核心相互连接">
           <div class="course-map-hero-overlay"></div>
           <div class="course-map-hero-copy">
             <p class="course-map-brand">CODE QUEST · 学习世界</p>
             <h2 id="courseMapTitle">Signal Runner<br>星际学院</h2>
-            <p>穿越六个任务星区，从控制 Neo 的第一步，一路成长到能独立设计算法与原创关卡。</p>
+            <p>穿越当前开放的 ${courseStages.length} 个任务星区，从控制 Neo 的第一步，一路成长到能用数据和多对象协作重建星系。</p>
             <div class="course-map-hero-progress" style="--progress: ${overallPercent}%">
               <div>
                 <span>探索进度</span>
@@ -5999,6 +6026,12 @@ window.addEventListener("unhandledrejection", (event) => {
 
     const navButton = event.target.closest("[data-nav-view]");
     if (navButton?.dataset.navView === "stages") showStageList();
+  });
+
+  dom.portalContinue?.addEventListener("click", () => {
+    const lessonId = dom.portalContinue.dataset.lessonId;
+    if (!lessonId) return;
+    selectMission(missionIndexById(lessonId));
   });
 
   dom.courseBreadcrumb?.addEventListener("click", (event) => {
