@@ -30,6 +30,11 @@ vm.runInContext(courseDataSource, context, { filename: "course-data.js" });
 assert.equal(typeof context.Sk?.parse, "function", "Skulpt parser should load");
 assert.equal(typeof context.CodeQuestPythonRuntime?.create, "function", "runtime core should load");
 
+assert.match(appSource, /const visibleCourseLessonLimit = 32;/, "student course entry should stop at lesson 32");
+assert.match(appSource, /Number\(item\.lessonNo\) <= visibleCourseLessonLimit/, "student missions should use the visible lesson limit");
+assert.match(appSource, /visibleCourseStageIds\.has\(stage\.id\)/, "student stages should hide stages without visible lessons");
+assert.match(pageSource, /学习进度 0 \/ 32/, "initial student progress should match the visible course count");
+
 for (let number = 17; number <= 32; number += 1) {
   const mission = context.SignalRunnerCourseData.missions[number - 1];
   assert.ok(mission.pythonStudio, `course ${number} should use the v1.5 Python studio`);

@@ -10,7 +10,16 @@ await rm(dist, { recursive: true, force: true });
 await mkdir(resolve(dist, "server"), { recursive: true });
 await mkdir(client, { recursive: true });
 
-for (const file of ["index.html", "home.css", "home.js", "homepage-blueprint.png", "og.png"]) {
+for (const file of [
+  "index.html",
+  "home.css",
+  "home.js",
+  "homepage-blueprint.png",
+  "og.png",
+  "student-home.html",
+  "student-home.css",
+  "student-home.js"
+]) {
   await cp(resolve(root, file), resolve(client, file));
 }
 

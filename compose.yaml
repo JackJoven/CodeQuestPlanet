@@ -29,6 +29,7 @@ services:
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
       OWNER_EMAILS: ${OWNER_EMAILS:-}
       OWNER_SETUP_TOKEN: ${OWNER_SETUP_TOKEN:-}
+      PASSWORD_RECOVERY_TOKEN: ${PASSWORD_RECOVERY_TOKEN:-}
 
   db:
     image: pgvector/pgvector:pg16
