@@ -6292,43 +6292,57 @@ body.student-page {
 .student-page .student-brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  color: #f8fbff;
-  font-size: 1rem;
-  font-weight: 900;
-  letter-spacing: -0.02em;
+  gap: 11px;
+  color: #f7fbff;
+  font-size: 15px;
+  font-weight: 760;
+  letter-spacing: 0.015em;
   text-decoration: none;
   white-space: nowrap;
 }
 
 .student-page .student-brand-mark {
   position: relative;
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
+  width: 30px;
+  height: 30px;
   flex: 0 0 auto;
+  border: 1px solid rgba(103, 247, 223, 0.5);
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #7ce8ff, #2f7bea 44%, #8455e8 76%);
-  box-shadow: 0 0 8px rgba(113, 113, 255, 0.48);
+  box-shadow: inset 0 0 16px rgba(103, 247, 223, 0.12), 0 0 18px rgba(103, 247, 223, 0.1);
+}
+
+.student-page .student-brand-mark::before,
+.student-page .student-brand-mark::after,
+.student-page .student-brand-mark i {
+  position: absolute;
+  display: block;
+  content: "";
 }
 
 .student-page .student-brand-mark::before {
-  content: "";
-  position: absolute;
-  width: 42px;
-  height: 14px;
-  border: 2px solid #70ddff;
+  inset: 6px;
+  border: 1px solid rgba(110, 141, 255, 0.8);
   border-radius: 50%;
-  transform: rotate(-22deg);
+  transform: rotateX(62deg);
+}
+
+.student-page .student-brand-mark::after {
+  width: 7px;
+  height: 7px;
+  top: 10px;
+  left: 10px;
+  border-radius: 50%;
+  background: #67f7df;
+  box-shadow: 0 0 12px #67f7df;
 }
 
 .student-page .student-brand-mark i {
-  width: 7px;
-  height: 7px;
+  width: 4px;
+  height: 4px;
+  top: 3px;
+  right: 2px;
   border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 0 7px #ffffff;
+  background: #ffb45f;
 }
 
 .student-page .student-global-nav {
@@ -6372,28 +6386,27 @@ body.student-page {
   display: inline-flex;
   align-items: center;
   min-height: 30px;
-  border-color: rgba(98, 210, 255, 0.34);
+  border: 0;
   background: #0b2264;
   color: #9ee9ff;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 280ms cubic-bezier(0.22, 1, 0.36, 1), transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
   white-space: nowrap;
+}
+
+.student-page .progress-sync.is-exiting {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.student-page .progress-sync.is-hidden {
+  visibility: hidden;
+  opacity: 0;
 }
 
 .student-page .auth-status {
   gap: 9px;
-}
-
-.student-page .user-avatar {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  border: 1px solid #6fdcff;
-  border-radius: 50%;
-  background: #173d91;
-  color: #ffffff;
-  font-size: 0.72rem;
-  font-weight: 900;
 }
 
 .student-page .auth-status > #authUserLabel {
@@ -6757,10 +6770,6 @@ body.student-page {
     padding-inline: 9px;
   }
 
-  .student-page .user-avatar {
-    width: 32px;
-    height: 32px;
-  }
 }
 
 .student-page .auth-required {

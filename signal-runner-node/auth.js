@@ -14,7 +14,6 @@
   const dom = {
     authStatus: document.querySelector("#authStatus"),
     userLabel: document.querySelector("#authUserLabel"),
-    userAvatar: document.querySelector("#authUserAvatar"),
     adminLink: document.querySelector("#adminLink"),
     openBtn: document.querySelector("#authOpenBtn"),
     logoutBtn: document.querySelector("#authLogoutBtn"),
@@ -71,7 +70,6 @@
     dom.authStatus.dataset.state = user ? "signed-in" : "signed-out";
     document.body.classList.toggle("auth-locked", !user);
     dom.userLabel.textContent = user ? `${displayName} · ${roleLabel(user.role)}` : "未登录";
-    dom.userAvatar.textContent = initial;
     dom.portalUserName.textContent = user ? displayName : "登录后开始远征";
     dom.portalUserRole.textContent = user ? roleLabel(user.role) : "访客";
     dom.portalUserAvatar.textContent = initial;
@@ -86,7 +84,6 @@
     dom.authStatus.dataset.state = "local-preview";
     document.body.classList.remove("auth-locked");
     dom.userLabel.textContent = "本地预览 · 进度仅存本机";
-    dom.userAvatar.textContent = "CQ";
     dom.portalUserName.textContent = "本地预览";
     dom.portalUserRole.textContent = "预览模式";
     dom.portalUserAvatar.textContent = "CQ";

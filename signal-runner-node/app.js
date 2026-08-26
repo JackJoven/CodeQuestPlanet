@@ -559,6 +559,8 @@ window.addEventListener("unhandledrejection", (event) => {
   let completed = loadProgress();
   let authUser = null;
   let progressSyncState = "本机进度";
+  let progressSyncHideTimer = null;
+  let progressSyncRemoveTimer = null;
   let syncQueue = Promise.resolve();
   let sim = null;
   let runTimer = null;
@@ -628,7 +630,21 @@ window.addEventListener("unhandledrejection", (event) => {
 
   function setProgressSyncState(message) {
     progressSyncState = message;
-    if (dom.progressSync) dom.progressSync.textContent = message;
+    if (!dom.progressSync) return;
+    dom.progressSync.textContent = message;
+    dom.progressSync.classList.remove("is-exiting", "is-hidden");
+    dom.progressSync.setAttribute("aria-hidden", "false");
+    window.clearTimeout(progressSyncHideTimer);
+    window.clearTimeout(progressSyncRemoveTimer);
+    progressSyncHideTimer = window.setTimeout(() => {
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      dom.progressSync.classList.add("is-exiting");
+      progressSyncRemoveTimer = window.setTimeout(() => {
+        dom.progressSync.classList.add("is-hidden");
+        dom.progressSync.classList.remove("is-exiting");
+        dom.progressSync.setAttribute("aria-hidden", "true");
+      }, reduceMotion ? 0 : 280);
+    }, 5000);
   }
 
   function updatePortalProgress() {
@@ -1868,7 +1884,7 @@ window.addEventListener("unhandledrejection", (event) => {
     dom.prevLesson.disabled = currentMissionIndex <= 0;
     dom.nextLesson.disabled = currentMissionIndex >= currentMissions().length - 1;
     document.title = browsing ? "Signal Runner | 课程地图" : `${m.lesson} ${m.title} | Signal Runner`;
-    setProgressSyncState(progressSyncState);
+    if (dom.progressSync) dom.progressSync.textContent = progressSyncState;
     dom.missionBrief.classList.toggle("is-playground", usesPlaygroundBrief);
     dom.standardMissionBrief.hidden = usesPlaygroundBrief;
     dom.sequenceLessonBrief.hidden = !isSequenceTimeline;
