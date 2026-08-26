@@ -558,6 +558,7 @@ window.addEventListener("unhandledrejection", (event) => {
   const lessonToolChoices = new Map();
   let completed = loadProgress();
   let authUser = null;
+  let localPreviewSession = false;
   let progressSyncState = "本机进度";
   let syncQueue = Promise.resolve();
   let sim = null;
@@ -579,6 +580,9 @@ window.addEventListener("unhandledrejection", (event) => {
   let pythonEvidence = {};
 
   function loadProgress() {
+    if (window.CodeQuestLocalPreview?.isLocalPreview) {
+      return new Set(window.CodeQuestLocalPreview.readProgress());
+    }
     try {
       const raw = localStorage.getItem(storageKey);
       const parsed = raw ? JSON.parse(raw) : [];
@@ -619,6 +623,10 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function saveLocalProgress() {
+    if (window.CodeQuestLocalPreview?.isLocalPreview) {
+      window.CodeQuestLocalPreview.writeProgress([...completed]);
+      return;
+    }
     try {
       localStorage.setItem(storageKey, JSON.stringify([...completed]));
     } catch (error) {
@@ -712,7 +720,7 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   async function saveLessonProgress(lessonId) {
-    if (!authUser || !lessonId) return;
+    if (!authUser || localPreviewSession || !lessonId) return;
     await requestJson(progressApi, {
       method: "POST",
       body: JSON.stringify(progressPayload(lessonId))
@@ -720,6 +728,10 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function queueLessonSync(lessonId) {
+    if (localPreviewSession) {
+      setProgressSyncState(authUser ? "模拟进度已保存" : "本机进度");
+      return;
+    }
     if (!authUser || !lessonId) {
       setProgressSyncState(authUser ? "云端同步待命" : "本机进度");
       return;
@@ -738,6 +750,10 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   async function syncProgressFromCloud() {
+    if (localPreviewSession) {
+      setProgressSyncState(authUser ? "模拟进度 · 仅存本机" : "本机进度");
+      return;
+    }
     if (!authUser) {
       setProgressSyncState("本机进度");
       return;
@@ -772,6 +788,10 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   async function deleteCloudProgress(lessonIds) {
+    if (localPreviewSession) {
+      setProgressSyncState(authUser ? "模拟进度已重置" : "本机进度");
+      return;
+    }
     if (!authUser || !lessonIds.length) return;
 
     setProgressSyncState("正在重置云端进度...");
@@ -6266,8 +6286,11 @@ window.addEventListener("unhandledrejection", (event) => {
   });
 
   window.addEventListener("codequest:auth-changed", (event) => {
+    localPreviewSession = Boolean(event.detail?.localPreview);
     authUser = event.detail?.user || null;
-    if (authUser) {
+    if (localPreviewSession) {
+      setProgressSyncState(authUser ? "模拟进度 · 仅存本机" : "本机进度");
+    } else if (authUser) {
       syncProgressFromCloud();
     } else {
       setProgressSyncState("本机进度");

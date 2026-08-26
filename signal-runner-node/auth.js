@@ -48,6 +48,7 @@
 
   let mode = "login";
   let currentUser = null;
+  const localPreviewState = window.CodeQuestLocalPreview;
 
   function setMessage(message, type = "normal") {
     dom.message.textContent = message || "";
@@ -64,40 +65,34 @@
     dom.backToLoginBtn.disabled = isBusy;
   }
 
-  function updateUser(user) {
+  function updateUser(user, options = {}) {
+    const localPreview = Boolean(options.localPreview);
     currentUser = user;
     const displayName = user?.displayName || user?.email || "学习者";
     const initial = user ? userInitial(displayName) : "CQ";
-    dom.authStatus.dataset.state = user ? "signed-in" : "signed-out";
+    dom.authStatus.dataset.state = localPreview ? "local-preview" : user ? "signed-in" : "signed-out";
     document.body.classList.toggle("auth-locked", !user);
-    dom.userLabel.textContent = user ? `${displayName} · ${roleLabel(user.role)}` : "未登录";
+    dom.userLabel.textContent = user
+      ? `${displayName} · ${roleLabel(user.role)}`
+      : localPreview
+        ? "本地模拟 · 未登录"
+        : "未登录";
     dom.userAvatar.textContent = initial;
-    dom.portalUserName.textContent = user ? displayName : "登录后开始远征";
-    dom.portalUserRole.textContent = user ? roleLabel(user.role) : "访客";
+    dom.portalUserName.textContent = user ? displayName : localPreview ? "本地模拟账户" : "登录后开始远征";
+    dom.portalUserRole.textContent = user
+      ? localPreview
+        ? `${roleLabel(user.role)} · 模拟`
+        : roleLabel(user.role)
+      : "访客";
     dom.portalUserAvatar.textContent = initial;
     dom.adminLinks.forEach((link) => link.classList.toggle("is-hidden", !["admin", "owner"].includes(user?.role)));
     dom.openBtn.classList.toggle("is-hidden", Boolean(user));
     dom.logoutButtons.forEach((button) => button.classList.toggle("is-hidden", !user));
-    window.dispatchEvent(new CustomEvent("codequest:auth-changed", { detail: { user } }));
+    window.dispatchEvent(new CustomEvent("codequest:auth-changed", { detail: { user, localPreview } }));
   }
 
   function enterLocalPreview() {
-    currentUser = null;
-    dom.authStatus.dataset.state = "local-preview";
-    document.body.classList.remove("auth-locked");
-    dom.userLabel.textContent = "本地预览 · 进度仅存本机";
-    dom.userAvatar.textContent = "CQ";
-    dom.portalUserName.textContent = "本地预览";
-    dom.portalUserRole.textContent = "预览模式";
-    dom.portalUserAvatar.textContent = "CQ";
-    dom.adminLinks.forEach((link) => link.classList.add("is-hidden"));
-    dom.openBtn.classList.add("is-hidden");
-    dom.logoutButtons.forEach((button) => button.classList.add("is-hidden"));
-    window.dispatchEvent(
-      new CustomEvent("codequest:auth-changed", {
-        detail: { user: null, localPreview: true }
-      })
-    );
+    updateUser(localPreviewState?.readUser() || null, { localPreview: true });
   }
 
   function roleLabel(role) {
@@ -118,7 +113,11 @@
 
   function openModal(nextMode = mode) {
     setMode(nextMode);
-    setMessage("");
+    setMessage(
+      isLocalPreview
+        ? "本地模拟不会连接服务器。可输入任意邮箱和至少 8 位密码来预览账户界面。"
+        : ""
+    );
     dom.modal.classList.remove("is-hidden");
     window.setTimeout(() => dom.email.focus(), 0);
   }
@@ -132,7 +131,17 @@
     const isRegister = mode === "register";
     const isRecovery = mode === "recover";
 
-    dom.title.textContent = isRegister ? "注册学习账号" : isRecovery ? "重设管理员密码" : "登录 Signal Runner";
+    dom.title.textContent = isRegister
+      ? isLocalPreview
+        ? "本地模拟注册"
+        : "注册学习账号"
+      : isRecovery
+        ? isLocalPreview
+          ? "本地模拟密码重设"
+          : "重设管理员密码"
+        : isLocalPreview
+          ? "本地模拟登录"
+          : "登录 Signal Runner";
     dom.submit.textContent = isRegister ? "注册并登录" : isRecovery ? "重设密码" : "登录";
     dom.tabs.classList.toggle("is-hidden", isRecovery);
     dom.nameRow.classList.toggle("is-hidden", !isRegister);
@@ -183,6 +192,42 @@
     setMessage(mode === "register" ? "正在创建账号..." : mode === "recover" ? "正在验证并重设密码..." : "正在登录...");
 
     try {
+      if (isLocalPreview) {
+        if (mode === "recover") {
+          if (dom.password.value !== dom.confirmPassword.value) {
+            throw new Error("两次输入的新密码不一致。");
+          }
+          const email = dom.email.value;
+          dom.form.reset();
+          setMode("login");
+          dom.email.value = email;
+          setMessage("本地模拟验证完成。没有密码或数据发送到服务器。", "success");
+          return;
+        }
+
+        const email = dom.email.value.trim();
+        const existingUser = localPreviewState?.readUser();
+        const fallbackName = email.split("@")[0] || "学习者";
+        const displayName =
+          mode === "register"
+            ? dom.displayName.value.trim() || fallbackName
+            : existingUser?.email === email
+              ? existingUser.displayName
+              : fallbackName;
+        const user = localPreviewState?.writeUser({
+          id: existingUser?.id || "local-preview-user",
+          email,
+          displayName,
+          role: existingUser?.email === email ? existingUser.role : "learner"
+        }) || { id: "local-preview-user", email, displayName, role: "learner", localPreview: true };
+
+        updateUser(user, { localPreview: true });
+        setMessage("本地模拟登录成功。", "success");
+        dom.form.reset();
+        closeModal();
+        return;
+      }
+
       if (mode === "recover") {
         if (dom.password.value !== dom.confirmPassword.value) {
           throw new Error("两次输入的新密码不一致。");
@@ -230,6 +275,11 @@
   async function logout() {
     setBusy(true);
     try {
+      if (isLocalPreview) {
+        localPreviewState?.writeUser(null);
+        updateUser(null, { localPreview: true });
+        return;
+      }
       await requestJson(api.logout, { method: "POST", body: "{}" });
       updateUser(null);
     } catch (error) {

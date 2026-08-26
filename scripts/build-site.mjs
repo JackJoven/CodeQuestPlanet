@@ -16,6 +16,7 @@ for (const file of [
   "home.js",
   "homepage-blueprint.png",
   "og.png",
+  "local-preview-state.js",
   "student-home.html",
   "student-home.css",
   "student-home.js"
