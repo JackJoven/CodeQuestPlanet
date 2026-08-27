@@ -1,6 +1,6 @@
 # CodeQuestPlanet Map Assets
 
-This folder contains the generated visual map set for the six-stage Signal Runner course.
+This folder contains the generated visual map set for the six-stage CodeQuestPlanet course.
 
 - `learning-world-overview`: top-level six-world navigation map.
 - `stage-01-beacon-departure`: basic actions and route planning.

@@ -14,7 +14,7 @@ The primary users are 10–14-year-old learners who are new to programming or mo
 
 ## Product Purpose
 
-CodeQuestPlanet turns programming foundations into an explorable 3D world. Learners solve visible missions, debug with evidence, build original challenges, and publish work for others to play and Remix. Success means a visitor understands the learning journey and confidently starts the Signal Runner experience.
+CodeQuestPlanet turns programming foundations into an explorable 3D world. Learners solve visible missions, debug with evidence, build original challenges, and publish work for others to play and Remix. Success means a visitor understands the learning journey and confidently starts the CodeQuestPlanet experience.
 
 ## Positioning
 
@@ -22,11 +22,11 @@ CodeQuestPlanet is a persistent programming universe where code does not merely 
 
 ## Conversion & proof
 
-- Primary CTA: start the free Signal Runner experience.
+- Primary CTA: start the free CodeQuestPlanet experience.
 - Secondary CTA: inspect the complete learning path.
 - The line a visitor remembers after 10 seconds: 在玩中学编程，在创造中改变世界。
 - Belief ladder: this feels like a real game world; every mission teaches a concrete programming skill; the curriculum grows from fundamentals to algorithms and creation; progress produces work worth sharing.
-- Proof on hand: the working Signal Runner prototype, the v1.5 64-lesson curriculum specification, the v1.3 48-lesson implemented course structure, and interface direction files under `界面/`.
+- Proof on hand: the working CodeQuestPlanet prototype, the v1.5 64-lesson curriculum specification, the v1.3 48-lesson implemented course structure, and interface direction files under `界面/`.
 
 ## Brand Personality
 

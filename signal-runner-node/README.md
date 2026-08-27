@@ -1,4 +1,4 @@
-# Signal Runner Node
+# CodeQuestPlanet
 
 一个面向 12-14 岁学生的 3D 闯关式编程学习原型。
 

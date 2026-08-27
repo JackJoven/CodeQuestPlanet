@@ -1,7 +1,5 @@
 (function () {
-  const isLocalPreview =
-    window.location.protocol === "file:" ||
-    ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+  const isLocalPreview = window.location.protocol === "file:";
 
   const api = {
     me: "/api/auth/me",
@@ -22,8 +20,6 @@
     portalUserName: document.querySelector("#portalUserName"),
     portalUserRole: document.querySelector("#portalUserRole"),
     portalUserAvatar: document.querySelector("#portalUserAvatar"),
-    gateLoginBtn: document.querySelector("#authGateLoginBtn"),
-    gateRegisterBtn: document.querySelector("#authGateRegisterBtn"),
     modal: document.querySelector("#authModal"),
     closeBtn: document.querySelector("#authCloseBtn"),
     tabs: document.querySelector("#authTabs"),
@@ -57,8 +53,6 @@
     dom.submit.disabled = isBusy;
     dom.openBtn.disabled = isBusy;
     dom.logoutButtons.forEach((button) => (button.disabled = isBusy));
-    dom.gateLoginBtn.disabled = isBusy;
-    dom.gateRegisterBtn.disabled = isBusy;
     dom.forgotBtn.disabled = isBusy;
     dom.backToLoginBtn.disabled = isBusy;
   }
@@ -120,8 +114,9 @@
     window.setTimeout(() => dom.email.focus(), 0);
   }
 
-  function closeModal() {
+  function closeModal({ dismissed = true } = {}) {
     dom.modal.classList.add("is-hidden");
+    if (dismissed) window.dispatchEvent(new CustomEvent("codequest:auth-dismissed"));
   }
 
   function setMode(nextMode) {
@@ -129,7 +124,7 @@
     const isRegister = mode === "register";
     const isRecovery = mode === "recover";
 
-    dom.title.textContent = isRegister ? "注册学习账号" : isRecovery ? "重设管理员密码" : "登录 Signal Runner";
+    dom.title.textContent = isRegister ? "注册学习账号" : isRecovery ? "重设管理员密码" : "登录 CodeQuestPlanet";
     dom.submit.textContent = isRegister ? "注册并登录" : isRecovery ? "重设密码" : "登录";
     dom.tabs.classList.toggle("is-hidden", isRecovery);
     dom.nameRow.classList.toggle("is-hidden", !isRegister);
@@ -216,7 +211,7 @@
       updateUser(result.user);
       setMessage("登录成功。", "success");
       dom.form.reset();
-      closeModal();
+      closeModal({ dismissed: false });
     } catch (error) {
       setMessage(error.message, "error");
     } finally {
@@ -238,8 +233,9 @@
   }
 
   dom.openBtn.addEventListener("click", () => openModal("login"));
-  dom.gateLoginBtn.addEventListener("click", () => openModal("login"));
-  dom.gateRegisterBtn.addEventListener("click", () => openModal("register"));
+  window.addEventListener("codequest:auth-required", (event) => {
+    openModal(event.detail?.mode || "login");
+  });
   dom.forgotBtn.addEventListener("click", () => {
     setMode("recover");
     setMessage("");
@@ -254,10 +250,7 @@
     window.setTimeout(() => dom.password.focus(), 0);
   });
   dom.logoutButtons.forEach((button) => button.addEventListener("click", logout));
-  dom.closeBtn.addEventListener("click", closeModal);
-  dom.modal.addEventListener("click", (event) => {
-    if (event.target === dom.modal) closeModal();
-  });
+  dom.closeBtn.addEventListener("click", () => closeModal());
   dom.tabs.addEventListener("click", (event) => {
     const button = event.target.closest("[data-auth-mode]");
     if (!button) return;

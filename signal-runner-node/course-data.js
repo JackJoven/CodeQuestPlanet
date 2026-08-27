@@ -2325,7 +2325,7 @@
 
   window.SignalRunnerCourseData = {
     version: "v1.5-dev",
-    title: "Signal Runner Code Quest",
+    title: "CodeQuestPlanet",
     stages,
     missions: lessonRows.map(buildMission)
   };

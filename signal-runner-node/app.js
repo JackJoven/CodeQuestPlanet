@@ -518,7 +518,7 @@ window.addEventListener("unhandledrejection", (event) => {
       progressLabel: `${courseCatalog.version || "v1.3"} · ${courseMissions.length} 节`,
       evidenceKicker: "标准课作品记录",
       evidenceTitle: "课堂任务卡",
-      completeTitle: `Signal Runner Code Quest：当前开放 ${courseMissions.length} 节`,
+      completeTitle: `CodeQuestPlanet：当前开放 ${courseMissions.length} 节`,
       completeSkill: "观察、规划、编码、调试、讲解和原创关卡设计。",
       completeValidation: `${courseMissions.length} 节课程已经拆成阶段、课次和单课任务，可逐级进入和跳转。`
     },
@@ -529,7 +529,7 @@ window.addEventListener("unhandledrejection", (event) => {
       progressLabel: "保留 6 关 demo",
       evidenceKicker: "作品节点",
       evidenceTitle: "信标无人机作品卡",
-      completeTitle: "Signal Runner：三塔同步无人机",
+      completeTitle: "CodeQuestPlanet：三塔同步无人机",
       completeSkill: "序列、条件判断、循环压缩、函数封装、综合调试。",
       completeValidation: "第 6 关需要采集 3 座信标、处理危险格，并在中继站上传。"
     }
@@ -558,6 +558,8 @@ window.addEventListener("unhandledrejection", (event) => {
   const lessonToolChoices = new Map();
   let completed = loadProgress();
   let authUser = null;
+  let isLocalPreview = false;
+  let pendingMissionIndex = null;
   let progressSyncState = "本机进度";
   let progressSyncHideTimer = null;
   let progressSyncRemoveTimer = null;
@@ -644,7 +646,7 @@ window.addEventListener("unhandledrejection", (event) => {
         dom.progressSync.classList.remove("is-exiting");
         dom.progressSync.setAttribute("aria-hidden", "true");
       }, reduceMotion ? 0 : 280);
-    }, 5000);
+    }, 3000);
   }
 
   function updatePortalProgress() {
@@ -1596,6 +1598,11 @@ window.addEventListener("unhandledrejection", (event) => {
 
   function selectMission(index) {
     if (index < 0 || index >= currentMissions().length) return;
+    if (!authUser && !isLocalPreview) {
+      pendingMissionIndex = index;
+      window.dispatchEvent(new CustomEvent("codequest:auth-required", { detail: { mode: "login" } }));
+      return;
+    }
     stopAutoRun();
     suspendPythonStudio();
     currentMissionIndex = index;
@@ -1727,7 +1734,7 @@ window.addEventListener("unhandledrejection", (event) => {
           <div class="course-map-hero-overlay"></div>
           <div class="course-map-hero-copy">
             <p class="course-map-brand">CODE QUEST · 学习世界</p>
-            <h2 id="courseMapTitle">Signal Runner<br>星际学院</h2>
+            <h2 id="courseMapTitle">CodeQuestPlanet<br>星际学院</h2>
             <p>穿越当前开放的 ${courseStages.length} 个任务星区，从控制 Neo 的第一步，一路成长到能用数据和多对象协作重建星系。</p>
             <div class="course-map-hero-progress" style="--progress: ${overallPercent}%">
               <div>
@@ -1871,7 +1878,7 @@ window.addEventListener("unhandledrejection", (event) => {
       || isCoreCapstone
       || isAdvancedLesson;
     const stage = selectedStage();
-    dom.appKicker.textContent = browsing ? "Signal Runner" : `${stage.chapter || stage.title}`;
+    dom.appKicker.textContent = browsing ? "CodeQuestPlanet" : `${stage.chapter || stage.title}`;
     dom.pageTitle.textContent = courseView === "stages"
       ? "课程地图"
       : courseView === "stage"
@@ -1883,7 +1890,7 @@ window.addEventListener("unhandledrejection", (event) => {
     dom.lessonPager.hidden = browsing;
     dom.prevLesson.disabled = currentMissionIndex <= 0;
     dom.nextLesson.disabled = currentMissionIndex >= currentMissions().length - 1;
-    document.title = browsing ? "Signal Runner | 课程地图" : `${m.lesson} ${m.title} | Signal Runner`;
+    document.title = browsing ? "CodeQuestPlanet | 课程地图" : `${m.lesson} ${m.title} | CodeQuestPlanet`;
     if (dom.progressSync) dom.progressSync.textContent = progressSyncState;
     dom.missionBrief.classList.toggle("is-playground", usesPlaygroundBrief);
     dom.standardMissionBrief.hidden = usesPlaygroundBrief;
@@ -6283,11 +6290,21 @@ window.addEventListener("unhandledrejection", (event) => {
 
   window.addEventListener("codequest:auth-changed", (event) => {
     authUser = event.detail?.user || null;
+    isLocalPreview = Boolean(event.detail?.localPreview);
     if (authUser) {
       syncProgressFromCloud();
+      if (pendingMissionIndex !== null) {
+        const lessonIndex = pendingMissionIndex;
+        pendingMissionIndex = null;
+        selectMission(lessonIndex);
+      }
     } else {
       setProgressSyncState("本机进度");
     }
+  });
+
+  window.addEventListener("codequest:auth-dismissed", () => {
+    pendingMissionIndex = null;
   });
 
   resetSimulation();
