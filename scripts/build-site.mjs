@@ -17,6 +17,7 @@ for (const file of [
   "homepage-blueprint.png",
   "og.png",
   "student-home.html",
+  "student-theme.css",
   "student-home.css",
   "student-home.js"
 ]) {
