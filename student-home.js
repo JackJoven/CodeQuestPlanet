@@ -11,7 +11,6 @@
     accountAvatar: document.querySelector("#accountAvatar"),
     accountName: document.querySelector("#accountName"),
     accountRole: document.querySelector("#accountRole"),
-    syncState: document.querySelector("#syncState"),
     headerLogin: document.querySelector("#headerLogin"),
     logoutButton: document.querySelector("#logoutButton"),
     adminLinks: [...document.querySelectorAll(".admin-only")],
@@ -103,7 +102,6 @@
     dom.accountRole.textContent = "访客";
     dom.accountAvatar.textContent = "CQ";
     dom.welcomeName.textContent = "探索者";
-    dom.syncState.textContent = "等待登录";
     dom.heroSync.textContent = "等待登录";
     dom.heroLead.textContent = "登录学习账号，继续完成任务并在不同设备同步课程进度。";
     dom.continueAction.href = courseUrl;
@@ -159,7 +157,6 @@
       const previewUser = { displayName: "探索者", role: "owner" };
       renderAccount(previewUser);
       renderProgress(new Set(missions.slice(0, 11).map((mission) => mission.id)));
-      dom.syncState.textContent = "本地预览";
       dom.heroSync.textContent = "预览数据";
       dom.body.classList.remove("is-loading");
       return;
@@ -173,13 +170,10 @@
       }
 
       renderAccount(auth.user);
-      dom.syncState.textContent = "正在同步";
       const progress = await requestJson("/api/progress");
       renderProgress(completedMissionIds(progress.progress));
-      dom.syncState.textContent = "云端已同步";
     } catch (error) {
       renderSignedOut();
-      dom.syncState.textContent = "暂未连接";
       dom.heroSync.textContent = "暂未连接";
     } finally {
       dom.body.classList.remove("is-loading");
@@ -192,7 +186,7 @@
       await requestJson("/api/auth/logout", { method: "POST", body: "{}" });
       renderSignedOut();
     } catch (error) {
-      dom.syncState.textContent = "退出失败，请重试";
+      dom.heroSync.textContent = "退出失败，请重试";
     } finally {
       dom.logoutButton.disabled = false;
     }

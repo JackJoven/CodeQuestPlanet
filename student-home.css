@@ -193,19 +193,6 @@ button {
   gap: 10px;
 }
 
-.sync-state {
-  min-height: 30px;
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 9px;
-  border-radius: 8px;
-  background: var(--cq-surface-soft);
-  color: var(--cq-accent);
-  font-size: 0.78rem;
-  font-weight: 850;
-  white-space: nowrap;
-}
-
 .account-avatar {
   display: none;
 }
@@ -1031,7 +1018,6 @@ body.is-loading .world-regions {
     width: min(100% - 24px, 960px);
   }
 
-  .sync-state,
   .account-copy {
     display: none;
   }
