@@ -1,6 +1,6 @@
 # CodeQuestPlanet
 
-当前主项目是 `signal-runner-node`：一个面向 12-14 岁学生的独立 3D 闯关式编程学习原型。
+当前主项目是 `signal-runner-node`：一个面向学生的独立 3D 闯关式编程学习原型。
 
 当前实现包含两条入口：
 
