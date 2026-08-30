@@ -18,10 +18,24 @@ Cloudflare Tunnel
   -> PostgreSQL container
 ```
 
-The app should live on G490 at:
+The service root on G490 is:
 
 ```text
 /home/jack/services/codequestplanet
+```
+
+The live application is a Git working tree at:
+
+```text
+/home/jack/services/codequestplanet/app
+```
+
+The production environment file remains outside Git and is linked into the
+working tree:
+
+```text
+/home/jack/services/codequestplanet/.env
+/home/jack/services/codequestplanet/app/.env -> ../.env
 ```
 
 The Compose stack binds Caddy only to:
@@ -40,11 +54,35 @@ codequestplanet_default
 
 ## Current G490 setup
 
-The deployed stack is under:
+The deployed Git working tree is under:
 
 ```text
-/home/jack/services/codequestplanet
+/home/jack/services/codequestplanet/app
 ```
+
+Deploy the latest `main` branch with:
+
+```sh
+cd /home/jack/services/codequestplanet/app
+git fetch --tags --prune
+git checkout main
+git pull --ff-only origin main
+docker compose up -d --build
+```
+
+Deploy or roll back to an exact release with:
+
+```sh
+cd /home/jack/services/codequestplanet/app
+git fetch --tags --prune
+git checkout --detach <tag-or-commit>
+docker compose up -d --build
+```
+
+The Compose project name is fixed as `codequestplanet`, so switching the Git
+revision does not replace the existing PostgreSQL, Caddy, or configuration
+volumes. Do not edit tracked files directly on G490; make changes locally,
+commit and push them, then update this working tree.
 
 Services:
 
