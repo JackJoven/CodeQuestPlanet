@@ -36,6 +36,14 @@ http://127.0.0.1:8088/
 
 通过 HTTP/HTTPS 访问时，`localhost` 和 `127.0.0.1` 会正常请求同源的 `/api/auth/*` 与 `/api/progress`；只有 `file://` 才进入本地预览模式。线上测试地址为 `https://ebu.de5.net/`。
 
+### 生产构建
+
+```sh
+npm run build
+```
+
+构建结果输出到 `dist/client`。CSS、JavaScript 和图片会根据文件内容生成 12 位哈希文件名，HTML 引用由构建脚本自动改写；源码中不再手工维护 `?release=` 版本号。`asset-manifest.json` 记录原始文件名与哈希文件名的对应关系。
+
 ## 当前保留
 
 - `signal-runner-node/`：主项目，包含 48 节正式课程数据、多级课程入口、保留 Demo、3D 小岛场景、指令编排、运行日志和作品卡。

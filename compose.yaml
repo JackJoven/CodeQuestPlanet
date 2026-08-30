@@ -2,15 +2,16 @@ name: codequestplanet
 
 services:
   caddy:
-    image: caddy:2-alpine
+    build:
+      context: .
+      dockerfile: deploy/Caddy.Dockerfile
+    image: codequestplanet-caddy
     restart: unless-stopped
     depends_on:
       - api
     ports:
       - "127.0.0.1:${HTTP_PORT:-8088}:80"
     volumes:
-      - ./:/srv/codequestplanet:ro
-      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
 

@@ -84,6 +84,12 @@ revision does not replace the existing PostgreSQL, Caddy, or configuration
 volumes. Do not edit tracked files directly on G490; make changes locally,
 commit and push them, then update this working tree.
 
+The Caddy image runs the site build in a Node build stage and copies only
+`dist/client` into the final image. CSS, JavaScript, and images use content-hash
+filenames and receive a one-year immutable cache header. HTML is never cached
+and legacy `/index.html?release=...` learning-world links redirect to the clean
+`/signal-runner-node/` route.
+
 Services:
 
 ```text

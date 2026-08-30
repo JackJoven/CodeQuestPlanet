@@ -1,6 +1,6 @@
 (function () {
   const isLocalPreview = window.location.protocol === "file:";
-  const courseUrl = "./signal-runner-node/index.html?release=20260827.3";
+  const courseUrl = "./signal-runner-node/index.html";
   const visibleLessonLimit = 32;
   const allMissions = window.SignalRunnerCourseData?.missions || [];
   const missions = allMissions.filter((mission) => Number(mission.lessonNo) <= visibleLessonLimit);

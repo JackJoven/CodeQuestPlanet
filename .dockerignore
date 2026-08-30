@@ -1,0 +1,17 @@
+.git
+.env
+.env.*
+.DS_Store
+.openai
+archive
+backend
+backups
+cloudflare-pages-redirect
+dist
+docs
+node_modules
+tmp
+temp
+*.log
+*.zip
+界面
