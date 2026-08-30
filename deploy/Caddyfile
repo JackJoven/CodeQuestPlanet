@@ -1,35 +1,35 @@
 :80 {
-  encode zstd gzip
+	encode zstd gzip
 
-  route {
-    @private path /.env* /backend* /deploy* /docs* /archive* /compose.yaml /AGENTS.md /README.md /.git* /.DS_Store
-    respond @private 404
+	route {
+		@private path /.env* /backend* /deploy* /docs* /archive* /compose.yaml /AGENTS.md /README.md /.git* /.DS_Store
+		respond @private 404
 
-    @legacyHome path /index.html /student-home.html
-    redir @legacyHome / 308
+		@legacyHome path /index.html /student-home.html
+		redir @legacyHome / 308
 
-    @legacyWorld path /signal-runner-node/index.html
-    redir @legacyWorld /signal-runner-node/ 308
+		@legacyWorld path /signal-runner-node/index.html
+		redir @legacyWorld /signal-runner-node/ 308
 
-    @siteRoot path /
-    rewrite @siteRoot /student-home.html
+		@siteRoot path /
+		rewrite @siteRoot /student-home.html
 
-    @html path / /index.html /student-home.html /admin.html /signal-runner-node/ /signal-runner-node/index.html /signal-runner-node/admin.html
-    header @html Cache-Control "no-cache, max-age=0, must-revalidate"
+		@html path / /index.html /student-home.html /admin.html /signal-runner-node/ /signal-runner-node/index.html /signal-runner-node/admin.html
+		header @html Cache-Control "no-cache, max-age=0, must-revalidate"
 
-    @immutable path_regexp immutable \.[0-9a-f]{12}\.(?:css|gif|ico|jpeg|jpg|js|png|svg|webp|woff|woff2)$
-    header @immutable Cache-Control "public, max-age=31536000, immutable"
+		@immutable path_regexp immutable \.[0-9a-f]{12}\.(?:css|gif|ico|jpeg|jpg|js|png|svg|webp|woff|woff2)$
+		header @immutable Cache-Control "public, max-age=31536000, immutable"
 
-    handle /api/* {
-      reverse_proxy api:3001
-    }
+		handle /api/* {
+			reverse_proxy api:3001
+		}
 
-    handle {
-      root * /srv/codequestplanet
-      try_files {path} {path}/ /index.html
-      file_server {
-        hide .env .env.example .git .DS_Store backend deploy docs archive compose.yaml AGENTS.md README.md
-      }
-    }
-  }
+		handle {
+			root * /srv/codequestplanet
+			try_files {path} {path}/ /index.html
+			file_server {
+				hide .env .env.example .git .DS_Store backend deploy docs archive compose.yaml AGENTS.md README.md
+			}
+		}
+	}
 }
