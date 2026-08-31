@@ -352,7 +352,13 @@ async function saveProgress(req, res) {
     `INSERT INTO lesson_progress (id, user_id, course_id, lesson_id, status, progress, updated_at)
      VALUES ($1, $2, $3, $4, $5, $6, now())
      ON CONFLICT (user_id, course_id, lesson_id)
-     DO UPDATE SET status = EXCLUDED.status, progress = EXCLUDED.progress, updated_at = now()
+     DO UPDATE SET
+       status = CASE
+         WHEN lesson_progress.status = 'completed' THEN 'completed'
+         ELSE EXCLUDED.status
+       END,
+       progress = lesson_progress.progress || EXCLUDED.progress,
+       updated_at = now()
      RETURNING course_id, lesson_id, status, progress, updated_at`,
     [randomUUID(), user.id, courseId, lessonId, status, JSON.stringify(progress)]
   );
@@ -473,7 +479,8 @@ async function adminSummary(req, res) {
       SELECT
         count(*)::int AS total_rows,
         count(*) FILTER (WHERE status = 'completed')::int AS completed_rows,
-        count(DISTINCT user_id)::int AS users_with_progress
+        count(DISTINCT user_id)::int AS users_with_progress,
+        count(DISTINCT user_id) FILTER (WHERE status = 'completed')::int AS users_completed
       FROM lesson_progress
     `),
     query(`
@@ -563,6 +570,7 @@ async function adminProgress(req, res) {
         count(*)::int AS records,
         count(*) FILTER (WHERE status = 'completed')::int AS completed,
         count(DISTINCT user_id)::int AS learners,
+        count(DISTINCT user_id) FILTER (WHERE status = 'completed')::int AS completed_learners,
         max(updated_at) AS last_progress_at
       FROM lesson_progress
       GROUP BY course_id

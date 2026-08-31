@@ -996,6 +996,41 @@ button {
   letter-spacing: 0;
 }
 
+.console-source-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.9fr);
+  align-items: center;
+  gap: 24px;
+}
+
+.console-source-copy p:last-child {
+  max-width: 68ch;
+  margin: 8px 0 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.console-source-actions {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+}
+
+.console-source-actions ol {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 20px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.console-source-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
 .console-count {
   color: #64748b;
   font-weight: 850;
@@ -1789,6 +1824,7 @@ pre {
 
   .console-topbar,
   .console-actions,
+  .console-source-panel,
   .console-grid.two,
   .console-grid.three {
     grid-template-columns: 1fr;

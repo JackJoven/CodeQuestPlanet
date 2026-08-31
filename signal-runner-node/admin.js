@@ -194,12 +194,12 @@
     const users = summary.users || {};
     const progress = summary.progress || {};
     const stats = [
-      ["总用户", users.total || 0, "账户池"],
-      ["学习者", users.learners || 0, "learner"],
-      ["管理员", Number(users.admins || 0) + Number(users.owners || 0), "admin / owner"],
-      ["活跃会话", summary.activeSessions || 0, "未过期 session"],
-      ["完成记录", progress.completed_rows || 0, "lesson_progress"],
-      ["有进度用户", progress.users_with_progress || 0, "跨设备同步"]
+      ["注册账户", users.total || 0, "全部角色"],
+      ["活跃会话", summary.activeSessions || 0, "当前登录"],
+      ["开始过课程", progress.users_with_progress || 0, "去重学习者"],
+      ["完成过课程", progress.users_completed || 0, "去重学习者"],
+      ["已开始课次", progress.total_rows || 0, "包含已完成课次"],
+      ["已完成课次", progress.completed_rows || 0, "去重用户与课次"]
     ];
 
     dom.overviewStats.innerHTML = stats.map(([label, value, note]) => `
@@ -276,9 +276,9 @@
       <div class="console-list-row">
         <div>
           <strong>${escapeHtml(course.course_id)}</strong>
-          <small>${course.learners || 0} 位学习者 · ${course.records || 0} 条记录</small>
+          <small>${course.learners || 0} 位开始 · ${course.completed_learners || 0} 位完成</small>
         </div>
-        <span>${course.completed || 0} 完成</span>
+        <span>${course.completed || 0} / ${course.records || 0} 课次完成</span>
       </div>
     `).join("") : `<p class="console-empty">暂无课程进度</p>`;
 
@@ -296,7 +296,7 @@
           <strong>${escapeHtml(record.progress?.title || record.lessonId)}</strong>
           <small>${escapeHtml(record.user?.email)} · ${escapeHtml(record.courseId)}</small>
         </div>
-        <span>${formatDate(record.updatedAt)}</span>
+        <span>${record.status === "completed" ? "已完成" : "已开始"} · ${formatDate(record.updatedAt)}</span>
       </div>
     `).join("") : `<p class="console-empty">暂无进度记录</p>`;
   }

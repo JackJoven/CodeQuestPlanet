@@ -692,8 +692,10 @@ window.addEventListener("unhandledrejection", (event) => {
     return demoMissions.some((item) => item.id === lessonId) ? "demo" : "course";
   }
 
-  function progressPayload(lessonId) {
+  function progressPayload(lessonId, status = "completed") {
     const item = lessonById(lessonId);
+    const normalizedStatus = status === "completed" ? "completed" : "started";
+    const recordedAt = new Date().toISOString();
     const storedPythonEvidence = item?.pythonStudio ? loadPythonEvidence(lessonId) : null;
     const codeEvidence = storedPythonEvidence?.lastSuccessful
       ? {
@@ -709,13 +711,14 @@ window.addEventListener("unhandledrejection", (event) => {
     return {
       courseId: cloudCourseId,
       lessonId,
-      status: "completed",
+      status: normalizedStatus,
       progress: {
         trackId: trackIdForLesson(lessonId),
         title: item?.title || lessonId,
         lesson: item?.lesson || "",
-        completedAt: new Date().toISOString(),
-        ...(codeEvidence ? { codeEvidence } : {})
+        ...(normalizedStatus === "completed"
+          ? { completedAt: recordedAt, ...(codeEvidence ? { codeEvidence } : {}) }
+          : { startedAt: recordedAt })
       }
     };
   }
@@ -729,24 +732,25 @@ window.addEventListener("unhandledrejection", (event) => {
     );
   }
 
-  async function saveLessonProgress(lessonId) {
+  async function saveLessonProgress(lessonId, status = "completed") {
     if (!authUser || !lessonId) return;
     await requestJson(progressApi, {
       method: "POST",
-      body: JSON.stringify(progressPayload(lessonId))
+      body: JSON.stringify(progressPayload(lessonId, status))
     });
   }
 
-  function queueLessonSync(lessonId) {
+  function queueLessonSync(lessonId, status = "completed") {
     if (!authUser || !lessonId) {
       setProgressSyncState(authUser ? "云端同步待命" : "本机进度");
       return;
     }
 
-    setProgressSyncState("正在保存云端进度...");
+    const isCompletion = status === "completed";
+    setProgressSyncState(isCompletion ? "正在保存云端进度..." : "正在记录开始学习...");
     syncQueue = syncQueue
-      .then(() => saveLessonProgress(lessonId))
-      .then(() => setProgressSyncState("云端进度已保存"))
+      .then(() => saveLessonProgress(lessonId, status))
+      .then(() => setProgressSyncState(isCompletion ? "云端进度已保存" : "已记录开始学习"))
       .catch(() => setProgressSyncState("云端保存失败，已保留本机进度"));
   }
 
@@ -1619,6 +1623,7 @@ window.addEventListener("unhandledrejection", (event) => {
     detectiveGuideOpen = false;
     resetSimulation();
     render();
+    if (authUser && isCourseTrack()) queueLessonSync(mission().id, "started");
     window.scrollTo(0, 0);
   }
 
