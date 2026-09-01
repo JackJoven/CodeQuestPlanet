@@ -152,6 +152,7 @@ async function register(req, res) {
   const body = await readJson(req);
   const email = normalizeEmail(body.email);
   const password = String(body.password || "");
+  const confirmPassword = typeof body.confirmPassword === "string" ? body.confirmPassword : null;
   const displayName = String(body.displayName || body.name || email.split("@")[0] || "学习者").trim().slice(0, 60);
 
   if (!validateEmail(email)) {
@@ -161,6 +162,11 @@ async function register(req, res) {
 
   if (!validatePassword(password)) {
     sendError(res, 400, "密码至少需要 8 位。", "weak_password");
+    return;
+  }
+
+  if (confirmPassword !== null && password !== confirmPassword) {
+    sendError(res, 400, "两次输入的密码不一致。", "password_mismatch");
     return;
   }
 

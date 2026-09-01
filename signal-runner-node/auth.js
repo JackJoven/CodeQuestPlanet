@@ -33,6 +33,7 @@
     recoveryCodeRow: document.querySelector("#authRecoveryCodeRow"),
     recoveryCode: document.querySelector("#authRecoveryCode"),
     confirmPasswordRow: document.querySelector("#authConfirmPasswordRow"),
+    confirmPasswordLabel: document.querySelector("#authConfirmPasswordLabel"),
     confirmPassword: document.querySelector("#authConfirmPassword"),
     recoveryHelp: document.querySelector("#authRecoveryHelp"),
     forgotBtn: document.querySelector("#authForgotBtn"),
@@ -129,14 +130,16 @@
     dom.tabs.classList.toggle("is-hidden", isRecovery);
     dom.nameRow.classList.toggle("is-hidden", !isRegister);
     dom.recoveryCodeRow.classList.toggle("is-hidden", !isRecovery);
-    dom.confirmPasswordRow.classList.toggle("is-hidden", !isRecovery);
+    dom.confirmPasswordRow.classList.toggle("is-hidden", !isRegister && !isRecovery);
     dom.recoveryHelp.classList.toggle("is-hidden", !isRecovery);
     dom.forgotBtn.classList.toggle("is-hidden", mode !== "login");
     dom.backToLoginBtn.classList.toggle("is-hidden", !isRecovery);
     dom.passwordLabel.textContent = isRecovery ? "新密码" : "密码";
+    dom.confirmPasswordLabel.textContent = isRecovery ? "确认新密码" : "确认密码";
     dom.password.autocomplete = isRegister || isRecovery ? "new-password" : "current-password";
     dom.recoveryCode.required = isRecovery;
-    dom.confirmPassword.required = isRecovery;
+    dom.confirmPassword.required = isRegister || isRecovery;
+    dom.confirmPassword.removeAttribute("aria-invalid");
     [...dom.tabs.querySelectorAll("[data-auth-mode]")].forEach((button) => {
       button.classList.toggle("is-active", button.dataset.authMode === mode);
     });
@@ -171,15 +174,20 @@
 
   async function submitAuth(event) {
     event.preventDefault();
+
+    if ((mode === "register" || mode === "recover") && dom.password.value !== dom.confirmPassword.value) {
+      dom.confirmPassword.setAttribute("aria-invalid", "true");
+      setMessage(mode === "recover" ? "两次输入的新密码不一致。" : "两次输入的密码不一致。", "error");
+      dom.confirmPassword.focus();
+      return;
+    }
+
+    dom.confirmPassword.removeAttribute("aria-invalid");
     setBusy(true);
     setMessage(mode === "register" ? "正在创建账号..." : mode === "recover" ? "正在验证并重设密码..." : "正在登录...");
 
     try {
       if (mode === "recover") {
-        if (dom.password.value !== dom.confirmPassword.value) {
-          throw new Error("两次输入的新密码不一致。");
-        }
-
         const email = dom.email.value;
         const result = await requestJson(api.recover, {
           method: "POST",
@@ -201,7 +209,10 @@
         email: dom.email.value,
         password: dom.password.value
       };
-      if (mode === "register") payload.displayName = dom.displayName.value;
+      if (mode === "register") {
+        payload.displayName = dom.displayName.value;
+        payload.confirmPassword = dom.confirmPassword.value;
+      }
 
       const result = await requestJson(mode === "register" ? api.register : api.login, {
         method: "POST",
@@ -258,6 +269,13 @@
     setMessage("");
   });
   dom.form.addEventListener("submit", submitAuth);
+  [dom.password, dom.confirmPassword].forEach((input) => input.addEventListener("input", () => {
+    if (dom.confirmPassword.getAttribute("aria-invalid") !== "true") return;
+    if (dom.password.value === dom.confirmPassword.value) {
+      dom.confirmPassword.removeAttribute("aria-invalid");
+      setMessage("");
+    }
+  }));
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !dom.modal.classList.contains("is-hidden")) {
       closeModal();

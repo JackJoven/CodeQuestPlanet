@@ -269,6 +269,11 @@ button {
   border-color: var(--teal-dark);
 }
 
+.auth-form input[aria-invalid="true"] {
+  border-color: var(--coral);
+  outline: 3px solid rgba(239, 111, 84, 0.2);
+}
+
 .auth-form-tools {
   display: flex;
   align-items: center;
@@ -6807,6 +6812,11 @@ body.student-page {
 .student-page .auth-form input:focus-visible {
   outline-color: rgba(92, 211, 255, 0.32);
   border-color: var(--cq-accent);
+}
+
+.student-page .auth-form input[aria-invalid="true"] {
+  border-color: #ffaaa4;
+  outline-color: rgba(255, 170, 164, 0.26);
 }
 
 .student-page .auth-link-button {
