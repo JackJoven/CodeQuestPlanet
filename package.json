@@ -5,6 +5,6 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build-site.mjs && node scripts/verify-site-build.mjs",
-    "test": "node scripts/test-python-runtime-core.mjs"
+    "test": "node scripts/test-python-runtime-core.mjs && node scripts/test-early-lessons.mjs"
   }
 }

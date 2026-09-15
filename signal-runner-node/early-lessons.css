@@ -1,0 +1,88 @@
+.student-page .early-lesson-panel { padding: 18px; color: var(--cq-text); background: var(--cq-surface-soft); border-radius: 12px; }
+.student-page .mission-brief.is-early { padding: 0; border: 0; background: transparent; box-shadow: none; }
+.student-page .early-lesson-panel p { margin: 12px 0; font-size: .9rem; line-height: 1.7; color: var(--cq-text-soft); }
+.student-page .early-lesson-panel .early-feedback, .student-page .early-lesson-panel .early-badge { color: var(--cq-gold); }
+.student-page .early-lesson-panel button[aria-pressed="true"] strong { color: inherit; }
+.student-page .early-lesson-panel .early-mastery { color: #a8efc8; }
+.early-evidence-panel { margin-top: 20px; scroll-margin-top: 80px; }
+.early-evidence-panel .early-result:first-child { margin-top: 0; border-top: 0; padding-top: 0; }
+.student-page #operationPanel { scroll-margin-top: 80px; }
+.early-lesson-panel[hidden] { display: none; }
+.early-heading { display: flex; flex-wrap: wrap; align-items: start; justify-content: space-between; gap: 12px; }
+.early-heading h2 { margin: 5px 0 0; font-size: 1.25rem; }
+.early-heading span, .early-note, .early-storage, .early-map-caption { color: var(--cq-muted); font-size: .9rem; line-height: 1.65; }
+.early-badge { color: var(--cq-gold); font-size: .875rem; }
+.early-phases, .early-options, .early-unit, .early-help { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.early-phases { margin-top: 18px; }
+.early-unit { margin: 14px 0 6px; justify-content: space-between; }
+.early-lesson-panel button { min-height: 44px; padding: 10px 13px; border: 1px solid var(--cq-line-strong); border-radius: 8px; background: var(--cq-surface); color: var(--cq-text); font: inherit; font-size: .9rem; cursor: pointer; text-align: left; line-height: 1.5; }
+.early-lesson-panel button:hover { background: var(--cq-surface-hover); }
+.early-lesson-panel button[aria-pressed="true"] { background: var(--cq-accent); border-color: var(--cq-accent); color: var(--cq-bg-deep); }
+.early-lesson-panel button:focus-visible, .early-lesson-panel summary:focus-visible { outline: 3px solid var(--cq-gold); outline-offset: 3px; }
+.early-lesson-panel button:disabled { opacity: .55; cursor: default; }
+.early-intro { line-height: 1.8; margin: 18px 0; }
+.early-question { margin: 14px 0; padding: 0; border: 0; min-width: 0; }
+.early-question legend { padding: 0; margin-bottom: 10px; font-weight: 650; line-height: 1.6; }
+.early-routes { display: flex; flex-wrap: wrap; gap: 10px; }
+.early-routes button { flex: 1 1 190px; display: grid; gap: 7px; }
+.early-routes small { font-size: .85rem; }
+.early-map { display: block; width: min(100%, 280px); max-height: 190px; margin: 10px auto; }
+.early-feedback { color: var(--cq-gold); line-height: 1.7; }
+.early-help span { flex: 1 1 180px; font-size: .875rem; line-height: 1.6; color: var(--cq-muted); }
+.early-hint { padding: 14px; background: var(--cq-surface); border-radius: 8px; line-height: 1.7; }
+.early-result, .early-review { margin-top: 16px; border-top: 1px solid var(--cq-line); padding-top: 14px; line-height: 1.65; }
+.early-lesson-panel h3 { font-size: 1rem; margin: 0 0 10px; }
+.early-lesson-panel summary { cursor: pointer; min-height: 44px; padding: 10px 0; color: var(--cq-accent); }
+.early-trace { padding-left: 24px; font-size: .9rem; }
+.early-lesson-panel .early-primary { background: var(--cq-gold); color: var(--cq-bg-deep); border-color: var(--cq-gold); font-weight: 700; }
+.early-mastery { color: #a8efc8; line-height: 1.7; }
+@media (max-width: 680px) { .student-page .early-lesson-panel { padding: 14px; } .early-options button { flex: 1 1 auto; } }
+.early-phases { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.early-phases button { text-align: center; padding-inline: 8px; }
+.student-page .early-lesson-panel .early-goal { color: var(--cq-text); font-size: 1rem; font-weight: 650; }
+.early-help-details { margin-top: 12px; }
+.early-task { font-weight: 650; color: var(--cq-text); }
+.early-unit h3 { margin: 0; }
+.early-review textarea { display: block; width: 100%; box-sizing: border-box; resize: vertical; margin: 10px 0; min-height: 100px; padding: 12px; border: 1px solid var(--cq-line-strong); border-radius: 8px; background: var(--cq-surface); color: var(--cq-text); font: inherit; line-height: 1.7; }
+.early-review textarea::placeholder { color: var(--cq-text-soft); }
+.early-review textarea:focus-visible { outline: 3px solid var(--cq-gold); outline-offset: 2px; }
+.early-review > button { margin-right: 8px; margin-bottom: 8px; }
+.early-mastery { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--cq-line); }
+.early-mastery ul { margin: 0; padding: 0; list-style: none; color: var(--cq-text-soft); line-height: 1.9; }
+.student-page .early-lesson-panel p { max-width: 70ch; }
+@media (max-width: 420px) { .early-phases { grid-template-columns: 1fr; } .early-phases button { text-align: left; } }
+.student-page .early-lesson-panel .early-rule { margin-top: -2px; padding: 11px 13px; background: color-mix(in srgb, var(--cq-accent) 10%, transparent); color: var(--cq-text); border-radius: 8px; }
+.early-phases button > span { display: inline-grid; width: 24px; height: 24px; margin-right: 6px; place-items: center; border-radius: 50%; background: color-mix(in srgb, currentColor 12%, transparent); font-size: .78rem; font-weight: 750; }
+.early-target-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.early-target-grid button { display: grid; gap: 3px; text-align: center; }
+.early-target-grid button span { color: var(--cq-muted); font-size: .82rem; }
+.early-target-grid button[aria-pressed="true"] span { color: inherit; }
+.early-rule-meter { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; align-items: center; margin: 14px 0; padding: 14px; border: 1px solid var(--cq-line-strong); border-radius: 10px; background: var(--cq-surface); }
+.early-rule-meter span { color: var(--cq-text-soft); font-size: .85rem; }
+.early-rule-meter strong { grid-row: span 2; font-size: 1.15rem; color: var(--cq-gold); }
+.early-rule-meter small { color: var(--cq-muted); line-height: 1.55; }
+.early-function-name { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; align-items: center; margin: 14px 0; color: var(--cq-text); }
+.early-function-name input { min-height: 44px; min-width: 0; padding: 9px 11px; border: 1px solid var(--cq-line-strong); border-radius: 8px; background: var(--cq-surface); color: var(--cq-text); font: inherit; }
+.early-function-name small { grid-column: 2; color: var(--cq-muted); line-height: 1.5; }
+.early-function-name input:focus-visible { outline: 3px solid var(--cq-gold); outline-offset: 2px; }
+.early-function-contract { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; align-items: stretch; margin: 14px 0; }
+.early-function-contract > div { display: grid; gap: 7px; align-content: start; min-width: 0; padding: 14px; border: 1px solid var(--cq-line-strong); border-radius: 10px; background: var(--cq-surface); }
+.early-function-contract > div span { color: var(--cq-accent); font-size: .8rem; }
+.early-function-contract > div strong { overflow-wrap: anywhere; }
+.early-function-contract > div small { color: var(--cq-muted); line-height: 1.55; }
+.early-function-contract > i { align-self: center; color: var(--cq-gold); font-size: 1.3rem; font-style: normal; }
+.early-call-table { display: grid; margin: 12px 0; border-top: 1px solid var(--cq-line-strong); border-left: 1px solid var(--cq-line-strong); font-size: .8rem; }
+.early-call-table > div { display: grid; grid-template-columns: .55fr 1.5fr 1.5fr .7fr; }
+.early-call-table span, .early-call-table strong, .early-call-table b { padding: 8px; border-right: 1px solid var(--cq-line-strong); border-bottom: 1px solid var(--cq-line-strong); font-weight: 500; }
+.early-call-table .early-call-head { background: var(--cq-surface); color: var(--cq-muted); }
+.early-call-table .is-ok { color: #a8efc8; }
+.early-call-table .is-bad { color: var(--cq-gold); }
+@media (max-width: 680px) {
+  .early-target-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .early-function-name { grid-template-columns: 1fr; }
+  .early-function-name small { grid-column: 1; }
+  .early-function-contract { grid-template-columns: 1fr; }
+  .early-function-contract > i { justify-self: center; transform: rotate(90deg); }
+  .early-call-table { overflow-x: auto; }
+  .early-call-table > div { min-width: 480px; }
+}

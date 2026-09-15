@@ -23,7 +23,7 @@ window.addEventListener("unhandledrejection", (event) => {
 
 (function () {
   const storageKey = "signalRunnerNode.progress";
-  const pythonLessonStoragePrefix = "signalRunnerNode.python.";
+  const pythonLessonStoragePrefix = "signalRunnerNode.python.core-v1.6.";
   const cloudCourseId = "signal-runner";
   const progressApi = "/api/progress";
   const canvas = document.querySelector("#gameCanvas");
@@ -102,6 +102,7 @@ window.addEventListener("unhandledrejection", (event) => {
     advancedEvidenceName: document.querySelector("#advancedEvidenceName"),
     advancedEvidenceState: document.querySelector("#advancedEvidenceState"),
     detectiveGuidePanel: document.querySelector("#detectiveGuidePanel"),
+    detectiveGuideToggle: document.querySelector("#detectiveGuideToggleBtn"),
     missionConcept: document.querySelector("#missionConcept"),
     missionTarget: document.querySelector("#missionTarget"),
     lessonCheckpoint: document.querySelector("#lessonCheckpoint"),
@@ -111,7 +112,7 @@ window.addEventListener("unhandledrejection", (event) => {
     worldState: document.querySelector("#worldState"),
     worldBeaconCounter: document.querySelector("#worldBeaconCounter"),
     worldRun: document.querySelector("#worldRunBtn"),
-    worldHint: document.querySelector("#worldHintBtn"),
+    worldReset: document.querySelector("#worldResetBtn"),
     worldFailureIndicator: document.querySelector("#worldFailureIndicator"),
     worldFailureTitle: document.querySelector("#worldFailureTitle"),
     worldFailureDetail: document.querySelector("#worldFailureDetail"),
@@ -128,6 +129,7 @@ window.addEventListener("unhandledrejection", (event) => {
     pythonTemplateTitle: document.querySelector("#pythonTemplateTitle"),
     pythonTemplateList: document.querySelector("#pythonTemplateList"),
     pythonTranslationHelp: document.querySelector("#pythonTranslationHelp"),
+    pythonCaseGrid: document.querySelector("#pythonCaseGrid"),
     pythonSaveState: document.querySelector("#pythonSaveState"),
     pythonEditor: document.querySelector("#pythonEditor"),
     pythonEditorFrame: document.querySelector("#pythonEditorFrame"),
@@ -164,7 +166,11 @@ window.addEventListener("unhandledrejection", (event) => {
     codeView: document.querySelector("#codeView"),
     evidenceKicker: document.querySelector("#evidenceKicker"),
     evidenceTitle: document.querySelector("#evidenceTitle"),
-    evidenceCard: document.querySelector("#evidenceCard")
+    evidenceCard: document.querySelector("#evidenceCard"),
+    runBlockerToast: document.querySelector("#runBlockerToast"),
+    runBlockerTitle: document.querySelector("#runBlockerTitle"),
+    runBlockerMessage: document.querySelector("#runBlockerMessage"),
+    runBlockerClose: document.querySelector("#runBlockerCloseBtn")
   };
 
   const directions = ["N", "E", "S", "W"];
@@ -581,6 +587,153 @@ window.addEventListener("unhandledrejection", (event) => {
   let pythonSaveTimer = null;
   let pythonUploaded = false;
   let pythonEvidence = {};
+  const early = window.CodeQuestEarlyLessons;
+  const earlyPanel = document.querySelector("#earlyLessonPanel");
+  const earlyEvidencePanel = document.querySelector("#earlyEvidencePanel");
+  let earlyProfiles = new Map();
+  let earlyNotice = "";
+  let earlyStorage = "";
+  let earlyRun = null;
+  let earlySyncTimer = null;
+  let accountEpoch = 0;
+  let earlyRevision = 0;
+  let earlyCloudReady = false;
+  let runBlockerTimer = null;
+  const earlyDirty = new Set();
+
+  function hideRunBlocker() {
+    window.clearTimeout(runBlockerTimer);
+    runBlockerTimer = null;
+    if (dom.runBlockerToast) dom.runBlockerToast.hidden = true;
+  }
+
+  function showRunBlocker(message, title = "还不能运行") {
+    if (!dom.runBlockerToast) return;
+    window.clearTimeout(runBlockerTimer);
+    dom.runBlockerTitle.textContent = title;
+    dom.runBlockerMessage.textContent = message;
+    dom.runBlockerToast.hidden = false;
+    runBlockerTimer = window.setTimeout(hideRunBlocker, 5200);
+  }
+
+  function earlyStorageKey(lessonId) {
+    const contentId = courseMissions.find((item) => item.id === lessonId)?.contentId || lessonId;
+    return `signalRunnerNode.early.v1.6.${authUser?.id || (isLocalPreview ? "preview" : "signed-out")}.${contentId}`;
+  }
+
+  function earlyProfile(lessonId) {
+    if (!earlyProfiles.has(lessonId)) {
+      let saved;
+      try { saved = JSON.parse(localStorage.getItem(earlyStorageKey(lessonId)) || "null"); } catch (_) {}
+      earlyProfiles.set(lessonId, early.profile(saved));
+    }
+    return earlyProfiles.get(lessonId);
+  }
+
+  function saveEarlyProfile(lessonId, { sync = true, touch = true } = {}) {
+    const p = earlyProfile(lessonId);
+    if (touch) { p.updatedAt = new Date().toISOString(); earlyRevision += 1; }
+    p.exposures = { ...(p.exposures || {}), [`${p.phase}-${p.variant}`]: { assisted: p.assisted, hintLevel: p.hintLevel } };
+    try {
+      localStorage.setItem(earlyStorageKey(lessonId), JSON.stringify(p));
+      earlyStorage = authUser ? "已保存，等待同步" : "预览记录已保存";
+    } catch (_) {
+      earlyStorage = "本机保存失败，请保持页面打开；登录后可重试云端保存。";
+    }
+    if (sync && authUser) {
+      earlyDirty.add(lessonId);
+      window.clearTimeout(earlySyncTimer);
+      const epoch = accountEpoch;
+      earlySyncTimer = window.setTimeout(() => {
+        if (epoch !== accountEpoch) return;
+        for (const id of earlyDirty) queueLessonSync(id, earlyProfile(id).completed ? "completed" : "started");
+      }, 500);
+    }
+  }
+
+  function earlyPrerequisiteNeeded(m) {
+    return m.lessonNo > 1 && !earlyProfile(`course-${String(m.lessonNo - 1).padStart(2, "0")}`).mastered;
+  }
+
+  function beginEarlyRun() {
+    const m = mission();
+    if (!early.isEarly(m)) return true;
+    const p = earlyProfile(m.id);
+    const problem = early.canRun(m, p, !earlyPrerequisiteNeeded(m));
+    if (problem) {
+      earlyNotice = problem;
+      sim.message = "请先完成运行前设置";
+      render();
+      showRunBlocker(problem);
+      return false;
+    }
+    earlyNotice = "运行中：观察位置和朝向。";
+    earlyRun = { program: program.slice(), routeProgram: routeProgram.slice(), prediction: p.prediction, plan: p.plan,
+      reason: p.reason, diagnosis: p.diagnosis || p.ruleDiagnosis, assisted: p.assisted, loopCount: Number(p.loopCount || 0),
+      loopBoundary: p.loopBoundary, trace: [], path: [], callSnapshots: [] };
+    return true;
+  }
+
+  function finishEarlyRun() {
+    if (!earlyRun) return;
+    const m = mission(), p = earlyProfile(m.id);
+    const success = !sim.failed && sim.collected.size >= m.required && (!m.early.requiresUpload || sim.completed);
+    const attempt = early.result(m, p, { ...earlyRun, path: sim.path.slice(), success,
+      tailCount: sim.firstCollectionStep ? Math.max(0, program.length - sim.firstCollectionStep) : 0,
+      failure: sim.failureMessage || (success ? "" : "程序结束时还没有采集全部信标") });
+    earlyRun = null;
+    early.record(p, attempt);
+    p.explanation = ""; p.debug = ""; p.reflection = ""; p.reconciliation = "";
+    saveEarlyProfile(m.id);
+    if (attempt.success) {
+      complete("运行完成。看看结果，再写一句说明。");
+      earlyNotice = m.early.repairing ? (p.repairEvidence?.after.id === attempt.id
+        ? "修好了！写一句说明，然后换图挑战。"
+        : attempt.assisted ? "完成了。换个案例，自己再试一次。"
+        : !p.debugObservation || p.debugObservation.challengeKey !== m.early.key ? "先运行错误程序，再修改。"
+        : "程序能运行，但定位步骤不对，再检查一次。")
+        : !attempt.routeMatches ? "完成了，但路线和计划不同。"
+        : attempt.tailCount && m.lessonNo <= 5 ? "完成了。采集后还有多余指令。"
+        : "完成了！写一句你是怎么做的。";
+    } else {
+      const punctuation = /[。！？]$/.test(attempt.failure) ? "" : "。";
+      earlyNotice = `${attempt.failure}${punctuation}查看每一步，再修改。`;
+    }
+  }
+
+  function renderEarlyLesson() {
+    const m = mission();
+    const visible = early.isEarly(m) && isCourseTrack() && courseView === "lesson";
+    earlyPanel.hidden = !visible;
+    earlyEvidencePanel.hidden = true;
+    dom.missionBrief.classList.toggle("is-early", visible);
+    if (!visible) return;
+    const active = document.activeElement;
+    const focus = (earlyPanel.contains(active) || earlyEvidencePanel.contains(active)) && active.tagName === "BUTTON"
+      ? { field: active.dataset.earlyField, value: active.dataset.value, action: active.dataset.earlyAction } : null;
+    const reflectionFocus = active.id === "earlyReflection" ? [active.selectionStart, active.selectionEnd] : null;
+    const helpOpen = Boolean(earlyPanel.querySelector(".early-help-details[open]"));
+    const traceOpen = Boolean(earlyEvidencePanel.querySelector("details[open]"));
+    earlyPanel.innerHTML = window.CodeQuestEarlyLessonUI.render(m, earlyProfile(m.id), {
+      notice: earlyNotice, storage: earlyStorage, running: Boolean(runTimer || (earlyRun && sim.expanded)), prerequisiteNeeded: earlyPrerequisiteNeeded(m)
+    });
+    earlyEvidencePanel.replaceChildren(...earlyPanel.querySelectorAll(".early-result, .early-review, .early-mastery"));
+    earlyEvidencePanel.hidden = !earlyEvidencePanel.children.length;
+    if (traceOpen) earlyEvidencePanel.querySelector("details")?.setAttribute("open", "");
+    if (helpOpen) earlyPanel.querySelector(".early-help-details")?.setAttribute("open", "");
+    if (reflectionFocus) {
+      const textarea = earlyEvidencePanel.querySelector("#earlyReflection");
+      textarea?.focus({ preventScroll: true });
+      textarea?.setSelectionRange(...reflectionFocus);
+    }
+    if (focus) {
+      const target = [...earlyPanel.querySelectorAll("button"), ...earlyEvidencePanel.querySelectorAll("button")].find((button) => focus.field
+        ? button.dataset.earlyField === focus.field && button.dataset.value === focus.value
+        : button.dataset.earlyAction === focus.action);
+      target?.focus({ preventScroll: true });
+    }
+  }
+
 
   function loadProgress() {
     try {
@@ -593,7 +746,8 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function pythonLessonStorageKey(lessonId) {
-    return `${pythonLessonStoragePrefix}${lessonId}`;
+    const contentId = courseMissions.find((item) => item.id === lessonId)?.contentId || lessonId;
+    return `${pythonLessonStoragePrefix}${contentId}`;
   }
 
   function loadPythonEvidence(lessonId) {
@@ -716,6 +870,7 @@ window.addEventListener("unhandledrejection", (event) => {
         trackId: trackIdForLesson(lessonId),
         title: item?.title || lessonId,
         lesson: item?.lesson || "",
+        ...(early.isEarly(item) ? { earlyEvidence: earlyProfile(lessonId) } : {}),
         ...(normalizedStatus === "completed"
           ? { completedAt: recordedAt, ...(codeEvidence ? { codeEvidence } : {}) }
           : { startedAt: recordedAt })
@@ -741,17 +896,28 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function queueLessonSync(lessonId, status = "completed") {
-    if (!authUser || !lessonId) {
-      setProgressSyncState(authUser ? "云端同步待命" : "本机进度");
-      return;
-    }
-
-    const isCompletion = status === "completed";
-    setProgressSyncState(isCompletion ? "正在保存云端进度..." : "正在记录开始学习...");
-    syncQueue = syncQueue
-      .then(() => saveLessonProgress(lessonId, status))
-      .then(() => setProgressSyncState(isCompletion ? "云端进度已保存" : "已记录开始学习"))
-      .catch(() => setProgressSyncState("云端保存失败，已保留本机进度"));
+    if (!authUser || !lessonId) return;
+    if (early.isEarly(lessonById(lessonId)) && !earlyCloudReady) { earlyDirty.add(lessonId); return; }
+    const epoch = accountEpoch;
+    const payload = progressPayload(lessonId, status);
+    const stamp = payload.progress.earlyEvidence?.updatedAt;
+    const body = JSON.stringify(payload);
+    syncQueue = syncQueue.then(async () => {
+      if (epoch !== accountEpoch) return;
+      await requestJson(progressApi, { method: "POST", body });
+      if (epoch !== accountEpoch) return;
+      setProgressSyncState("云端进度已保存");
+      if (early.isEarly(lessonById(lessonId))) {
+        if (earlyProfile(lessonId).updatedAt === stamp) earlyDirty.delete(lessonId);
+        earlyStorage = earlyDirty.size ? "本机已保存 · 新修改等待同步" : "草稿与学习证据已同步到云端";
+        renderEarlyLesson();
+      }
+    }).catch(() => {
+      if (epoch !== accountEpoch) return;
+      setProgressSyncState("云端保存失败，已保留本机进度");
+      earlyStorage = "云端保存失败，修改保留在本机；恢复网络后会重试。";
+      renderEarlyLesson();
+    });
   }
 
   function saveProgress({ lessonId = null, sync = true } = {}) {
@@ -766,16 +932,35 @@ window.addEventListener("unhandledrejection", (event) => {
     }
 
     setProgressSyncState("正在同步云端进度...");
+    const epoch = accountEpoch, revision = earlyRevision;
     try {
       const payload = await requestJson(progressApi);
+      if (epoch !== accountEpoch) return;
+      for (const row of payload.progress || []) {
+        if (row.course_id !== cloudCourseId || !early.isEarly(lessonById(row.lesson_id))) continue;
+        const id = row.lesson_id;
+        const local = earlyProfile(id);
+        const merged = early.merge(local, row.progress?.earlyEvidence);
+        if (earlyRun && currentMissions()[currentMissionIndex]?.id === id) {
+          for (const field of ["phase", "variant", "draft", "functionDraft", "functionName", "initializedKey", "prediction", "plan", "reason", "prerequisite", "diagnosis", "ruleDiagnosis", "failureReason"]) merged[field] = local[field];
+          merged.assisted = local.assisted || Boolean(merged.exposures?.[`${local.phase}-${local.variant}`]?.assisted);
+          if (merged.assisted) earlyRun.assisted = true;
+        }
+        earlyProfiles.set(id, merged);
+        saveEarlyProfile(id, { sync: false, touch: false });
+      }
+      if (early.isEarly(mission()) && courseView === "lesson" && revision === earlyRevision && !sim.expanded) {
+        program = earlyProfile(mission().id).draft.slice();
+        routeProgram = earlyProfile(mission().id).functionDraft.slice();
+        selectedRouteChoiceId = earlyProfile(mission().id).plan || null;
+        resetSimulation();
+      }
       const cloudIds = cloudProgressIds(payload.progress);
       const localIds = [...completed];
-      let changed = false;
 
       cloudIds.forEach((lessonId) => {
         if (!completed.has(lessonId)) {
           completed.add(lessonId);
-          changed = true;
         }
       });
 
@@ -783,12 +968,21 @@ window.addEventListener("unhandledrejection", (event) => {
       saveLocalProgress();
 
       for (const lessonId of missingCloudIds) {
+        if (epoch !== accountEpoch) return;
         await saveLessonProgress(lessonId);
       }
+      if (epoch !== accountEpoch) return;
 
       setProgressSyncState("云端进度已同步");
-      if (changed || missingCloudIds.length) render();
+      earlyCloudReady = true;
+      for (const item of courseMissions.filter(early.isEarly)) {
+        if (earlyProfile(item.id).completed) completed.add(item.id);
+        if (earlyDirty.has(item.id)) queueLessonSync(item.id, earlyProfile(item.id).completed ? "completed" : "started");
+      }
+      earlyStorage = "已同步";
+      render();
     } catch (error) {
+      if (epoch !== accountEpoch) return;
       setProgressSyncState("云端同步失败，已保留本机进度");
     }
   }
@@ -866,6 +1060,7 @@ window.addEventListener("unhandledrejection", (event) => {
 
   function mission() {
     const baseMission = currentMissions()[currentMissionIndex];
+    if (early.isEarly(baseMission)) return early.mission(baseMission, earlyProfile(baseMission.id));
     if (baseMission?.lessonMode === "loop-creator") {
       const template = baseMission.advancedConfig?.loopHazardTemplate;
       const hazards = baseMission.advancedConfig?.loopHazards || [];
@@ -990,7 +1185,17 @@ window.addEventListener("unhandledrejection", (event) => {
     return activeBoard === "route" ? routeProgram : program;
   }
 
+  function activeFunctionName(activeMission = mission()) {
+    return early.isEarly(activeMission) && activeMission.lessonNo >= 9 ? earlyProfile(activeMission.id).functionName : "routeA";
+  }
+
   function setCurrentTargetProgram(next) {
+    if (early.isEarly(mission())) {
+      const p = earlyProfile(mission().id);
+      if (activeBoard === "main") p.draft = next.slice();
+      else p.functionDraft = next.slice();
+      saveEarlyProfile(mission().id);
+    }
     if (activeBoard === "route") {
       routeProgram = next;
     } else {
@@ -999,9 +1204,25 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function initialProgramForMission(activeMission = mission()) {
+    if (early.isEarly(activeMission)) {
+      const p = earlyProfile(activeMission.id);
+      if (p.initializedKey !== activeMission.early.key) {
+        p.draft = (activeMission.early.mainStarter || (activeMission.early.repairing ? activeMission.early.faulty : [])).slice();
+        p.functionDraft = (activeMission.early.functionStarter || []).slice();
+        p.initializedKey = activeMission.early.key;
+        saveEarlyProfile(activeMission.id);
+      }
+      return p.draft.slice();
+    }
     return Array.isArray(activeMission.starterProgram)
       ? activeMission.starterProgram.slice()
       : [];
+  }
+
+  function initialFunctionForMission(activeMission = mission()) {
+    if (!early.isEarly(activeMission)) return activeMission.solutionFn ? activeMission.solutionFn.slice() : [];
+    initialProgramForMission(activeMission);
+    return earlyProfile(activeMission.id).functionDraft.slice();
   }
 
   function hasSelectedProgramStep() {
@@ -1011,6 +1232,7 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function resetSimulation(keepLog = false) {
+    earlyRun = null;
     stopAutoRun();
     if (animationFrame) {
       window.cancelAnimationFrame(animationFrame);
@@ -1043,24 +1265,33 @@ window.addEventListener("unhandledrejection", (event) => {
 
   function expandProgram() {
     const expanded = [];
-    const pushCommand = (command, origin) => {
+    let callIndex = 0;
+    const pushCommand = (command, origin, meta = {}) => {
       const repeatMatch = command.match(/^repeat(\d+)$/);
       if (repeatMatch) {
         const count = Number(repeatMatch[1]);
         for (let index = 0; index < count; index += 1) {
-          expanded.push({ id: "move", origin });
+          expanded.push({ id: "move", origin, ...meta });
         }
         return;
       }
       if (command === "callRoute") {
         if (!routeProgram.length) {
-          expanded.push({ id: "missingRoute", origin });
+          callIndex += 1;
+          expanded.push({ id: "missingRoute", origin, callIndex, callStart: true, callEnd: true });
           return;
         }
-        routeProgram.forEach((item) => pushCommand(item, "route"));
+        const loopMode = early.isEarly(mission()) && [11, 12].includes(mission().lessonNo);
+        const repeats = loopMode ? Number(earlyProfile(mission().id).loopCount || 0) : 1;
+        for (let iteration = 0; iteration < repeats; iteration += 1) {
+          callIndex += 1;
+          routeProgram.forEach((item, index) => pushCommand(item, "route", {
+            callIndex, loopIteration: iteration + 1, callStart: index === 0, callEnd: index === routeProgram.length - 1
+          }));
+        }
         return;
       }
-      expanded.push({ id: command, origin });
+      expanded.push({ id: command, origin, ...meta });
     };
 
     program.forEach((item) => pushCommand(item, "main"));
@@ -1329,7 +1560,7 @@ window.addEventListener("unhandledrejection", (event) => {
     if (sim.failed || sim.completed) return;
 
     if (id === "missingRoute") {
-      fail("调用 routeA() 失败：函数里还没有指令。");
+      fail(`调用 ${activeFunctionName()}() 失败：函数里还没有指令。`);
       return;
     }
 
@@ -1353,6 +1584,11 @@ window.addEventListener("unhandledrejection", (event) => {
       const key = tileKey(sim.x, sim.y);
       if (sim.grid.beacons.has(key) && !sim.collected.has(key)) {
         sim.collected.add(key);
+        if (early.isEarly(mission())) {
+          if (!sim.firstCollectionStep) sim.firstCollectionStep = sim.queueIndex;
+          log("采集成功，继续执行剩余指令。", "success");
+          return;
+        }
         if (!mission().allowed.includes("upload") && sim.collected.size >= mission().required) {
           complete("采集完成：本关过关。");
         } else {
@@ -1367,6 +1603,11 @@ window.addEventListener("unhandledrejection", (event) => {
         fail("上传失败：无人机不在中继站。");
       } else if (sim.collected.size < mission().required) {
         fail(`上传失败：还需要 ${mission().required - sim.collected.size} 座信标。`);
+      } else if (early.isEarly(mission())) {
+        sim.completed = true;
+        sim.message = "任务完成";
+        log("上传成功，等待学习证据检查。", "success");
+        stopAutoRun();
       } else {
         complete("上传成功：本关过关。");
       }
@@ -1465,11 +1706,13 @@ window.addEventListener("unhandledrejection", (event) => {
       sim.message = "程序为空";
       log("主程序还没有指令。", "error");
       render();
+      showRunBlocker("请先在程序区放入至少一条指令。");
       return;
     }
 
     if (!sim.expanded || sim.failed || sim.completed || sim.queueIndex >= sim.queue.length) {
       resetSimulation(true);
+      if (!beginEarlyRun()) return;
       expandProgram();
     }
 
@@ -1482,8 +1725,22 @@ window.addEventListener("unhandledrejection", (event) => {
     const item = sim.queue[sim.queueIndex];
     sim.queueIndex += 1;
     sim.activeStepNumber = sim.queueIndex;
+    let callSnapshot = null;
+    if (earlyRun && item.callStart) {
+      callSnapshot = { call: item.callIndex, before: { x: sim.x, y: sim.y, dir: sim.dir }, after: null, failed: false };
+      earlyRun.callSnapshots.push(callSnapshot);
+    } else if (earlyRun && item.callIndex) {
+      callSnapshot = earlyRun.callSnapshots.find((entry) => entry.call === item.callIndex) || null;
+    }
     executeCommand(item.id);
+    if (callSnapshot && (item.callEnd || sim.failed)) {
+      callSnapshot.after = { x: sim.x, y: sim.y, dir: sim.dir };
+      callSnapshot.failed = sim.failed;
+    }
+    if (earlyRun) earlyRun.trace.push({ command: item.id, x: sim.x, y: sim.y, dir: sim.dir,
+      collected: sim.collected.size, energy: sim.energy, failed: sim.failed });
     sim.activeStepNumber = null;
+    if (earlyRun && (sim.failed || sim.completed || sim.queueIndex >= sim.queue.length)) finishEarlyRun();
 
     if (!sim.failed && !sim.completed && sim.queueIndex >= sim.queue.length) {
       sim.message = "程序结束";
@@ -1501,6 +1758,13 @@ window.addEventListener("unhandledrejection", (event) => {
     }
 
     resetSimulation();
+    if (!program.length) {
+      sim.message = "先放入指令，再运行。";
+      render();
+      showRunBlocker("请先在程序区放入至少一条指令。");
+      return;
+    }
+    if (!beginEarlyRun()) return;
     expandProgram();
     runTimer = window.setInterval(() => {
       if (sim.failed || sim.completed || sim.queueIndex >= sim.queue.length) {
@@ -1523,9 +1787,10 @@ window.addEventListener("unhandledrejection", (event) => {
   function addCommand(command) {
     const m = mission();
     const target = currentTargetProgram();
-    const limit = activeBoard === "route" ? 6 : m.limit;
+    const limit = activeBoard === "route" ? (m.functionLimit || 6) : m.limit;
     if (!m.allowed.includes(command)) return;
-    if (activeBoard === "route" && ["upload", "collect", "callRoute"].includes(command)) return;
+    if (activeBoard === "route" && ["upload", "callRoute", ...(m.lessonNo >= 9 && m.lessonNo <= 11 ? [] : ["collect"])].includes(command)) return;
+    hideRunBlocker();
 
     if (hasSelectedProgramStep()) {
       const next = target.slice();
@@ -1617,10 +1882,13 @@ window.addEventListener("unhandledrejection", (event) => {
     }
     activeBoard = "main";
     program = initialProgramForMission(mission());
-    routeProgram = [];
+    earlyNotice = "";
+    earlyStorage = early.isEarly(mission()) ? "已自动保存" : "";
+    routeProgram = initialFunctionForMission(mission());
     selectedProgramIndex = null;
     selectedRouteChoiceId = null;
     detectiveGuideOpen = false;
+    if (early.isEarly(mission())) selectedRouteChoiceId = earlyProfile(mission().id).plan || null;
     resetSimulation();
     render();
     if (authUser && isCourseTrack()) queueLessonSync(mission().id, "started");
@@ -1649,11 +1917,24 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function loadReferenceProgram() {
+    if (early.isEarly(mission())) {
+      const p = earlyProfile(mission().id);
+      p.assisted = true;
+      earlyNotice = "已加载参考程序。本图仍可完成；独立掌握请换一张地图验证。";
+    }
     const selectedRouteChoice = mission().routeChoices?.find((choice) => choice.id === selectedRouteChoiceId);
     program = mission().starterProgram
       ? initialProgramForMission()
       : selectedRouteChoice ? selectedRouteChoice.commands.slice() : mission().solution.slice();
+    if (early.isEarly(mission())) {
+      earlyProfile(mission().id).draft = program.slice();
+      saveEarlyProfile(mission().id);
+    }
     routeProgram = mission().solutionFn ? mission().solutionFn.slice() : [];
+    if (early.isEarly(mission())) {
+      earlyProfile(mission().id).functionDraft = routeProgram.slice();
+      saveEarlyProfile(mission().id);
+    }
     activeBoard = "main";
     selectedProgramIndex = null;
     resetSimulation();
@@ -1661,6 +1942,8 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function formatCommand(id) {
+    if (id === "callRoute" && early.isEarly(mission()) && [11, 12].includes(mission().lessonNo)) return `repeat(${earlyProfile(mission().id).loopCount || "?"})`;
+    if (id === "callRoute" && early.isEarly(mission()) && mission().lessonNo >= 9) return `${activeFunctionName()}()`;
     const command = commandDefs[id];
     return command ? command.label : id;
   }
@@ -1839,7 +2122,7 @@ window.addEventListener("unhandledrejection", (event) => {
           ${lessons.map((item) => {
             const isComplete = completed.has(item.id);
             const isNext = item.id === nextLesson?.id && !isComplete;
-            const status = isComplete ? "已完成" : isNext ? "继续学习" : "未开始";
+            const status = early.isEarly(item) && earlyProfile(item.id).mastered ? "实践验证通过" : isComplete ? "已完成" : isNext ? "继续学习" : "未开始";
             return `
               <button class="lesson-card ${item.lessonType}${isComplete ? " is-complete" : ""}${isNext ? " is-next" : ""}" data-lesson-id="${item.id}" type="button">
                 <span class="lesson-card-meta">
@@ -1917,16 +2200,33 @@ window.addEventListener("unhandledrejection", (event) => {
     dom.capstoneProfilePanel.hidden = !isCoreCapstone;
     dom.advancedLearningPanel.hidden = !isAdvancedLesson || isPythonStudio;
     dom.detectiveGuidePanel.hidden = !isDebugDetective || !detectiveGuideOpen;
-    dom.worldHint.textContent = isDebugDetective
-      ? detectiveGuideOpen ? "关闭调试侦探社" : "调试侦探社（可选）"
-      : isPythonStudio ? "代码提示" : "提示";
-    dom.worldHint.setAttribute("aria-expanded", isDebugDetective ? String(detectiveGuideOpen) : "false");
-    if (isDebugDetective) {
-      dom.worldHint.setAttribute("aria-controls", "detectiveGuidePanel");
-    } else {
-      dom.worldHint.removeAttribute("aria-controls");
+    if (early.isEarly(m)) {
+      dom.missionBrief.classList.remove("is-playground");
+      dom.standardMissionBrief.hidden = true;
+      dom.playgroundLessonBrief.hidden = true;
+      dom.coordinateLessonBrief.hidden = true;
+      dom.coordinateScannerPanel.hidden = true;
+      dom.detectiveGuidePanel.hidden = true;
+      dom.sequenceLessonBrief.hidden = true;
+      dom.sequenceTimelinePanel.hidden = true;
+      dom.directionLessonBrief.hidden = true;
+      dom.directionLearningPanel.hidden = true;
+      dom.routeLessonBrief.hidden = true;
+      dom.routeComparisonPanel.hidden = true;
+      dom.segmentLessonBrief.hidden = true;
+      dom.segmentMissionPanel.hidden = true;
+      dom.creatorLessonBrief.hidden = true;
+      dom.creatorWorkbenchPanel.hidden = true;
+      dom.capstoneLessonBrief.hidden = true;
+      dom.capstoneProfilePanel.hidden = true;
+      dom.advancedLessonBrief.hidden = true;
+      dom.advancedLearningPanel.hidden = true;
     }
-    dom.loadReference.textContent = isDebugDetective
+    if (dom.detectiveGuideToggle) {
+      dom.detectiveGuideToggle.textContent = detectiveGuideOpen ? "关闭调试侦探社" : "打开调试侦探社（可选）";
+      dom.detectiveGuideToggle.setAttribute("aria-expanded", String(detectiveGuideOpen));
+    }
+    dom.loadReference.textContent = early.isEarly(m) ? "查看参考程序（记为帮助）" : isDebugDetective
       ? "恢复错误程序"
       : isRouteCreator ? "加载参考解法"
         : usesPlaygroundBrief ? "查看参考程序" : "查看示例";
@@ -1991,7 +2291,7 @@ window.addEventListener("unhandledrejection", (event) => {
   function renderPalette() {
     const m = mission();
     const target = currentTargetProgram();
-    const limit = activeBoard === "route" ? 6 : m.limit;
+    const limit = activeBoard === "route" ? (m.functionLimit || 6) : m.limit;
     const canReplace = hasSelectedProgramStep();
     dom.commandLimit.textContent = `${target.length} / ${limit} 个指令`;
     dom.paletteInstruction.textContent = canReplace
@@ -2004,19 +2304,24 @@ window.addEventListener("unhandledrejection", (event) => {
     dom.commandPalette.innerHTML = m.allowed.map((id) => {
       const command = commandDefs[id];
       if (!command) return "";
-      const blockedInRoute = activeBoard === "route" && ["upload", "collect", "callRoute"].includes(id);
+      const blockedInRoute = activeBoard === "route" && ["upload", "callRoute", ...(m.lessonNo >= 9 && m.lessonNo <= 11 ? [] : ["collect"])].includes(id);
       const disabled = (target.length >= limit && !canReplace) || blockedInRoute ? "disabled" : "";
       const style = command.kind === "logic" ? " is-logic" : command.kind === "system" ? " is-system" : "";
+      const isLoopCall = id === "callRoute" && early.isEarly(m) && [11, 12].includes(m.lessonNo);
+      const commandName = isLoopCall ? "重复循环体" : id === "callRoute" && early.isEarly(m) && m.lessonNo >= 9 ? "调用工具" : command.name;
+      const commandLabel = isLoopCall ? `repeat(${earlyProfile(m.id).loopCount || "?"})` : id === "callRoute" && early.isEarly(m) && m.lessonNo >= 9 ? `${activeFunctionName(m)}()` : command.label;
       return `
         <button class="command-button${style}" data-command="${id}" ${disabled} type="button">
-          <strong>${command.name}</strong>
-          <small>${command.label} · ${command.hint}</small>
+          <strong>${commandName}</strong>
+          <small>${commandLabel} · ${command.hint}</small>
         </button>
       `;
     }).join("");
   }
 
   function renderProgramTabs() {
+    const functionTab = dom.programTabs.querySelector('[data-board="route"]');
+    if (functionTab) functionTab.textContent = early.isEarly(mission()) && [11, 12].includes(mission().lessonNo) ? "循环体" : `${activeFunctionName()}()`;
     [...dom.programTabs.querySelectorAll(".tab-button")].forEach((button) => {
       button.classList.toggle("is-active", button.dataset.board === activeBoard);
     });
@@ -2043,8 +2348,10 @@ window.addEventListener("unhandledrejection", (event) => {
   function renderProgramList() {
     const target = currentTargetProgram();
     if (!hasSelectedProgramStep()) selectedProgramIndex = null;
-    dom.programTitle.textContent = activeBoard === "route" ? "函数 routeA()" : "我的程序";
-    dom.activeBoardHint.textContent = activeBoard === "route"
+    dom.programTitle.textContent = activeBoard === "route"
+      ? early.isEarly(mission()) && [11, 12].includes(mission().lessonNo) ? "循环体" : `函数 ${activeFunctionName()}()`
+      : "我的程序";
+    dom.activeBoardHint.textContent = early.isEarly(mission()) ? "点选一步，再从指令区替换；× 可删除" : activeBoard === "route"
       ? "只放路线动作"
       : mission().lessonMode === "debug-detective"
         ? "点选一步，再从左侧替换"
@@ -2159,7 +2466,7 @@ window.addEventListener("unhandledrejection", (event) => {
 
     dom.sequenceTimeline.innerHTML = rows.join("");
     dom.sequenceTimelineState.textContent = sim.completed
-      ? "3 步依次完成，信号采集成功"
+      ? `${sim.queueIndex} 步依次完成，信号采集成功`
       : sim.failed ? "顺序有问题，查看失败步骤"
         : sim.expanded ? `已执行 ${Math.min(sim.queueIndex, program.length)} / ${program.length} 步`
           : program.length === slotCount ? "程序已排好，可以运行"
@@ -2234,7 +2541,7 @@ window.addEventListener("unhandledrejection", (event) => {
       ? `实际朝向：${directionLabels[sim.dir]} · 已到达信标`
       : sim.failed ? `实际朝向：${directionLabels[sim.dir]} · 查看失败步骤`
         : sim.expanded ? `实际朝向：${directionLabels[sim.dir]} · 已执行 ${Math.min(sim.queueIndex, program.length)} 步`
-          : program.length ? `开始朝向：东 · 已预览 ${program.length} 步` : "开始朝向：东";
+          : program.length ? `开始朝向：${directionLabels[activeMission.startDir]} · 已预览 ${program.length} 步` : `开始朝向：${directionLabels[activeMission.startDir]}`;
   }
 
   function renderRouteComparison() {
@@ -2763,6 +3070,30 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function renderCodeView() {
+    if (early.isEarly(mission()) && [11, 12].includes(mission().lessonNo)) {
+      const python = { move: "move()", left: "turn_left()", right: "turn_right()", back: "move_back()", collect: "collect()", upload: "upload()" };
+      const count = earlyProfile(mission().id).loopCount || "?";
+      const lines = [];
+      for (const id of program) {
+        if (id === "callRoute") {
+          lines.push(`for _ in range(${count}):`);
+          lines.push(...(routeProgram.length ? routeProgram.map((step) => `    ${python[step] || step}`) : ["    # 在这里放入完整重复单元"]));
+        } else {
+          lines.push(python[id] || id);
+        }
+      }
+      dom.codeView.textContent = lines.length ? lines.join("\n") : "# 在主程序放入 repeat，再编辑循环体";
+      return;
+    }
+    if (early.isEarly(mission()) && mission().lessonNo >= 9) {
+      const functionName = activeFunctionName();
+      const python = { move: "move()", left: "turn_left()", right: "turn_right()", back: "move_back()", collect: "collect()", upload: "upload()", callRoute: "visit_side()" };
+      python.callRoute = `${functionName}()`;
+      const functionLines = routeProgram.length ? routeProgram.map((id) => `    ${python[id] || id}`) : ["    # 在这里定义工具动作"];
+      const mainLines = program.length ? program.map((id) => python[id] || id) : ["# 在这里移动并调用工具"];
+      dom.codeView.textContent = `def ${functionName}():\n${functionLines.join("\n")}\n\n${mainLines.join("\n")}`;
+      return;
+    }
     const mainLines = program.length
       ? program.map((id) => `  ${codeForCommand(id)}`)
       : ["  // 选择指令"];
@@ -2858,15 +3189,12 @@ window.addEventListener("unhandledrejection", (event) => {
     };
   }
 
-  function ensurePythonRuntime() {
-    if (pythonRuntime) return pythonRuntime;
+  function createPythonRuntimeFor(activeMission, studio = activeMission.pythonStudio) {
     if (!window.Sk || !window.CodeQuestPythonRuntime) {
       throw new Error("Python 运行器没有加载成功，请刷新页面后再试。");
     }
-    const route = pythonRouteConfig();
-    const activeMission = mission();
-    const studio = activeMission.pythonStudio;
-    pythonRuntime = window.CodeQuestPythonRuntime.create({
+    const route = pythonRouteConfig(activeMission);
+    return window.CodeQuestPythonRuntime.create({
       Sk: window.Sk,
       initialEnergy: activeMission.energy,
       hazardPosition: route.hazardPosition,
@@ -2876,13 +3204,22 @@ window.addEventListener("unhandledrejection", (event) => {
       objectModel: Boolean(studio.objectModel),
       multiObject: Boolean(studio.multiObject),
       languageFeatures: studio.languageFeatures || [],
+      courseInputs: studio.courseInputs || {},
+      courseRules: studio.courseRules || {},
       world: {
         grid: activeMission.grid,
         start: route.start,
         startDir: activeMission.startDir,
-        required: activeMission.required
+        required: activeMission.required,
+        targetPositions: activeMission.targetPositions || []
       }
     });
+  }
+
+  function ensurePythonRuntime() {
+    if (pythonRuntime) return pythonRuntime;
+    const activeMission = mission();
+    pythonRuntime = createPythonRuntimeFor(activeMission);
     return pythonRuntime;
   }
 
@@ -3145,17 +3482,78 @@ window.addEventListener("unhandledrejection", (event) => {
         </div>
       `;
     });
-    dom.pythonStateList.innerHTML = [...variableRows, ...objectRows, ...worldRows, ...collectionRows, ...functionRows].join("");
+    const configuredRows = [...variableRows, ...objectRows, ...worldRows, ...collectionRows, ...functionRows];
+    if (configuredRows.length) {
+      dom.pythonStateList.innerHTML = configuredRows.join("");
+      return;
+    }
+
+    const escapeEvidence = (value) => String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+    const displayEvidence = (value) => {
+      const raw = value !== null && typeof value === "object" ? JSON.stringify(value) : String(value);
+      return escapeEvidence(raw.length > 90 ? `${raw.slice(0, 87)}…` : raw);
+    };
+    const dynamicRows = [];
+    Object.entries(state?.variables || {}).slice(-6).forEach(([name, value]) => {
+      dynamicRows.push(`<div class="python-state-item is-target"><span><strong>变量</strong><code>${escapeEvidence(name)}</code></span><b>${displayEvidence(value)}</b><small>来自本次赋值轨迹</small></div>`);
+    });
+    Object.values(state?.objects || {}).slice(0, 4).forEach((item) => {
+      const details = [`(${Number(item.x)}, ${Number(item.y)})`, `能量 ${Number(item.energy)}`];
+      if (item.cargo !== undefined) details.push(`货物 ${Number(item.cargo)}/${Number(item.capacity || 0)}`);
+      if (item.waits) details.push(`等待 ${Number(item.waits)} 拍`);
+      dynamicRows.push(`<div class="python-state-item python-object-state is-target"><span><strong>${escapeEvidence(item.type || "对象")}</strong><code>${escapeEvidence(item.name)}</code></span><b>${escapeEvidence(details.join(" · "))}</b><small>对象自己的运行档案</small></div>`);
+    });
+    Object.values(state?.functions || {}).slice(0, 3).forEach((item) => {
+      const calls = Array.isArray(item.calls) ? item.calls.length : 0;
+      const returns = Array.isArray(item.returns) ? item.returns : [];
+      dynamicRows.push(`<div class="python-state-item python-function-state is-target"><span><strong>函数</strong><code>${escapeEvidence(item.name)}()</code></span><b>调用 ${calls} 次${returns.length ? ` · 返回 ${displayEvidence(returns.at(-1))}` : ""}</b><small>参数和返回值来自真实执行</small></div>`);
+    });
+    if (Array.isArray(state?.worldBuild?.grid)) {
+      const builtGrid = state.worldBuild.grid;
+      dynamicRows.push(`<div class="python-state-item python-world-state is-target"><span><strong>代码世界</strong><code>world</code></span><b>${Number(builtGrid[0]?.length || 0)} × ${Number(builtGrid.length)} · 放置 ${Number(state.worldBuild.placements?.length || 0)}</b><small>由本次二维数据生成</small></div>`);
+    }
+    if (Array.isArray(state?.transfers) && state.transfers.length) {
+      const last = state.transfers.at(-1);
+      dynamicRows.push(`<div class="python-state-item is-target"><span><strong>货物交接</strong><code>transfer_to</code></span><b>${escapeEvidence(last.from)} → ${escapeEvidence(last.to)} · ${Number(last.amount)} 件</b><small>位置、容量与归属均已验证</small></div>`);
+    }
+    if (mission().pythonStudio?.allowedFunctions?.includes("rescue") && Array.isArray(state?.rescues)) {
+      dynamicRows.push(`<div class="python-state-item is-target"><span><strong>救援顺序</strong><code>rescue</code></span><b>${state.rescues.length ? state.rescues.map(escapeEvidence).join(" → ") : "空清单"}</b><small>由当前订单与预算决定</small></div>`);
+    }
+    if (Array.isArray(state?.reports) && state.reports.length) {
+      dynamicRows.push(`<div class="python-state-item is-target"><span><strong>报告</strong><code>report</code></span><b>${displayEvidence(state.reports.at(-1))}</b><small>程序主动提交的结果</small></div>`);
+    }
+    const showsTime = ["wait", "current_tick", "is_passage_clear"].some((name) => mission().pythonStudio?.allowedFunctions?.includes(name));
+    if (showsTime && state && Number.isFinite(Number(state.ticks))) {
+      dynamicRows.push(`<div class="python-state-item${Number(state.ticks) >= 0 ? " is-target" : ""}"><span><strong>离散时间</strong><code>tick</code></span><b>${Number(state.ticks)} 拍</b><small>每次 wait() 推进一拍</small></div>`);
+    }
+    dom.pythonStateList.innerHTML = dynamicRows.length
+      ? dynamicRows.join("")
+      : '<div class="python-state-item"><span><strong>等待运行</strong><code>evidence</code></span><b>尚无状态</b><small>运行代码后，这里会显示真实变化。</small></div>';
   }
 
   function updatePythonEvidenceDisplay() {
     if (!dom.pythonEvidenceRow) return;
     const verified = Boolean(pythonEvidence.lastSuccessful);
+    const cases = mission().pythonStudio?.cases || [];
+    const results = Array.isArray(pythonEvidence.caseResults) ? pythonEvidence.caseResults : [];
+    const passed = results.filter((item) => item.passed).length;
     dom.pythonEvidenceRow.classList.toggle("is-verified", verified);
     dom.pythonEvidenceRow.firstElementChild.textContent = verified ? "✓" : "◇";
     dom.pythonEvidenceState.textContent = verified
-      ? `已保存成功代码 · ${Number(pythonEvidence.attempts || 1)} 次运行`
-      : "等待独立运行成功";
+      ? `已保存成功代码 · ${cases.length ? `${passed}/${cases.length} 个场景` : `${Number(pythonEvidence.attempts || 1)} 次运行`}`
+      : cases.length && results.length ? `迁移验证 ${passed}/${cases.length}` : "等待独立运行成功";
+    if (dom.pythonCaseGrid) {
+      dom.pythonCaseGrid.innerHTML = cases.map((item) => {
+        const result = results.find((entry) => entry.id === item.id);
+        const state = result ? (result.passed ? "passed" : "failed") : "pending";
+        return `<span data-state="${state}"><b aria-hidden="true">${state === "passed" ? "✓" : state === "failed" ? "!" : "○"}</b>${item.label}<small>${result?.message || "等待验证"}</small></span>`;
+      }).join("");
+    }
     if (verified && !pythonPlaying) {
       dom.pythonSaveState.dataset.state = "verified";
       dom.pythonSaveState.textContent = "成功代码已保存";
@@ -3306,6 +3704,7 @@ window.addEventListener("unhandledrejection", (event) => {
     const feedbackMessage = editTarget
       ? `${message} 请处理第 ${editTarget.line} 行：${editTarget.hint}。`
       : message;
+    showRunBlocker(feedbackMessage, category);
     highlightPythonLine(line);
     setPythonFeedback("error", `${category} · 第 ${line} 行`, feedbackMessage);
     dom.pythonLineState.textContent = editTarget ? `停在第 ${line} 行 · 请处理第 ${editTarget.line} 行` : `停在第 ${line} 行`;
@@ -3465,6 +3864,109 @@ window.addEventListener("unhandledrejection", (event) => {
     await waitForPythonAnimation(duration);
   }
 
+  function pythonObjectiveFromState(activeMission, state) {
+    const collectedCount = Array.isArray(state?.collectedKeys) ? state.collectedKeys.length : state?.collected ? 1 : 0;
+    const needsUpload = activeMission.grid.some((row) => row.includes("R"));
+    return collectedCount >= Number(activeMission.required || 0)
+      && (!needsUpload || Boolean(state?.uploaded))
+      && Number(state?.energy ?? activeMission.energy) >= Number(activeMission.minEnergy || 0);
+  }
+
+  function pythonStateCheckFails(check, state, events, source = "") {
+    if (check.kind === "variable") return state?.variables?.[check.name] !== check.equals;
+    if (check.kind === "object") {
+      const objectState = state?.objects?.[check.name];
+      return !objectState || JSON.stringify(objectState?.[check.property]) !== JSON.stringify(check.equals);
+    }
+    if (check.kind === "object-action") {
+      return !events.some((event) => event.object?.name === check.name && event.object?.type === check.type && event.object?.action === check.action);
+    }
+    if (check.kind === "function-call") {
+      return !events.some((event) => event.functionCall?.name === check.name
+        && (!check.arguments || JSON.stringify(event.functionCall.arguments) === JSON.stringify(check.arguments)));
+    }
+    if (check.kind === "function-return") {
+      return !events.some((event) => event.functionReturn?.name === check.name && event.functionReturn?.value === check.equals);
+    }
+    if (check.kind === "collection") return JSON.stringify(state?.variables?.[check.name]) !== JSON.stringify(check.equals);
+    if (check.kind === "world-grid") return JSON.stringify(state?.worldBuild?.grid) !== JSON.stringify(check.equals);
+    if (check.kind === "world-portals") return (state?.worldBuild?.portals || []).length !== check.equals;
+    if (check.kind === "world-placements") return (state?.worldBuild?.placements || []).length !== check.equals;
+    if (check.kind === "world-schema") {
+      const schema = state?.worldBuild?.schema;
+      return !state?.worldBuild?.schemaValidated || !schema
+        || (check.property ? JSON.stringify(schema[check.property]) !== JSON.stringify(check.equals) : false);
+    }
+    if (check.kind === "report") return JSON.stringify((state?.reports || []).at(-1)) !== JSON.stringify(check.equals);
+    if (check.kind === "rescues") return JSON.stringify(state?.rescues || []) !== JSON.stringify(check.equals);
+    if (check.kind === "distinct-objects") return !check.names.every((name) => Boolean(state?.objects?.[name])) || new Set(check.names).size !== check.names.length;
+    if (check.kind === "transfer") return !(state?.transfers || []).some((item) => item.from === check.from && item.to === check.to && item.amount === check.amount);
+    if (check.kind === "tick") return Number(state?.ticks || 0) !== Number(check.equals);
+    if (check.kind === "event-count") return events.filter((event) => event.type === check.eventType).length !== Number(check.equals);
+    if (check.kind === "variable-event-sync") {
+      const actionCount = events.filter((event) => event.type === check.eventType).length;
+      const variableEvents = events.filter((event) => event.variable?.name === check.name);
+      return actionCount !== Number(check.equals)
+        || state?.variables?.[check.name] !== Number(check.equals)
+        || variableEvents.length < actionCount + 1;
+    }
+    if (check.kind === "source-pattern") return !(new RegExp(check.pattern, check.flags || "m")).test(source);
+    return false;
+  }
+
+  function pythonStateFailures(checks, state, events, source) {
+    return (checks || []).filter((check) => pythonStateCheckFails(check, state, events, source));
+  }
+
+  async function verifyPythonTransferCases(source, activeMission) {
+    const studio = activeMission.pythonStudio;
+    const cases = studio?.cases || [];
+    if (!cases.length) return [];
+    const results = [];
+    for (const testCase of cases) {
+      const caseMission = {
+        ...activeMission,
+        grid: testCase.grid || activeMission.grid,
+        startDir: testCase.startDir || activeMission.startDir,
+        energy: testCase.energy ?? activeMission.energy,
+        required: testCase.required ?? activeMission.required,
+        minEnergy: testCase.minEnergy ?? activeMission.minEnergy,
+        targetPositions: testCase.targetPositions || []
+      };
+      const caseStudio = {
+        ...studio,
+        courseInputs: testCase.inputs || studio.courseInputs || {},
+        courseRules: testCase.courseRules || studio.courseRules || {}
+      };
+      try {
+        const result = await createPythonRuntimeFor(caseMission, caseStudio).compile(source);
+        if (testCase.expectedError) {
+          results.push({ id: testCase.id, label: testCase.label, passed: false, message: "这个调试场本应被安全拦截，但程序继续运行了。" });
+          continue;
+        }
+        const checks = [...(studio.stateChecks || []), ...(testCase.stateChecks || [])];
+        const failure = pythonStateFailures(checks, result.finalState, result.events, source)[0];
+        const objectiveComplete = testCase.requireObjective === false || pythonObjectiveFromState(caseMission, result.finalState);
+        results.push({
+          id: testCase.id,
+          label: testCase.label,
+          passed: objectiveComplete && !failure,
+          message: failure?.message || (objectiveComplete ? "通过" : "任务状态没有完成")
+        });
+      } catch (error) {
+        const raw = `${String(error)} ${window.CodeQuestPythonRuntime.friendlyErrorMessage(error)}`;
+        const expected = testCase.expectedError && raw.toLowerCase().includes(String(testCase.expectedError).toLowerCase());
+        results.push({
+          id: testCase.id,
+          label: testCase.label,
+          passed: Boolean(expected),
+          message: expected ? "按预期安全停止" : window.CodeQuestPythonRuntime.friendlyErrorMessage(error)
+        });
+      }
+    }
+    return results;
+  }
+
   async function finishPythonPlayback() {
     pythonPlaying = false;
     dom.pythonStopBtn.disabled = true;
@@ -3485,54 +3987,7 @@ window.addEventListener("unhandledrejection", (event) => {
       const matches = sourceWithoutComments.match(new RegExp(check.pattern, "g")) || [];
       return matches.length < Number(check.min || 1);
     });
-    const stateFailures = (mission().pythonStudio?.stateChecks || []).filter((check) => {
-      if (check.kind === "variable") {
-        return pythonFinalState?.variables?.[check.name] !== check.equals;
-      }
-      if (check.kind === "object") {
-        const objectState = pythonFinalState?.objects?.[check.name];
-        if (!objectState) return true;
-        return JSON.stringify(objectState?.[check.property]) !== JSON.stringify(check.equals);
-      }
-      if (check.kind === "object-action") {
-        return !pythonPlannedEvents.some((event) => {
-          return event.object?.name === check.name
-            && event.object?.type === check.type
-            && event.object?.action === check.action;
-        });
-      }
-      if (check.kind === "function-call") {
-        return !pythonPlannedEvents.some((event) => {
-          if (event.functionCall?.name !== check.name) return false;
-          if (!check.arguments) return true;
-          return JSON.stringify(event.functionCall.arguments) === JSON.stringify(check.arguments);
-        });
-      }
-      if (check.kind === "function-return") {
-        return !pythonPlannedEvents.some((event) => {
-          return event.functionReturn?.name === check.name
-            && event.functionReturn?.value === check.equals;
-        });
-      }
-      if (check.kind === "collection") {
-        return JSON.stringify(pythonFinalState?.variables?.[check.name]) !== JSON.stringify(check.equals);
-      }
-      if (check.kind === "world-grid") {
-        return JSON.stringify(pythonFinalState?.worldBuild?.grid) !== JSON.stringify(check.equals);
-      }
-      if (check.kind === "world-portals") {
-        return (pythonFinalState?.worldBuild?.portals || []).length !== check.equals;
-      }
-      if (check.kind === "world-placements") {
-        return (pythonFinalState?.worldBuild?.placements || []).length !== check.equals;
-      }
-      if (check.kind === "world-schema") {
-        const schema = pythonFinalState?.worldBuild?.schema;
-        if (!pythonFinalState?.worldBuild?.schemaValidated || !schema) return true;
-        return check.property ? JSON.stringify(schema[check.property]) !== JSON.stringify(check.equals) : false;
-      }
-      return false;
-    });
+    const stateFailures = pythonStateFailures(mission().pythonStudio?.stateChecks, pythonFinalState, pythonPlannedEvents, dom.pythonEditor.value);
     const learningFailure = conceptFailures[0] || stateFailures[0];
     if (objectiveComplete && sim.energy >= minimumEnergy && learningFailure) {
       sim.failed = true;
@@ -3543,6 +3998,21 @@ window.addEventListener("unhandledrejection", (event) => {
       setPythonFeedback("error", "还差一个代码要求", `${learningFailure.message}。请修改后再运行一次。`);
       savePythonEvidence({ lastOutcome: "concept-incomplete" });
     } else if (objectiveComplete && sim.energy >= minimumEnergy) {
+      setPythonFeedback("normal", "正在验证迁移", "同一份代码正在运行本课的全部输入场景…");
+      const caseResults = await verifyPythonTransferCases(dom.pythonEditor.value, mission());
+      const failedCase = caseResults.find((item) => !item.passed);
+      if (failedCase) {
+        sim.failed = true;
+        sim.failureType = "action-fail";
+        sim.failureMessage = `${failedCase.label}：${failedCase.message}`;
+        startMotion(failureMotion("action-fail"));
+        sim.message = "主场景完成，但迁移验证未通过";
+        setPythonFeedback("error", `迁移场未通过 · ${failedCase.label}`, `${failedCase.message}。请让规则适用于变化后的输入，再运行一次。`);
+        savePythonEvidence({ lastOutcome: "transfer-incomplete", caseResults });
+        updatePythonEvidenceDisplay();
+        render();
+        return;
+      }
       const verifiedAt = new Date().toISOString();
       savePythonEvidence({
         draft: dom.pythonEditor.value,
@@ -3554,6 +4024,7 @@ window.addEventListener("unhandledrejection", (event) => {
           worldBuild: { ...(pythonFinalState?.worldBuild || {}) }
         },
         lastOutcome: "success",
+        caseResults,
         verifiedAt
       });
       complete(`Python 程序运行成功：${mission().studentOutput || "本课任务"}已经通过验证。`);
@@ -4472,6 +4943,7 @@ window.addEventListener("unhandledrejection", (event) => {
     const root = new THREE.Group();
     scene.add(root);
     let viewYaw = 0;
+    let lastEarlyView = "";
     let lastViewFrame = null;
     let viewRenderFrame = null;
     let dragState = null;
@@ -4592,6 +5064,11 @@ window.addEventListener("unhandledrejection", (event) => {
 
     function render(simState, activeMission, helpers) {
       if (!simState || !simState.grid) return;
+      const earlyView = activeMission.early ? `${activeMission.id}:${activeMission.early.key}` : "";
+      if (earlyView !== lastEarlyView) {
+        viewYaw = activeMission.lessonNo === 2 && activeMission.early?.independent ? Math.PI * 0.6 : 0;
+        lastEarlyView = earlyView;
+      }
       resizeRenderer();
       root.clear();
 
@@ -6016,6 +6493,7 @@ window.addEventListener("unhandledrejection", (event) => {
     renderLog();
     renderEvidence();
     renderPythonStudio();
+    renderEarlyLesson();
     drawGrid();
     scheduleMotionFrames();
     if (dom.runBtn) {
@@ -6188,21 +6666,20 @@ window.addEventListener("unhandledrejection", (event) => {
     }
     runProgram();
   });
-  dom.worldHint.addEventListener("click", () => {
-    if (mission().lessonMode === "debug-detective") {
-      detectiveGuideOpen = !detectiveGuideOpen;
-      render();
-      return;
-    }
-    if (isPythonStudioLesson()) {
-      setPythonFeedback("normal", "提示", "比较两个英文函数：blocked 表示“被阻挡”，hazard 表示“危险”。本关真正需要检测的是危险格。");
-      return;
-    }
-    log(mission().checkpoint, "normal");
+  dom.worldReset.addEventListener("click", () => {
+    hideRunBlocker();
+    if (isPythonStudioLesson()) resetPythonWorld();
+    else resetSimulation();
     render();
   });
+  dom.detectiveGuideToggle?.addEventListener("click", () => {
+    detectiveGuideOpen = !detectiveGuideOpen;
+    render();
+  });
+  dom.runBlockerClose?.addEventListener("click", hideRunBlocker);
   dom.stepBtn.addEventListener("click", stepProgram);
   dom.resetBtn.addEventListener("click", () => {
+    hideRunBlocker();
     resetSimulation();
     render();
   });
@@ -6266,10 +6743,12 @@ window.addEventListener("unhandledrejection", (event) => {
   dom.nextLesson.addEventListener("click", () => selectMission(currentMissionIndex + 1));
 
   dom.resetProgress?.addEventListener("click", () => {
+    if (!window.confirm("确定重置当前课程路线的进度？已新版化课程的学习证据将保留，其余课程的本机代码档案会被清空。")) return;
     suspendPythonStudio();
     const currentTrackIds = new Set(currentMissions().map((item) => item.id));
-    const removedLessonIds = [...completed].filter((id) => currentTrackIds.has(id));
+    const removedLessonIds = [...completed].filter((id) => currentTrackIds.has(id) && !early.isEarly(lessonById(id)));
     completed = new Set([...completed].filter((id) => !currentTrackIds.has(id)));
+    courseMissions.filter(early.isEarly).forEach((item) => { if (earlyProfile(item.id).completed) completed.add(item.id); });
     saveProgress({ sync: false });
     deleteCloudProgress(removedLessonIds);
     currentMissionIndex = 0;
@@ -6294,8 +6773,31 @@ window.addEventListener("unhandledrejection", (event) => {
   });
 
   window.addEventListener("codequest:auth-changed", (event) => {
-    authUser = event.detail?.user || null;
-    isLocalPreview = Boolean(event.detail?.localPreview);
+    const nextUser = event.detail?.user || null;
+    const nextPreview = Boolean(event.detail?.localPreview);
+    const changedAccount = authUser?.id !== nextUser?.id || isLocalPreview !== nextPreview;
+    if (changedAccount) {
+      accountEpoch += 1;
+      earlyCloudReady = false;
+      window.clearTimeout(earlySyncTimer);
+      earlyDirty.clear();
+      earlyProfiles = new Map();
+      earlyNotice = ""; earlyStorage = "";
+      stopAutoRun();
+      earlyRun = null;
+      completed = new Set([...completed].filter((id) => !early.isEarly(lessonById(id))));
+    }
+    authUser = nextUser;
+    isLocalPreview = nextPreview;
+    if (changedAccount) {
+      for (const item of courseMissions.filter(early.isEarly)) {
+        const p = earlyProfile(item.id);
+        if (p.completed) completed.add(item.id);
+        if (p.updatedAt) earlyDirty.add(item.id);
+      }
+      if (early.isEarly(mission())) { program = []; courseView = "stages"; resetSimulation(); }
+      render();
+    }
     if (authUser) {
       syncProgressFromCloud();
       if (pendingMissionIndex !== null) {
@@ -6305,6 +6807,114 @@ window.addEventListener("unhandledrejection", (event) => {
       }
     } else {
       setProgressSyncState("本机进度");
+    }
+  });
+
+  function handleEarlyClick(event) {
+    const button = event.target.closest("button");
+    if (!button || button.disabled || !early.isEarly(mission())) return;
+    const m = mission(), p = earlyProfile(m.id);
+    const field = button.dataset.earlyField, action = button.dataset.earlyAction;
+    hideRunBlocker();
+    if (action === "build" || action === "show-review") {
+      const target = action === "build" ? dom.operationPanel : earlyEvidencePanel;
+      target.scrollIntoView({ block: "start", behavior: "auto" });
+      target.setAttribute("tabindex", "-1");
+      target.focus({ preventScroll: true });
+      return;
+    }
+    if (field) {
+      p[field] = field === "loopCount" ? Number(button.dataset.value) : button.dataset.value;
+      if (field === "diagnosis") selectedProgramIndex = Number(p.diagnosis) - 1;
+      if (field === "plan") { selectedRouteChoiceId = p.plan; p.prediction = ""; }
+      earlyNotice = "";
+      if (field === "prerequisite" && p.prerequisite !== m.early.prerequisite.answer) {
+        earlyNotice = "再想想：转向不移动，采集要站在信标上。";
+      }
+      if (["designerTarget", "actionLimit", "loopCount", "loopBoundary"].includes(field)) {
+        if (field === "designerTarget") { p.draft = []; program = []; p.guidedComplete = false; }
+        resetSimulation();
+      }
+    } else if (["guided", "repair", "challenge", "next"].includes(action)) {
+      if (action === p.phase) return;
+      stopAutoRun();
+      early.switchChallenge(p, action === "next" ? p.phase : action, action === "next");
+      const updated = mission();
+      program = (updated.early.mainStarter || (updated.early.repairing ? updated.early.faulty : [])).slice();
+      routeProgram = (updated.early.functionStarter || []).slice();
+      p.draft = program.slice();
+      p.functionDraft = routeProgram.slice();
+      p.initializedKey = updated.early.key;
+      selectedProgramIndex = null;
+      selectedRouteChoiceId = null; earlyNotice = "";
+      saveEarlyProfile(m.id);
+      resetSimulation();
+    } else if (action === "toggle-obstacle") {
+      const id = button.dataset.value;
+      p.obstacles = p.obstacles.includes(id) ? p.obstacles.filter((item) => item !== id) : [...p.obstacles, id].slice(-2);
+      p.draft = []; program = []; p.guidedComplete = false; earlyNotice = "规则已改变，请重新交出作者解。";
+      resetSimulation();
+    } else if (action === "repair-rule") {
+      if (p.ruleDiagnosis !== m.early.diagnosisAnswer) { earlyNotice = "再看运行证据：问题出在题目规则，不是作者程序。"; }
+      else { p.ruleFixed = true; earlyNotice = "规则已修正。现在用同一作者解重新验证。"; resetSimulation(); }
+    } else if (action === "revise-rule") {
+      if (!p.failureReason) earlyNotice = "先说明失败方案违反了哪条规则。";
+      else { p.ruleRevised = true; earlyNotice = "作品 v2 已保存。现在换成作者解，验证修改没有破坏可解性。"; }
+    } else if (action === "faulty") {
+      stopAutoRun();
+      program = m.early.faulty.slice(); p.draft = program.slice(); p.diagnosis = "";
+      if (m.early.faultyFunction) { routeProgram = m.early.faultyFunction.slice(); p.functionDraft = routeProgram.slice(); }
+      selectedProgramIndex = null;
+      earlyNotice = "先运行，再找最早的错误。";
+      resetSimulation();
+    } else if (action === "hint") {
+      p.hintLevel = Math.min(3, p.hintLevel + 1);
+      if (p.hintLevel >= 3) p.assisted = true;
+    } else if (action === "review") {
+      const good = early.review(m, p, p.reflection, null, p.reconciliation);
+      const last = p.attempts.at(-1);
+      earlyNotice = !good ? "先运行成功，再写一句说明。"
+        : p.mastered ? "本课挑战完成！"
+        : !p.guidedComplete ? "已保存。先完成“自己编”。"
+        : !p.repairEvidence ? "已保存。下一步：找错并改。"
+        : !last.independent ? "已保存。下一步：换图挑战。"
+        : last.assisted ? "已保存。换张图，自己再试一次。"
+        : !last.predictionCorrect ? "已保存。重新预测，再试一次。"
+        : !last.targetOrderCorrect ? "已保存。请按 A → B 采集。"
+        : "已保存。请选择改用这条路线的理由。";
+    }
+    saveEarlyProfile(m.id);
+    render();
+  }
+  earlyEvidencePanel.addEventListener("input", (event) => {
+    if (event.target.id !== "earlyReflection" || !early.isEarly(mission())) return;
+    earlyProfile(mission().id).reflection = event.target.value.slice(0, 600);
+    saveEarlyProfile(mission().id);
+  });
+  earlyPanel.addEventListener("input", (event) => {
+    if (event.target.id !== "earlyFunctionName" || !early.isEarly(mission())) return;
+    const raw = event.target.value.replace(/[^A-Za-z0-9_]/g, "").slice(0, 24);
+    const next = /^[A-Za-z_]/.test(raw) ? raw : raw ? `_${raw}` : "visit_side";
+    const p = earlyProfile(mission().id);
+    p.functionName = next;
+    if (event.target.value !== next) event.target.value = next;
+    const definitionLabel = earlyPanel.querySelector(".early-function-contract strong");
+    if (definitionLabel) definitionLabel.textContent = `def ${next}():`;
+    saveEarlyProfile(mission().id);
+    renderProgramTabs(); renderProgramList(); renderPalette(); renderCodeView();
+  });
+  earlyPanel.addEventListener("click", handleEarlyClick);
+  earlyEvidencePanel.addEventListener("click", handleEarlyClick);
+
+  window.addEventListener("online", () => {
+    if (authUser) syncProgressFromCloud();
+  });
+  window.addEventListener("pagehide", () => {
+    // Synchronous local saves have already retained every edit. Keep small pending writes alive on navigation.
+    if (!authUser || !earlyCloudReady) return;
+    for (const id of earlyDirty) {
+      const body = JSON.stringify(progressPayload(id, earlyProfile(id).completed ? "completed" : "started"));
+      if (body.length < 60000) fetch(progressApi, { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body, keepalive: true }).catch(() => {});
     }
   });
 

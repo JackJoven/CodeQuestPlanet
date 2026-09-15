@@ -1415,7 +1415,7 @@ canvas.is-dragging {
 }
 
 .world-run-button,
-.world-hint-button {
+.world-reset-button {
   border: 0;
   border-radius: 999px;
   min-height: 52px;
@@ -1454,12 +1454,102 @@ canvas.is-dragging {
   border-bottom: 8px solid transparent;
 }
 
-.world-hint-button {
+.world-reset-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   min-width: 96px;
   padding: 0 24px;
   background: rgba(255, 255, 255, 0.72);
   color: #4390c9;
   font-weight: 900;
+}
+
+.world-reset-button span {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.world-reset-button:hover,
+.world-reset-button:focus-visible {
+  background: rgba(255, 255, 255, 0.92);
+  color: #176ba9;
+}
+
+.run-blocker-toast {
+  position: fixed;
+  top: max(82px, calc(env(safe-area-inset-top) + 16px));
+  left: 50%;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 10px;
+  width: min(440px, calc(100vw - 24px));
+  min-height: 70px;
+  padding: 10px 10px 10px 14px;
+  border: 1px solid rgba(105, 193, 255, 0.52);
+  border-radius: 12px;
+  background: #102861;
+  color: #ffffff;
+  box-shadow: 0 6px 8px rgba(2, 7, 32, 0.28);
+  transform: translateX(-50%);
+  animation: run-blocker-enter 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.run-blocker-toast[hidden] {
+  display: none;
+}
+
+.run-blocker-mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ffb82e;
+  color: #211600;
+  font-weight: 950;
+}
+
+.run-blocker-toast strong,
+.run-blocker-toast p {
+  display: block;
+  margin: 0;
+}
+
+.run-blocker-toast strong {
+  font-size: 0.92rem;
+}
+
+.run-blocker-toast p {
+  margin-top: 3px;
+  color: #d8e8ff;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.run-blocker-toast button {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #d8e8ff;
+  cursor: pointer;
+  font-size: 1.45rem;
+}
+
+.run-blocker-toast button:hover,
+.run-blocker-toast button:focus-visible {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+@keyframes run-blocker-enter {
+  from { opacity: 0; transform: translate(-50%, -8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
 }
 
 .hud-grid {
@@ -1946,7 +2036,7 @@ pre {
     font-size: 0.92rem;
   }
 
-  .world-hint-button {
+  .world-reset-button {
     flex: 0 0 92px;
     min-width: 0;
     min-height: 50px;
@@ -2966,7 +3056,7 @@ body.student-page {
 }
 
 .student-page .world-run-button,
-.student-page .world-hint-button {
+.student-page .world-reset-button {
   min-height: 50px;
   box-shadow: 0 5px 8px rgba(41, 102, 135, 0.14);
 }
@@ -3086,9 +3176,23 @@ body.student-page {
   border-top: 1px solid #3562ad;
 }
 
-.student-page .mission-brief.is-playground .playground-optional {
-  color: #c4d3f6;
-  font-size: 0.8rem;
+.student-page .playground-guide-button {
+  justify-self: start;
+  min-height: 44px;
+  padding: 9px 13px;
+  border: 1px solid #4d74bb;
+  border-radius: 8px;
+  background: #173b7e;
+  color: #edf3ff;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.student-page .playground-guide-button:hover,
+.student-page .playground-guide-button:focus-visible {
+  border-color: #8ee7ff;
+  color: #ffffff;
 }
 
 .student-page .sequence-timeline-panel {
@@ -5539,6 +5643,73 @@ body.student-page {
   font-weight: 800;
 }
 
+.student-page .python-case-panel {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid rgba(30, 65, 72, 0.14);
+  border-radius: 16px;
+  background: rgba(247, 250, 244, 0.82);
+}
+
+.student-page .python-case-panel > div:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.student-page .python-case-panel small {
+  color: var(--muted);
+}
+
+.student-page .python-case-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 8px;
+}
+
+.student-page .python-case-grid > span {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 7px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(30, 65, 72, 0.12);
+  border-radius: 12px;
+  background: #fff;
+  font-size: 0.82rem;
+}
+
+.student-page .python-case-grid > span b {
+  grid-row: span 2;
+  color: #7a8279;
+}
+
+.student-page .python-case-grid > span small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-page .python-case-grid > span[data-state="passed"] {
+  border-color: rgba(42, 132, 91, 0.3);
+  background: rgba(231, 248, 238, 0.8);
+}
+
+.student-page .python-case-grid > span[data-state="passed"] b {
+  color: #237b53;
+}
+
+.student-page .python-case-grid > span[data-state="failed"] {
+  border-color: rgba(190, 91, 55, 0.32);
+  background: rgba(255, 241, 235, 0.86);
+}
+
+.student-page .python-case-grid > span[data-state="failed"] b {
+  color: #b54f2f;
+}
+
 .student-page .python-run-controls {
   display: grid;
   grid-template-columns: 1.25fr repeat(3, minmax(0, 1fr));
@@ -5587,6 +5758,13 @@ body.student-page {
   padding: 14px 22px;
   border-bottom: 1px solid rgba(91, 166, 255, 0.24);
   background: #102e75;
+}
+
+.student-page .python-state-panel > *,
+.student-page .python-state-list,
+.student-page .python-state-item,
+.student-page .python-state-item b {
+  min-width: 0;
 }
 
 .student-page .python-state-panel[hidden] {
@@ -5646,9 +5824,12 @@ body.student-page {
 }
 
 .student-page .python-state-item b {
+  max-width: 100%;
   color: #ffd878;
   font-family: Menlo, Monaco, Consolas, monospace;
   font-size: 1.15rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .student-page .python-object-state b,
@@ -5797,10 +5978,16 @@ body.student-page {
   background: #1f64cc;
 }
 
-.student-page .world-hint-button {
+.student-page .world-reset-button {
   border: 1px solid rgba(105, 193, 255, 0.48);
   background: rgba(11, 37, 103, 0.9);
   color: #e4f7ff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .run-blocker-toast {
+    animation: none;
+  }
 }
 
 @media (max-width: 980px) {

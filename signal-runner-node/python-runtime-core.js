@@ -156,6 +156,12 @@
         }
       }
 
+      const augmentedAssignment = trimmed.match(/^([A-Za-z_]\w*)\s*(?:\+=|-=|\*=|\/=)/);
+      if (augmentedAssignment) {
+        output.push(`${indent}__trace_variable__("${augmentedAssignment[1]}", ${augmentedAssignment[1]})`);
+        lineMap.set(output.length, studentLine);
+      }
+
       const mutation = trimmed.match(/^([A-Za-z_]\w*)\.(append|insert|remove|pop)\s*\(/);
       if (mutation) {
         output.push(`${indent}__trace_variable__("${mutation[1]}", ${mutation[1]})`);
@@ -202,10 +208,12 @@
     return [
       "class Explorer:",
       "    kind = 'Explorer'",
-      "    def __init__(self, name, energy, x=None, y=None, direction='E'):",
+      "    def __init__(self, name, energy, x=None, y=None, direction='E', cargo=0, capacity=1):",
       "        self.name = name",
       "        self.energy = energy",
-      "        __object_created__(name, self.kind, energy, x, y, direction)",
+      "        self.cargo = cargo",
+      "        self.capacity = capacity",
+      "        __object_created__(name, self.kind, energy, x, y, direction, cargo, capacity)",
       "    def move(self):",
       "        __object_select__(self.name)",
       "        __object_before_action__(self.name, 'move')",
@@ -216,11 +224,13 @@
       "        __object_select__(self.name)",
       "        __object_before_action__(self.name, 'collect')",
       "        collect()",
+      "        self.cargo = self.cargo + 1",
       "        __object_action__(self.name, self.kind, 'collect')",
       "    def upload(self):",
       "        __object_select__(self.name)",
       "        __object_before_action__(self.name, 'upload')",
       "        upload()",
+      "        self.cargo = 0",
       "        __object_action__(self.name, self.kind, 'upload')",
       "    def scan(self):",
       "        __object_select__(self.name)",
@@ -230,13 +240,19 @@
       "        __object_select__(self.name)",
       "        wait()",
       "        __object_action__(self.name, self.kind, 'wait')",
+      "    def transfer_to(self, other, amount=1):",
+      "        __object_transfer__(self.name, other.name, amount)",
+      "        self.cargo = self.cargo - amount",
+      "        other.cargo = other.cargo + amount",
       "",
       "class Flyer:",
       "    kind = 'Flyer'",
-      "    def __init__(self, name, energy, x=None, y=None, direction='E'):",
+      "    def __init__(self, name, energy, x=None, y=None, direction='E', cargo=0, capacity=0):",
       "        self.name = name",
       "        self.energy = energy",
-      "        __object_created__(name, self.kind, energy, x, y, direction)",
+      "        self.cargo = cargo",
+      "        self.capacity = capacity",
+      "        __object_created__(name, self.kind, energy, x, y, direction, cargo, capacity)",
       "    def move(self):",
       "        __object_select__(self.name)",
       "        __object_before_action__(self.name, 'move')",
@@ -258,10 +274,12 @@
       "",
       "class Spaceship:",
       "    kind = 'Spaceship'",
-      "    def __init__(self, name, energy, x=None, y=None, direction='E'):",
+      "    def __init__(self, name, energy, x=None, y=None, direction='E', cargo=0, capacity=2):",
       "        self.name = name",
       "        self.energy = energy",
-      "        __object_created__(name, self.kind, energy, x, y, direction)",
+      "        self.cargo = cargo",
+      "        self.capacity = capacity",
+      "        __object_created__(name, self.kind, energy, x, y, direction, cargo, capacity)",
       "    def move(self):",
       "        __object_select__(self.name)",
       "        __object_before_action__(self.name, 'move')",
@@ -272,6 +290,7 @@
       "        __object_select__(self.name)",
       "        __object_before_action__(self.name, 'upload')",
       "        upload()",
+      "        self.cargo = 0",
       "        __object_action__(self.name, self.kind, 'upload')",
       "    def collect(self):",
       "        __object_capability_error__(self.name, self.kind, 'collect')",
@@ -279,6 +298,10 @@
       "        __object_select__(self.name)",
       "        wait()",
       "        __object_action__(self.name, self.kind, 'wait')",
+      "    def transfer_to(self, other, amount=1):",
+      "        __object_transfer__(self.name, other.name, amount)",
+      "        self.cargo = self.cargo - amount",
+      "        other.cargo = other.cargo + amount",
       "",
       "class RescueKit:",
       "    kind = 'RescueKit'",
@@ -351,11 +374,14 @@
     const objectModel = Boolean(options.objectModel);
     const multiObject = Boolean(options.multiObject);
     const languageFeatures = new Set(options.languageFeatures || []);
+    const courseInputs = options.courseInputs && typeof options.courseInputs === "object" ? options.courseInputs : {};
+    const courseRules = options.courseRules && typeof options.courseRules === "object" ? options.courseRules : {};
     const baseWorld = world ? {
       grid: world.grid.slice(),
       start: { ...world.start },
       startDir: world.startDir,
-      required: world.required
+      required: world.required,
+      targetPositions: Array.isArray(world.targetPositions) ? world.targetPositions.map((point) => ({ ...point })) : []
     } : null;
     const directionNames = ["N", "E", "S", "W"];
     const directionVectors = [
@@ -387,6 +413,11 @@
           variables: {},
           objects: {},
           functions: {},
+          reports: [],
+          rescues: [],
+          transfers: [],
+          ticks: 0,
+          environmentObjects: (courseRules.movingObjects || []).map((item) => ({ ...item, cleared: item.clearAt !== null && item.clearAt !== undefined && Number(item.clearAt) <= 0 })),
           worldBuild: { active: false, grid: null, placements: [], portals: [], schema: null, schemaValidated: false }
         };
       }
@@ -399,6 +430,11 @@
         variables: {},
         objects: {},
         functions: {},
+        reports: [],
+        rescues: [],
+        transfers: [],
+        ticks: 0,
+        environmentObjects: (courseRules.movingObjects || []).map((item) => ({ ...item, cleared: item.clearAt !== null && item.clearAt !== undefined && Number(item.clearAt) <= 0 })),
         worldBuild: { active: false, grid: null, placements: [], portals: [], schema: null, schemaValidated: false }
       };
     }
@@ -424,6 +460,32 @@
 
     function collectedCount() {
       return Array.isArray(plannedState.collectedKeys) ? plannedState.collectedKeys.length : plannedState.collected ? 1 : 0;
+    }
+
+    function isBeaconAt(x, y) {
+      if (worldTile(x, y) === "B") return true;
+      return Array.isArray(world?.targetPositions) && world.targetPositions.some((point) => Number(point.x) === x && Number(point.y) === y);
+    }
+
+    function activeEnvironmentObjectAt(x, y) {
+      return (plannedState.environmentObjects || []).find((item) => !item.cleared && Number(item.x) === x && Number(item.y) === y);
+    }
+
+    function advanceEnvironment() {
+      plannedState.ticks += 1;
+      plannedState.environmentObjects = (plannedState.environmentObjects || []).map((item) => {
+        if (item.clearAt === null || item.clearAt === undefined) return { ...item };
+        return plannedState.ticks >= Number(item.clearAt) ? { ...item, cleared: true } : { ...item };
+      });
+    }
+
+    function passageIsClear() {
+      const configured = Array.isArray(courseRules.passageCell)
+        ? { x: Number(courseRules.passageCell[0]), y: Number(courseRules.passageCell[1]) }
+        : worldAhead();
+      return !isWorldBlocked(configured.x, configured.y)
+        && !activeEnvironmentObjectAt(configured.x, configured.y)
+        && !Object.values(plannedState.objects || {}).some((item) => item.name !== activeObjectName && item.x === configured.x && item.y === configured.y);
     }
 
     function guardApiCall() {
@@ -590,6 +652,38 @@
         return Sk.builtin.none.none$;
       });
 
+      Sk.builtins.course_value = new Sk.builtin.func(function (name) {
+        const key = String(Sk.ffi.remapToJs(name));
+        if (!Object.prototype.hasOwnProperty.call(courseInputs, key)) runtimeFailure(`当前验证场没有输入 ${key}。`);
+        return Sk.ffi.remapToPy(courseInputs[key]);
+      });
+
+      Sk.builtins.report = new Sk.builtin.func(function (value) {
+        const result = serializePythonValue(value);
+        plannedState.reports = [...(plannedState.reports || []), result];
+        pushEvent("report", `第 ${currentStudentLine} 行 report()：提交 ${JSON.stringify(result)}。`, { report: result });
+        return Sk.builtin.none.none$;
+      });
+
+      Sk.builtins.rescue = new Sk.builtin.func(function (name) {
+        const targetName = String(Sk.ffi.remapToJs(name));
+        const costs = courseInputs.costs && typeof courseInputs.costs === "object" ? courseInputs.costs : {};
+        if (!Object.prototype.hasOwnProperty.call(costs, targetName)) runtimeFailure(`救援表中找不到 ${targetName} 的费用。`);
+        plannedState.rescues = [...(plannedState.rescues || []), targetName];
+        pushEvent("rescue", `第 ${currentStudentLine} 行 rescue(${JSON.stringify(targetName)})：调度完成。`, { rescue: { name: targetName, cost: Number(costs[targetName]) } });
+        return Sk.builtin.none.none$;
+      });
+
+      Sk.builtins.is_passage_clear = new Sk.builtin.func(function () {
+        const result = passageIsClear();
+        pushEvent("condition", `第 ${currentStudentLine} 行 is_passage_clear() → ${result ? "True" : "False"}。`);
+        return new Sk.builtin.bool(result);
+      });
+
+      Sk.builtins.current_tick = new Sk.builtin.func(function () {
+        return new Sk.builtin.int_(Number(plannedState.ticks || 0));
+      });
+
       Sk.builtins.build_world = new Sk.builtin.func(function (mapData) {
         if (!world) runtimeFailure("当前课程没有开放世界建造。");
         const blueprint = normalizeWorldGrid(mapData);
@@ -749,8 +843,14 @@
         if (!multiObject) return Sk.builtin.none.none$;
         const objectName = String(Sk.ffi.remapToJs(name));
         const objectAction = String(Sk.ffi.remapToJs(action));
-        if (objectAction !== "move") return Sk.builtin.none.none$;
         const objectState = plannedState.objects[objectName];
+        if (objectAction === "upload" && courseRules.requireCargoForUpload && Number(objectState?.cargo || 0) < 1) {
+          animatedFailure("action-fail", `${objectName} 还没有收到货物，不能上传。`, {
+            failureKind: "missing-cargo",
+            object: { name: objectName, action: objectAction }
+          });
+        }
+        if (objectAction !== "move") return Sk.builtin.none.none$;
         const directionIndex = Math.max(0, directionNames.indexOf(objectState.directionName || "E"));
         const vector = directionVectors[directionIndex];
         const destination = { x: objectState.x + vector.x, y: objectState.y + vector.y };
@@ -759,14 +859,15 @@
             && item.x === destination.x
             && item.y === destination.y;
         });
-        const actorWaited = objectState.actions?.at(-1) === "wait";
-        if (occupied && !actorWaited) {
+        const environmentOccupied = activeEnvironmentObjectAt(destination.x, destination.y);
+        if (occupied || environmentOccupied) {
+          const occupiedName = occupied?.name || environmentOccupied?.name || "移动物体";
           animatedFailure(
             "action-fail",
-            `${objectName} 前往 (${destination.x}, ${destination.y}) 时与 ${occupied.name} 发生占位冲突。让其中一个对象等待或调整顺序。`,
+            `${objectName} 前往 (${destination.x}, ${destination.y}) 时与 ${occupiedName} 发生占位冲突。等待后也必须重新确认格子已经空出。`,
             {
               failureKind: "object-conflict",
-              conflict: { actor: objectName, occupiedBy: occupied.name, ...destination }
+              conflict: { actor: objectName, occupiedBy: occupiedName, ...destination }
             }
           );
         }
@@ -791,13 +892,15 @@
         return Sk.builtin.none.none$;
       });
 
-      Sk.builtins.__object_created__ = new Sk.builtin.func(function (name, type, energy, xValue, yValue, directionValue) {
+      Sk.builtins.__object_created__ = new Sk.builtin.func(function (name, type, energy, xValue, yValue, directionValue, cargoValue, capacityValue) {
         const objectName = String(Sk.ffi.remapToJs(name));
         const objectType = String(Sk.ffi.remapToJs(type));
         const initialObjectEnergy = Number(Sk.ffi.remapToJs(energy));
         const x = xValue && xValue !== Sk.builtin.none.none$ ? Number(Sk.ffi.remapToJs(xValue)) : Number(world?.start?.x || 0);
         const y = yValue && yValue !== Sk.builtin.none.none$ ? Number(Sk.ffi.remapToJs(yValue)) : Number(world?.start?.y || 0);
         const directionName = directionValue ? String(Sk.ffi.remapToJs(directionValue)) : String(world?.startDir || "E");
+        const cargo = cargoValue && cargoValue !== Sk.builtin.none.none$ ? Number(Sk.ffi.remapToJs(cargoValue)) : 0;
+        const capacity = capacityValue && capacityValue !== Sk.builtin.none.none$ ? Number(Sk.ffi.remapToJs(capacityValue)) : 0;
         const replaced = Object.prototype.hasOwnProperty.call(plannedState.objects, objectName);
         plannedState.objects = {
           ...plannedState.objects,
@@ -809,6 +912,8 @@
             x,
             y,
             directionName,
+            cargo,
+            capacity,
             waits: 0,
             actions: []
           }
@@ -839,6 +944,7 @@
           x: multiObject && activeObjectName === objectName ? plannedState.x : currentObject.x,
           y: multiObject && activeObjectName === objectName ? plannedState.y : currentObject.y,
           directionName: multiObject && activeObjectName === objectName ? plannedState.directionName : currentObject.directionName,
+          cargo: objectAction === "upload" ? 0 : Number(currentObject.cargo || 0) + (objectAction === "collect" ? 1 : 0),
           waits: Number(currentObject.waits || 0) + (objectAction === "wait" ? 1 : 0),
           actions: [...(currentObject.actions || []), objectAction]
         };
@@ -848,6 +954,32 @@
           `第 ${currentStudentLine} 行：${objectName}（${objectType}）执行 ${objectAction}。`,
           { object: { name: objectName, type: objectType, action: objectAction } }
         );
+        return Sk.builtin.none.none$;
+      });
+
+      Sk.builtins.__object_transfer__ = new Sk.builtin.func(function (fromValue, toValue, amountValue) {
+        const from = String(Sk.ffi.remapToJs(fromValue));
+        const to = String(Sk.ffi.remapToJs(toValue));
+        const amount = Number(Sk.ffi.remapToJs(amountValue));
+        const sender = plannedState.objects[from];
+        const receiver = plannedState.objects[to];
+        if (!sender || !receiver) runtimeFailure("交接双方必须是已经创建的两个对象。");
+        if (!Number.isInteger(amount) || amount <= 0) runtimeFailure("交接数量必须是正整数。");
+        if (Number(sender.cargo || 0) < amount) runtimeFailure(`${from} 没有足够货物可以交接。`);
+        if (Number(receiver.cargo || 0) + amount > Number(receiver.capacity || 0)) runtimeFailure(`${to} 的容量不足，交接没有发生。`);
+        const adjacent = Math.abs(Number(sender.x) - Number(receiver.x)) + Math.abs(Number(sender.y) - Number(receiver.y)) === 1;
+        if (!adjacent) runtimeFailure("交接双方必须位于相邻格。");
+        const handoffCells = Array.isArray(courseRules.handoffCells) ? courseRules.handoffCells : [];
+        const inHandoff = !handoffCells.length || [sender, receiver].every((objectState) => handoffCells.some((cell) => Number(cell[0]) === Number(objectState.x) && Number(cell[1]) === Number(objectState.y)));
+        if (!inHandoff) runtimeFailure("交接双方必须同时位于交接区。");
+        plannedState.objects = {
+          ...plannedState.objects,
+          [from]: { ...sender, cargo: Number(sender.cargo || 0) - amount },
+          [to]: { ...receiver, cargo: Number(receiver.cargo || 0) + amount }
+        };
+        const transfer = { from, to, amount };
+        plannedState.transfers = [...(plannedState.transfers || []), transfer];
+        pushEvent("transfer", `第 ${currentStudentLine} 行：${from} 向 ${to} 交接 ${amount} 件货物。`, { transfer });
         return Sk.builtin.none.none$;
       });
 
@@ -950,6 +1082,7 @@
       });
 
       Sk.builtins.wait = new Sk.builtin.func(function () {
+        advanceEnvironment();
         pushEvent("wait", `第 ${currentStudentLine} 行 wait()：当前对象保持位置，把这一拍让给协作对象。`, {
           object: activeObjectName ? { name: activeObjectName, action: "wait" } : undefined
         });
@@ -967,7 +1100,7 @@
       Sk.builtins.collect = new Sk.builtin.func(function () {
         if (world) {
           const key = worldKey(plannedState.x, plannedState.y);
-          if (worldTile(plannedState.x, plannedState.y) !== "B") {
+          if (!isBeaconAt(plannedState.x, plannedState.y)) {
             animatedFailure("action-fail", "当前位置没有可以采集的信标。", { failureKind: "empty-collect" });
           }
           if (plannedState.collectedKeys.includes(key)) {
@@ -1015,7 +1148,7 @@
 
       Sk.builtins.at_beacon = new Sk.builtin.func(function () {
         const result = world
-          ? worldTile(plannedState.x, plannedState.y) === "B" && !plannedState.collectedKeys.includes(worldKey(plannedState.x, plannedState.y))
+          ? isBeaconAt(plannedState.x, plannedState.y) && !plannedState.collectedKeys.includes(worldKey(plannedState.x, plannedState.y))
           : plannedState.position === beaconPosition;
         pushEvent("condition", `第 ${currentStudentLine} 行 at_beacon() → ${result ? "True" : "False"}。`);
         return new Sk.builtin.bool(result);
@@ -1054,6 +1187,7 @@
         world.start = { ...baseWorld.start };
         world.startDir = baseWorld.startDir;
         world.required = baseWorld.required;
+        world.targetPositions = baseWorld.targetPositions.map((point) => ({ ...point }));
       }
       worldPortals = new Map();
       activeObjectName = null;
