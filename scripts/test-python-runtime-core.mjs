@@ -29,8 +29,8 @@ assert.equal(context.SignalRunnerCourseData.version, "core-v1.6");
 
 const curriculumTitles = [
   "启动信号", "谁的左和右", "先画路线再出发", "调试侦探社", "星图坐标站", "三段救援任务", "设计一条可解路线", "第一场独立救援",
-  "把动作装进工具箱", "一个工具，多处使用", "找出重复的一组", "循环到哪里为止", "看到危险再行动", "写一条安全规则", "不数步，也能到达", "自动救援程序",
-  "会记数的探测员", "能量账本", "给工具一个参数", "让函数交回答案", "一张会变化的清单", "清单变长以后", "用名字查规则", "救援调度台",
+  "把动作装进工具箱", "一个工具，多处使用", "找出重复的一组", "循环到哪里为止", "看到尖刺再行动", "写一条安全规则", "不数步，也能到达", "自动救援程序",
+  "会记数的 Nova", "能量账本", "给工具一个参数", "让函数交回答案", "一张会变化的清单", "清单变长以后", "用名字查规则", "救援调度台",
   "地图藏在表格里", "用数据修一座桥", "把任务交给谁", "两个同款机器人", "接力运输", "等到通道真的空了", "让别人也能玩", "重建中继站"
 ];
 
@@ -145,7 +145,7 @@ for (let number = 13; number <= 32; number += 1) {
 
 const safetyRuntime = context.CodeQuestPythonRuntime.create({ Sk: context.Sk, apiCallLimit: 12 });
 await assert.rejects(() => safetyRuntime.compile("import os"), /暂时只开放/);
-await assert.rejects(() => safetyRuntime.compile("while not at_beacon():\n    turn_left()"), /循环|停止条件/);
+await assert.rejects(() => safetyRuntime.compile("while not at_gem():\n    turn_left()"), /循环|停止条件/);
 
 const traced = context.CodeQuestPythonRuntime.instrumentSource("count = 0\ncount += 1").code;
 assert.ok((traced.match(/__trace_variable__/g) || []).length >= 2, "+= should emit variable evidence");
@@ -156,6 +156,14 @@ assert.match(appSource, /signalRunnerNode\.python\.core-v1\.6/);
 assert.match(pageSource, /id="pythonCaseGrid"/);
 assert.match(pageSource, /id="worldResetBtn"[^>]*>[\s\S]*?复位<\/button>/);
 assert.match(pageSource, /id="runBlockerToast"[^>]*role="alert"/);
+assert.match(pageSource, /id="commandExplanation"[^>]*aria-live="polite"/);
+assert.match(pageSource, /id="activeBoardHint">按顺序执行/);
 assert.match(pageSource, /v16-course-overrides\.js/);
+assert.match(appSource, /label: "while not gem"/);
+assert.match(appSource, /code: "while not at_gem\(\):/);
+assert.doesNotMatch(appSource, /label: "while not beacon"/i);
+assert.doesNotMatch(appSource, /at_beacon\(/i);
+assert.match(appSource, /data-replace-step=/);
+assert.match(appSource, /请选择新指令/);
 
 console.log(`Python runtime: ${passedCases} 个 v1.6 迁移场景、32 课清单与运行器安全检查全部通过。`);

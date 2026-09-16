@@ -17,11 +17,11 @@
     ["一个工具，多处使用", "function-contract", "让同一工具在多个入口保持可靠", "调用前后状态表"],
     ["找出重复的一组", "loop-unit", "把“移动两格再采集”作为完整循环单元", "循环展开证据"],
     ["循环到哪里为止", "loop-boundary", "用缩进决定动作在循环内还是循环外", "循环边界对照"],
-    ["看到危险再行动", "conditional-action", "每次移动前重新判断危险", "多场景条件轨迹"],
-    ["写一条安全规则", "boolean-guard", "组合通路、危险和能量边界", "八状态规则表"],
-    ["不数步，也能到达", "while-progress", "用状态而不是固定步数控制循环", "未知距离验证"],
+    ["看到尖刺再行动", "conditional-action", "让条件根据前方状态决定是否行动", "条件真假轨迹"],
+    ["写一条安全规则", "boolean-guard", "组合通路、尖刺和能量边界", "三状态反例轨迹"],
+    ["不数步，也能到达", "while-progress", "用状态而不是固定步数控制循环", "未知距离循环证据"],
     ["自动救援程序", "control-flow-capstone", "组合循环与条件写出可迁移规则", "自动救援测试包"],
-    ["会记数的探测员", "event-counter", "让变量和真实采集事件一一对应", "计数事件账本"],
+    ["会记数的 Nova", "event-counter", "让变量和真实采集事件一一对应", "计数事件账本"],
     ["能量账本", "energy-ledger", "根据真实动作计算消耗的能量", "能量收支记录"],
     ["给工具一个参数", "function-parameter", "让参数真正控制函数执行次数", "参数调用轨迹"],
     ["让函数交回答案", "return-value", "让返回值参与调用者的决定", "返回值决策证据"],
@@ -42,7 +42,7 @@
   const phaseNames = ["先试一试", "主任务", "调试比较", "独立迁移", "保存证据"];
   const curriculumKnowledge = [
     "顺序 · move · collect", "相对方向 · 左转 · 右转", "路线规划 · 先计划后执行", "第一次偏离 · 调试", "坐标 (x, y) · 目标顺序", "任务分段 · A→B→上传", "可解性 · 规则 · 作者解", "独立迁移 · 综合调试",
-    "函数定义 · 函数调用", "函数约定 · 多处复用", "for · range · 完整重复单元", "缩进 · 循环边界", "if · 危险检测", "and · not · 能量边界", "while · 停止条件 · 进展保护", "循环 · 条件 · 自动控制",
+    "函数定义 · 函数调用", "函数约定 · 多处复用", "for · range · 完整重复单元", "缩进 · 循环边界", "if · 尖刺检测", "and · not · 能量边界", "while · 停止条件 · 进展保护", "循环 · 条件 · 自动控制",
     "变量 · 事件计数", "状态 · 能量收支", "函数参数 · 输入变化", "return · 调用者决策", "列表 · 遍历 · 空清单", "append · len · 索引", "字典 · 键值查询", "列表 · 字典 · 函数 · 条件",
     "二维列表 · grid[y][x]", "缺口清单 · 数据建造", "对象 · 方法 · 能力职责", "实例 · 身份 · 独立状态", "相邻 · 容量 · 原子交接", "离散时间 · wait · 占位", "schema · 作者解 · 版本", "对象协作 · 交接 · 同步 · 建造"
   ];
@@ -137,28 +137,28 @@
 
   {
     const reference = source(
-      "while not at_beacon():",
-      "    if is_hazard_ahead():",
+      "while not at_gem():",
+      "    if is_spike_ahead():",
       "        shield()",
       "    move()",
       "collect()"
     );
     specs[13] = {
       grid: straight(5, { hazards: [2] }), startDir: "E", energy: 12, required: 1, minEnergy: 0,
-      pythonStudio: studio({ no: 13, title: "让判断跟着每一步走", concept: "if 条件", task: "把危险判断放进移动循环；危险出现在哪一步都要能处理。",
-        starter: reference.replace("    if is_hazard_ahead():", "if is_hazard_ahead():"), reference,
-        functions: ["move", "shield", "collect", "at_beacon", "is_hazard_ahead"],
+      pythonStudio: studio({ no: 13, title: "让判断跟着每一步走", concept: "if 条件", task: "把尖刺判断放进移动循环；尖刺出现在哪一步都要能处理。",
+        starter: reference.replace("    if is_spike_ahead():", "if is_spike_ahead():"), reference,
+        functions: ["move", "shield", "collect", "at_gem", "is_spike_ahead"],
         cases: [
-          makeCase("clear", "无危险", { grid: straight(3), energy: 8, required: 1 }),
-          makeCase("one", "一个危险", { grid: straight(5, { hazards: [2] }), energy: 12, required: 1 }),
-          makeCase("many", "多个危险", { grid: straight(6, { hazards: [1, 4] }), energy: 14, required: 1 })
+          makeCase("clear", "无尖刺", { grid: straight(3), energy: 8, required: 1 }),
+          makeCase("one", "一个尖刺", { grid: straight(5, { hazards: [2] }), energy: 12, required: 1 }),
+          makeCase("many", "多个尖刺", { grid: straight(6, { hazards: [1, 4] }), energy: 14, required: 1 })
         ] })
     };
   }
 
   {
     const reference = source(
-      "safe = is_path_clear() and not is_hazard_ahead() and energy_remaining() >= 2",
+      "safe = is_path_clear() and not is_spike_ahead() and energy_remaining() >= 2",
       "report(safe)",
       "if safe:",
       "    move()"
@@ -169,14 +169,14 @@
     });
     specs[14] = {
       grid: grid("_____", "_Sgg_", "_____"), startDir: "E", energy: 2, required: 0,
-      pythonStudio: studio({ no: 14, title: "把三个条件合成守卫", concept: "and / not / 边界", task: "只有前方可走、不是危险格，并且移动后还能剩 1 点能量时才前进。",
-        starter: reference.replace(" and not is_hazard_ahead()", " or not is_hazard_ahead()"), reference,
-        functions: ["move", "is_path_clear", "is_hazard_ahead", "energy_remaining"],
+      pythonStudio: studio({ no: 14, title: "把三个条件合成守卫", concept: "and / not / 边界", task: "只有前方可走、不是尖刺格，并且移动后还能剩 1 点能量时才前进。",
+        starter: reference.replace(" and not is_spike_ahead()", " or not is_spike_ahead()"), reference,
+        functions: ["move", "is_path_clear", "is_spike_ahead", "energy_remaining"],
         cases: [
           conditionCase("clear-2", "通路 · 能量 2", "g", 2, true),
           conditionCase("clear-1", "通路 · 能量 1", "g", 1, false),
-          conditionCase("hazard-2", "危险 · 能量 2", "H", 2, false),
-          conditionCase("hazard-1", "危险 · 能量 1", "H", 1, false),
+          conditionCase("hazard-2", "尖刺 · 能量 2", "H", 2, false),
+          conditionCase("hazard-1", "尖刺 · 能量 1", "H", 1, false),
           conditionCase("wall-2", "岩石 · 能量 2", "#", 2, false),
           conditionCase("wall-1", "岩石 · 能量 1", "#", 1, false),
           conditionCase("void-2", "边界 · 能量 2", "_", 2, false),
@@ -186,7 +186,7 @@
   }
 
   {
-    const reference = source("while not at_beacon():", "    move()", "collect()");
+    const reference = source("while not at_gem():", "    move()", "collect()");
     const distanceCase = (distance) => makeCase(`distance-${distance}`, `距离 ${distance}`, {
       grid: distance === 0 ? grid("_____", "_Sgg_", "_____") : straight(distance),
       targetPositions: distance === 0 ? [{ x: 1, y: 1 }] : undefined,
@@ -195,28 +195,28 @@
     specs[15] = {
       grid: straight(4), startDir: "E", energy: 8, required: 1,
       pythonStudio: studio({ no: 15, title: "不知道距离也能停下", concept: "while 停止条件", task: "不要把距离写进程序；到达目标时循环应执行 0 次并正常采集。",
-        starter: reference.replace("while not at_beacon():", "if not at_beacon():"), reference,
-        functions: ["move", "collect", "at_beacon"], cases: [0, 1, 4, 6].map(distanceCase) })
+        starter: reference.replace("while not at_gem():", "if not at_gem():"), reference,
+        functions: ["move", "collect", "at_gem"], cases: [0, 1, 4, 6].map(distanceCase) })
     };
   }
 
   {
     const reference = source(
-      "while not at_beacon():",
-      "    if is_hazard_ahead():",
+      "while not at_gem():",
+      "    if is_spike_ahead():",
       "        shield()",
       "    move()",
       "collect()"
     );
     specs[16] = {
       grid: straight(5, { hazards: [3] }), startDir: "E", energy: 12, required: 1,
-      pythonStudio: studio({ no: 16, title: "同一条规则完成陌生救援", concept: "控制流综合", task: "让距离和危险位置改变后，同一份自动救援程序仍能完成任务。",
-        starter: reference.replace("    if is_hazard_ahead():", "if is_hazard_ahead():"), reference,
-        functions: ["move", "shield", "collect", "at_beacon", "is_hazard_ahead"],
+      pythonStudio: studio({ no: 16, title: "同一条规则完成陌生救援", concept: "控制流综合", task: "让距离和尖刺位置改变后，同一份自动救援程序仍能完成任务。",
+        starter: reference.replace("    if is_spike_ahead():", "if is_spike_ahead():"), reference,
+        functions: ["move", "shield", "collect", "at_gem", "is_spike_ahead"],
         cases: [
-          makeCase("short", "短路无危险", { grid: straight(2), energy: 6, required: 1 }),
-          makeCase("middle", "中段危险", { grid: straight(5, { hazards: [3] }), energy: 12, required: 1 }),
-          makeCase("moving-risk", "危险位置改变", { grid: straight(7, { hazards: [1, 6] }), energy: 16, required: 1 })
+          makeCase("short", "短路无尖刺", { grid: straight(2), energy: 6, required: 1 }),
+          makeCase("middle", "中段尖刺", { grid: straight(5, { hazards: [3] }), energy: 12, required: 1 }),
+          makeCase("moving-risk", "尖刺位置改变", { grid: straight(7, { hazards: [1, 6] }), energy: 16, required: 1 })
         ] })
     };
   }
@@ -225,7 +225,7 @@
     const reference = source(
       "collected = 0",
       "for _ in range(course_value(\"target_count\")):",
-      "    while not at_beacon():",
+      "    while not at_gem():",
       "        move()",
       "    collect()",
       "    collected = collected + 1",
@@ -243,11 +243,11 @@
       grid: grid("___________", "_SgBgBgBgg_", "___________"), startDir: "E", energy: 16, required: 3,
       pythonStudio: studio({ no: 17, title: "每次采集，计数一次", concept: "变量与事件", task: "只在 collect() 成功后更新计数，不能硬编码最后答案。",
         starter: reference.replace("    collected = collected + 1", "collected = collected + 1"), reference,
-        functions: ["range", "move", "collect", "at_beacon"], features: ["for-loops"],
+        functions: ["range", "move", "collect", "at_gem"], features: ["for-loops"],
         cases: [
-          beaconCase("none", "0 座信标", "_Sgggg_", 0, 0),
-          beaconCase("one", "1 座信标", "_SgBgg_", 1, 1),
-          beaconCase("three", "3 座信标", "_SgBgBgBgg_", 3, 3)
+          beaconCase("none", "0 座宝石", "_Sgggg_", 0, 0),
+          beaconCase("one", "1 座宝石", "_SgBgg_", 1, 1),
+          beaconCase("three", "3 座宝石", "_SgBgBgBgg_", 3, 3)
         ] })
     };
   }
@@ -255,8 +255,8 @@
   {
     const reference = source(
       "start_energy = energy_remaining()",
-      "while not at_beacon():",
-      "    if is_hazard_ahead():",
+      "while not at_gem():",
+      "    if is_spike_ahead():",
       "        shield()",
       "    move()",
       "collect()",
@@ -274,7 +274,7 @@
       grid: straight(4, { hazards: [2] }), startDir: "E", energy: 20, required: 1,
       pythonStudio: studio({ no: 18, title: "从真实余额算消耗", concept: "能量账本", task: "移动和护盾都消耗能量；用开始值减当前值得到真实账目。",
         starter: reference.replace("start_energy - energy_remaining()", "start_energy - 4"), reference,
-        functions: ["move", "shield", "collect", "at_beacon", "is_hazard_ahead", "energy_remaining"],
+        functions: ["move", "shield", "collect", "at_gem", "is_spike_ahead", "energy_remaining"],
         cases: [energyCase("plain", "3 步无护盾", 3, [], 3), energyCase("one-shield", "4 步 1 次护盾", 4, [2], 5), energyCase("two-shields", "6 步 2 次护盾", 6, [1, 5], 8)] })
     };
   }
@@ -311,7 +311,7 @@
       "enough = energy_after(steps) >= reserve",
       "report(enough)",
       "if enough:",
-      "    while not at_beacon():",
+      "    while not at_gem():",
       "        move()",
       "    collect()"
     );
@@ -326,7 +326,7 @@
       grid: straight(3), startDir: "E", energy: 7, required: 1,
       pythonStudio: studio({ no: 20, title: "返回值要被调用者使用", concept: "return", task: "函数只计算并返回答案；调用者用答案决定是否出发。",
         starter: reference.replace("return energy_remaining() - steps", "return energy_remaining()"), reference,
-        functions: ["move", "collect", "at_beacon", "energy_remaining"], features: ["functions"],
+        functions: ["move", "collect", "at_gem", "energy_remaining"], features: ["functions"],
         cases: [returnCase("above", "高于保留线", 8, 3, 2, true), returnCase("equal", "正好等于保留线", 5, 3, 2, true), returnCase("below", "低于保留线", 4, 3, 2, false)] })
     };
   }
@@ -394,7 +394,7 @@
       "report(action)",
       "if action == \"shield\":",
       "    shield()",
-      "while not at_beacon():",
+      "while not at_gem():",
       "    move()",
       "collect()"
     );
@@ -406,9 +406,9 @@
       grid: straight(3, { hazards: [1] }), startDir: "E", energy: 9, required: 1,
       pythonStudio: studio({ no: 23, title: "查到规则，还要真的使用", concept: "字典查询", task: "字典顺序和取值会改变；用当前名字查规则，并让结果影响行动。",
         starter: reference.replace("rules[terrain]", "rules[\"plain\"]"), reference,
-        functions: ["move", "shield", "collect", "at_beacon"], features: ["dictionaries"],
+        functions: ["move", "shield", "collect", "at_gem"], features: ["dictionaries"],
         cases: [
-          dictCase("hazard", "危险规则", { plain: "move", hazard: "shield" }, "hazard", "shield", true),
+          dictCase("hazard", "尖刺规则", { plain: "move", hazard: "shield" }, "hazard", "shield", true),
           dictCase("reordered", "顺序改变", { hazard: "shield", plain: "move" }, "hazard", "shield", true),
           dictCase("plain", "普通地面", { hazard: "shield", plain: "move" }, "plain", "move", false),
           makeCase("missing", "缺少名字 · 调试", { grid: straight(2), energy: 6, required: 1, inputs: { rules: { plain: "move" }, terrain: "hazard" }, expectedError: "KeyError" })
@@ -462,7 +462,7 @@
       "repair = course_value(\"repair\")",
       "map_data[repair[1]][repair[0]] = \"g\"",
       "build_world(map_data)",
-      "while not at_beacon():",
+      "while not at_gem():",
       "    move()",
       "collect()"
     );
@@ -478,7 +478,7 @@
       grid: fixed4x7, startDir: "E", energy: 12, required: 1,
       pythonStudio: studio({ no: 25, title: "横坐标是 x，行号是 y", concept: "grid[y][x]", task: "在非正方形地图上修复指定格；界面会同时高亮 x 与 y。",
         starter: reference.replace("map_data[repair[1]][repair[0]]", "map_data[repair[0]][repair[1]]"), reference,
-        functions: ["build_world", "move", "collect", "at_beacon"], features: ["lists", "world-building"],
+        functions: ["build_world", "move", "collect", "at_gem"], features: ["lists", "world-building"],
         cases: [matrixCase("4x7", "4 行 × 7 列", map4x7, [2, 1], fixed4x7), matrixCase("5x6", "5 行 × 6 列", map5x6, [2, 1], fixed5x6)] })
     };
   }
@@ -493,7 +493,7 @@
       "    place_tile(x, 1, \"g\")",
       "    materials = materials - 1",
       "report(materials)",
-      "while not at_beacon():",
+      "while not at_gem():",
       "    move()",
       "collect()"
     );
@@ -509,7 +509,7 @@
       grid: ["_________", "_SggggB__", "_________"], startDir: "E", energy: 14, required: 1,
       pythonStudio: studio({ no: 26, title: "缺口清单就是施工计划", concept: "数据驱动建造", task: "只遍历缺口列铺桥；材料消耗必须等于实际新增格数。",
         starter: reference.replace("for x in gaps:", "for x in range(len(gaps) + 1):").replace("place_tile(x, 1", "place_tile(gaps[x], 1"), reference,
-        functions: ["range", "len", "build_world", "place_tile", "move", "collect", "at_beacon"], features: ["for-loops", "lists", "world-building"],
+        functions: ["range", "len", "build_world", "place_tile", "move", "collect", "at_gem"], features: ["for-loops", "lists", "world-building"],
         cases: [
           bridgeCase("two-gaps", "两处缺口", ["_________", "_S__ggB__", "_________"], [2, 3], 4, ["_________", "_SggggB__", "_________"]),
           bridgeCase("three-gaps", "三处缺口", ["__________", "_S___ggB__", "__________"], [2, 3, 4], 5, ["__________", "_SgggggB__", "__________"])
@@ -522,7 +522,7 @@
       "explorer = Explorer(\"Explorer\", 8, 1, 2, \"E\")",
       "flyer = Flyer(\"Flyer\", 6, 1, 1, \"E\")",
       "ship = Spaceship(\"Ship\", 6, 5, 1, \"E\")",
-      "while not at_beacon():",
+      "while not at_gem():",
       "    explorer.move()",
       "explorer.collect()",
       "ship.upload()"
@@ -531,7 +531,7 @@
       grid: grid("_______", "_ggggR_", "_SgBgg_", "_______"), startDir: "E", energy: 16, required: 1,
       pythonStudio: studio({ no: 27, title: "能力属于对象，不属于名字", concept: "对象职责", task: "Explorer 负责采集，Flyer 负责侦察，Spaceship 负责上传；调用要落在真实对象上。",
         starter: reference.replace("explorer.collect()", "flyer.collect()"), reference,
-        functions: ["Explorer", "Flyer", "Spaceship", "move", "collect", "upload", "at_beacon"], objectModel: true, multiObject: true,
+        functions: ["Explorer", "Flyer", "Spaceship", "move", "collect", "upload", "at_gem"], objectModel: true, multiObject: true,
         checks: [
           { kind: "object-action", name: "Explorer", type: "Explorer", action: "collect", message: "采集必须由 Explorer 实例完成" },
           { kind: "object-action", name: "Ship", type: "Spaceship", action: "upload", message: "上传必须由 Spaceship 实例完成" }
@@ -638,7 +638,7 @@
       "level = course_value(\"level\")",
       "validate_world(level)",
       "build_world(level[\"map\"])",
-      "while not at_beacon():",
+      "while not at_gem():",
       "    move()",
       "collect()",
       "while not at_relay():",
@@ -646,17 +646,17 @@
       "upload()"
     );
     const creatorCase = (id, label, level, expectedError) => makeCase(id, label, {
-      grid: level.map, energy: 14, required: level.beacons, inputs: { level }, expectedError,
+      grid: level.map, energy: 14, required: level.gems, inputs: { level }, expectedError,
       stateChecks: expectedError ? [] : [{ kind: "world-schema", property: "name", equals: level.name, message: "发布证据必须来自当前关卡 schema" }]
     });
-    const levelA = { name: "Bridge Relay", map: ["________", "_SgBggR_", "________"], beacons: 1, upload: true };
-    const levelB = { name: "Long Relay", map: ["__________", "_SggBgggR_", "__________"], beacons: 1, upload: true };
+    const levelA = { name: "Bridge Relay", map: ["________", "_SgBggR_", "________"], gems: 1, upload: true };
+    const levelB = { name: "Long Relay", map: ["__________", "_SggBgggR_", "__________"], gems: 1, upload: true };
     specs[31] = {
       grid: levelA.map, startDir: "E", energy: 14, required: 1,
       pythonStudio: studio({ no: 31, title: "数据、规则和作者解一起发布", concept: "关卡 schema", task: "修改有意义的地图位置与目标；静态 schema 校验后，还要动态运行作者解。",
-        starter: reference.replace("level = course_value(\"level\")", "level = {\"name\": \"Broken\", \"map\": course_value(\"level\")[\"map\"], \"beacons\": 2, \"upload\": True}"), reference,
-        functions: ["validate_world", "build_world", "move", "collect", "upload", "at_beacon", "at_relay"], features: ["dictionaries", "lists", "world-building"],
-        cases: [creatorCase("bridge", "桥面模板", levelA), creatorCase("long", "改变目标位置", levelB), creatorCase("invalid", "数量不一致 · 调试", { ...levelA, name: "Broken", beacons: 2 }, "schema")]
+        starter: reference.replace("level = course_value(\"level\")", "level = {\"name\": \"Broken\", \"map\": course_value(\"level\")[\"map\"], \"gems\": 2, \"upload\": True}"), reference,
+        functions: ["validate_world", "build_world", "move", "collect", "upload", "at_gem", "at_relay"], features: ["dictionaries", "lists", "world-building"],
+        cases: [creatorCase("bridge", "桥面模板", levelA), creatorCase("long", "改变目标位置", levelB), creatorCase("invalid", "数量不一致 · 调试", { ...levelA, name: "Broken", gems: 2 }, "schema")]
       })
     };
   }
@@ -677,12 +677,12 @@
       "    carrier.move()",
       "carrier.upload()"
     );
-    const finalLevel = { name: "Rebuild Relay", map: ["_______", "_SBggR_", "_______"], beacons: 1, upload: true };
+    const finalLevel = { name: "Rebuild Relay", map: ["_______", "_SBggR_", "_______"], gems: 1, upload: true };
     const capstoneCase = (id, label, clearAt) => makeCase(id, label, {
       grid: finalLevel.map, energy: 22, required: 1, inputs: { level: finalLevel },
       courseRules: { handoffCells: [[2, 1], [3, 1]], requireCargoForUpload: true, passageCell: [4, 1], movingObjects: [{ name: "truck", x: 4, y: 1, clearAt }] },
       stateChecks: [
-        { kind: "world-schema", property: "beacons", equals: 1, message: "关卡 schema 必须通过" },
+        { kind: "world-schema", property: "gems", equals: 1, message: "关卡 schema 必须通过" },
         { kind: "object-action", name: "Explorer", type: "Explorer", action: "collect", message: "Explorer 必须采集" },
         { kind: "transfer", from: "Explorer", to: "Carrier", amount: 1, message: "必须完成合法交接" },
         { kind: "object-action", name: "Carrier", type: "Spaceship", action: "upload", message: "Carrier 必须上传" },
@@ -712,8 +712,8 @@
     26: { map: ["_________", "_S__ggB__", "_________"], gaps: [2, 3], materials: 4 },
     28: { starts: [[1, 1], [1, 2]] },
     29: { plan: { collector_start: [1, 1], carrier_start: [3, 1], direction: "E", collector_moves: 1, carrier_moves: 2, capacity: 2 } },
-    31: { level: { name: "Bridge Relay", map: ["________", "_SgBggR_", "________"], beacons: 1, upload: true } },
-    32: { level: { name: "Rebuild Relay", map: ["_______", "_SBggR_", "_______"], beacons: 1, upload: true } }
+    31: { level: { name: "Bridge Relay", map: ["________", "_SgBggR_", "________"], gems: 1, upload: true } },
+    32: { level: { name: "Rebuild Relay", map: ["_______", "_SBggR_", "_______"], gems: 1, upload: true } }
   };
 
   Object.entries(specs).forEach(([lessonNo, spec]) => {

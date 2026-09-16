@@ -8,11 +8,11 @@
     "shield",
     "collect",
     "upload",
-    "is_hazard_ahead",
+    "is_spike_ahead",
     "is_blocked_ahead",
     "is_path_clear",
     "shield_is_active",
-    "at_beacon",
+    "at_gem",
     "at_relay",
     "energy_remaining"
   ]);
@@ -531,7 +531,7 @@
         if (tile === "B") required += 1;
       }));
       if (starts.length !== 1) runtimeFailure(`地图必须且只能包含一个起点 S；当前找到 ${starts.length} 个。`);
-      if (!required) runtimeFailure("地图至少需要一座信标 B。");
+      if (!required) runtimeFailure("地图至少需要一座宝石 B。");
       return { rows: normalized, start: starts[0], required };
     }
 
@@ -699,7 +699,7 @@
         updateWorldGrid(blueprint.rows, { placements: [], portals: [] });
         pushEvent(
           "world-build",
-          `第 ${currentStudentLine} 行：由二维数据生成 ${blueprint.rows[0].length} × ${blueprint.rows.length} 世界，包含 ${blueprint.required} 座信标。`,
+          `第 ${currentStudentLine} 行：由二维数据生成 ${blueprint.rows[0].length} × ${blueprint.rows.length} 世界，包含 ${blueprint.required} 座宝石。`,
           { worldBuild: { action: "build", width: blueprint.rows[0].length, height: blueprint.rows.length } }
         );
         return Sk.builtin.none.none$;
@@ -708,12 +708,12 @@
       Sk.builtins.validate_world = new Sk.builtin.func(function (schemaValue) {
         const schema = serializePythonValue(schemaValue);
         if (!schema || typeof schema !== "object" || Array.isArray(schema)) runtimeFailure("关卡 schema 必须使用字典。 ");
-        const requiredFields = ["name", "map", "beacons", "upload"];
+        const requiredFields = ["name", "map", "gems", "upload"];
         const missing = requiredFields.filter((field) => !Object.prototype.hasOwnProperty.call(schema, field));
         if (missing.length) runtimeFailure(`关卡 schema 缺少字段：${missing.join("、")}。`);
         const blueprint = normalizeWorldGrid(schema.map);
-        if (blueprint.required !== Number(schema.beacons)) {
-          runtimeFailure(`schema 声明 ${schema.beacons} 座信标，但地图实际编码了 ${blueprint.required} 座。`);
+        if (blueprint.required !== Number(schema.gems)) {
+          runtimeFailure(`schema 声明 ${schema.gems} 座宝石，但地图实际编码了 ${blueprint.required} 座。`);
         }
         const hasRelay = blueprint.rows.some((row) => row.includes("R"));
         if (Boolean(schema.upload) !== hasRelay) {
@@ -1004,8 +1004,8 @@
             const blockedTile = worldTile(next.x, next.y);
             const failureType = blockedTile === "#" ? "collision-fail" : "fall";
             const failureMessage = blockedTile === "#"
-              ? "探测员撞上了岩石，移动已经停止。"
-              : "探测员朝通道外执行了 move()，已经从边缘跌落。";
+              ? "Nova 撞上了岩石，移动已经停止。"
+              : "Nova 朝通道外执行了 move()，已经从边缘跌落。";
             animatedFailure(failureType, failureMessage, {
               failureKind: blockedTile === "#" ? "wall" : "side-edge",
               fallDirection: plannedState.direction,
@@ -1019,7 +1019,7 @@
           plannedState.y = next.y;
           plannedState.energy -= 1;
           if (hazard && !plannedState.shieldActive) {
-            animatedFailure("hazard-fail", "探测员没有开启护盾，进入危险格后停止运行。", {
+            animatedFailure("hazard-fail", "Nova 没有开启护盾，进入尖刺格后停止运行。", {
               failureKind: "unshielded-hazard"
             });
           }
@@ -1040,13 +1040,13 @@
           return Sk.builtin.none.none$;
         }
         if (plannedState.direction !== 0) {
-          animatedFailure("fall", "探测员朝通道外执行了 move()，已经从边缘跌落。", {
+          animatedFailure("fall", "Nova 朝通道外执行了 move()，已经从边缘跌落。", {
             fallDirection: plannedState.direction,
             failureKind: "side-edge"
           });
         }
         if (plannedState.position >= beaconPosition) {
-          animatedFailure("fall", "探测员走过了终点，从维修桥尽头跌落。", {
+          animatedFailure("fall", "Nova 走过了终点，从维修桥尽头跌落。", {
             fallDirection: 0,
             failureKind: "overshoot"
           });
@@ -1056,7 +1056,7 @@
         if (nextPosition === hazardPosition && !plannedState.shieldActive) {
           plannedState.position = nextPosition;
           plannedState.energy -= 1;
-          animatedFailure("hazard-fail", "探测员没有开启护盾，进入危险格后停止运行。", {
+          animatedFailure("hazard-fail", "Nova 没有开启护盾，进入尖刺格后停止运行。", {
             failureKind: "unshielded-hazard"
           });
         }
@@ -1101,27 +1101,27 @@
         if (world) {
           const key = worldKey(plannedState.x, plannedState.y);
           if (!isBeaconAt(plannedState.x, plannedState.y)) {
-            animatedFailure("action-fail", "当前位置没有可以采集的信标。", { failureKind: "empty-collect" });
+            animatedFailure("action-fail", "当前位置没有可以采集的宝石。", { failureKind: "empty-collect" });
           }
           if (plannedState.collectedKeys.includes(key)) {
-            animatedFailure("action-fail", "这座信标已经采集过了。", { failureKind: "duplicate-collect" });
+            animatedFailure("action-fail", "这座宝石已经采集过了。", { failureKind: "duplicate-collect" });
           }
           plannedState.collectedKeys = [...plannedState.collectedKeys, key];
           plannedState.collected = collectedCount() >= Number(world.required || 1);
-          pushEvent("collect", `第 ${currentStudentLine} 行 collect()：已采集 ${collectedCount()} / ${Number(world.required || 1)} 座信标。`);
+          pushEvent("collect", `第 ${currentStudentLine} 行 collect()：已采集 ${collectedCount()} / ${Number(world.required || 1)} 座宝石。`);
           return Sk.builtin.none.none$;
         }
-        if (plannedState.position !== beaconPosition) runtimeFailure("当前位置没有可以采集的信标。");
+        if (plannedState.position !== beaconPosition) runtimeFailure("当前位置没有可以采集的宝石。");
         plannedState.collected = true;
-        pushEvent("collect", `第 ${currentStudentLine} 行 collect()：信标采集完成。`);
+        pushEvent("collect", `第 ${currentStudentLine} 行 collect()：宝石采集完成。`);
         return Sk.builtin.none.none$;
       });
 
-      Sk.builtins.is_hazard_ahead = new Sk.builtin.func(function () {
+      Sk.builtins.is_spike_ahead = new Sk.builtin.func(function () {
         const result = world
           ? worldTile(worldAhead().x, worldAhead().y) === "H"
           : plannedState.position + 1 === hazardPosition;
-        pushEvent("condition", `第 ${currentStudentLine} 行 is_hazard_ahead() → ${result ? "True" : "False"}。`);
+        pushEvent("condition", `第 ${currentStudentLine} 行 is_spike_ahead() → ${result ? "True" : "False"}。`);
         return new Sk.builtin.bool(result);
       });
 
@@ -1146,11 +1146,11 @@
         return new Sk.builtin.bool(plannedState.shieldActive);
       });
 
-      Sk.builtins.at_beacon = new Sk.builtin.func(function () {
+      Sk.builtins.at_gem = new Sk.builtin.func(function () {
         const result = world
           ? isBeaconAt(plannedState.x, plannedState.y) && !plannedState.collectedKeys.includes(worldKey(plannedState.x, plannedState.y))
           : plannedState.position === beaconPosition;
-        pushEvent("condition", `第 ${currentStudentLine} 行 at_beacon() → ${result ? "True" : "False"}。`);
+        pushEvent("condition", `第 ${currentStudentLine} 行 at_gem() → ${result ? "True" : "False"}。`);
         return new Sk.builtin.bool(result);
       });
 
@@ -1163,10 +1163,10 @@
       Sk.builtins.upload = new Sk.builtin.func(function () {
         if (!world) runtimeFailure("当前验证场没有中继站。");
         if (worldTile(plannedState.x, plannedState.y) !== "R") {
-          animatedFailure("action-fail", "上传失败：探测员还没有到达中继站。", { failureKind: "upload-away-from-relay" });
+          animatedFailure("action-fail", "上传失败：Nova 还没有到达中继站。", { failureKind: "upload-away-from-relay" });
         }
         if (collectedCount() < Number(world.required || 1)) {
-          animatedFailure("action-fail", `上传失败：还需要 ${Number(world.required || 1) - collectedCount()} 座信标。`, { failureKind: "missing-beacons" });
+          animatedFailure("action-fail", `上传失败：还需要 ${Number(world.required || 1) - collectedCount()} 座宝石。`, { failureKind: "missing-beacons" });
         }
         plannedState.uploaded = true;
         pushEvent("upload", `第 ${currentStudentLine} 行 upload()：任务数据上传完成。`);

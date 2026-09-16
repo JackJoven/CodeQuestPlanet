@@ -22,9 +22,10 @@ function sourceFunction(name) {
 const productionFunctions = ["parseGrid", "tileKey", "turn", "resetSimulation", "expandProgram", "log",
   "failureMotion", "fail", "complete", "frontTile", "blockingKind", "isBlocked", "failAtBlockedTile",
   "frontKind", "spendEnergy", "moveForward", "executeCommand", "stepProgram", "finishEarlyRun", "beginEarlyRun"];
-function run(m, p, commands, route = []) {
+function run(m, p, commands, route = [], maxSteps = 100) {
   const c = { console, performance, early: E, program: [...commands], routeProgram: [...route], sim: null,
     earlyRun: null, animationFrame: null, completed: new Set(), celebrationUntil: 0,
+    sensorTarget: "hazard", logicConnector: "and", logicHazardMode: "not-hazard",
     directions: ["N", "E", "S", "W"], directionLabels: E.labels,
     vectors: { N: { x: 0, y: -1 }, E: { x: 1, y: 0 }, S: { x: 0, y: 1 }, W: { x: -1, y: 0 } },
     mission: () => m, earlyProfile: () => p, earlyPrerequisiteNeeded: () => false,
@@ -34,7 +35,7 @@ function run(m, p, commands, route = []) {
   vm.createContext(c);
   for (const name of productionFunctions) vm.runInContext(sourceFunction(name), c);
   c.resetSimulation();
-  for (let i = 0; i < 100 && !c.sim.failed && !c.sim.completed && (!c.sim.expanded || c.sim.queueIndex < c.sim.queue.length); i += 1) c.stepProgram();
+  for (let i = 0; i < maxSteps && !c.sim.failed && !c.sim.completed && (!c.sim.expanded || c.sim.queueIndex < c.sim.queue.length); i += 1) c.stepProgram();
   return { sim: c.sim, attempt: p.attempts.at(-1) };
 }
 
@@ -77,6 +78,122 @@ for (const number of [11, 12]) {
   run(m, p, m.solution, m.solutionFn); E.review(m, p, "循环次数改变，循环体和边界规则保持不变。");
   assert.equal(p.mastered, true, `lesson ${number} transfer mastery`);
   assert.doesNotThrow(() => context.CodeQuestEarlyLessonUI.render(m, p));
+  checks += 5;
+}
+for (const number of [13, 14, 15]) {
+  const base = context.SignalRunnerCourseData.missions[number - 1];
+  const p = E.profile({ version: E.version });
+  let m = E.mission(base, p);
+  assert.ok(m.grid.length >= 7 && m.grid[0].length >= 10, `lesson ${number} keeps a substantial map`);
+  if (number === 13) p.conditionSensor = m.early.expectedSensor;
+  if (number === 14) { p.logicConnector = m.early.expectedConnector; p.logicHazardMode = m.early.expectedHazardMode; }
+  if (number === 15) p.prediction = m.early.prediction.answer;
+  const guided = run(m, p, m.solution);
+  assert.equal(guided.attempt.success, true, `lesson ${number} guided control task should pass`);
+  assert.ok(guided.attempt.trace.some((step) => step.condition), `lesson ${number} stores a control decision`);
+
+  E.switchChallenge(p, "repair"); m = E.mission(base, p);
+  const broken = run(m, p, m.early.faulty);
+  assert.equal(broken.attempt.success, false, `lesson ${number} faulty strategy must fail its concept check`);
+  assert.ok(p.debugObservation, `lesson ${number} stores before-repair evidence`);
+  p.diagnosis = m.early.diagnosisAnswer;
+  if (number === 13) p.conditionSensor = m.early.expectedSensor;
+  if (number === 14) { p.logicConnector = m.early.expectedConnector; p.logicHazardMode = m.early.expectedHazardMode; }
+  run(m, p, m.solution);
+  assert.ok(p.repairEvidence, `lesson ${number} binds repair evidence`);
+
+  E.switchChallenge(p, "challenge"); m = E.mission(base, p);
+  if (number === 13) p.conditionSensor = m.early.expectedSensor;
+  if (number === 14) { p.logicConnector = m.early.expectedConnector; p.logicHazardMode = m.early.expectedHazardMode; }
+  if (number === 15) p.prediction = m.early.prediction.answer;
+  const transfer = run(m, p, m.solution);
+  assert.equal(transfer.attempt.success, true, `lesson ${number} transfer should pass`);
+  E.review(m, p, "我根据变化后的状态重新验证了同一条控制规则。");
+  assert.equal(p.mastered, true, `lesson ${number} completes construct-repair-transfer mastery`);
+  assert.doesNotThrow(() => context.CodeQuestEarlyLessonUI.render(m, p));
+  checks += 7;
+}
+for (const number of [13, 14, 15]) {
+  const base = context.SignalRunnerCourseData.missions[number - 1];
+  for (const variant of [0, 1, 2]) {
+    const p = E.profile({ version: E.version, phase: "challenge", variant });
+    const m = E.mission(base, p);
+    if (number === 13) p.conditionSensor = m.early.expectedSensor;
+    if (number === 14) { p.logicConnector = m.early.expectedConnector; p.logicHazardMode = m.early.expectedHazardMode; }
+    if (number === 15) p.prediction = m.early.prediction.answer;
+    const proof = run(m, p, m.solution);
+    assert.equal(proof.attempt.success, true, `lesson ${number} variant ${variant} should validate`);
+    if (number === 13) assert.equal(proof.attempt.trace.find((step) => step.condition)?.condition.result, m.early.expectedConditionResult);
+    if (number === 15) assert.equal(proof.attempt.trace.find((step) => step.condition?.kind === "while")?.condition.repetitions, m.early.expectedRepetitions);
+    checks += 1;
+  }
+}
+for (let number = 16; number <= 32; number += 1) {
+  const base = context.SignalRunnerCourseData.missions[number - 1];
+  const p = E.profile({ version: E.version });
+  let m = E.mission(base, p);
+  assert.equal(E.isEarly(m), true, `lesson ${number} stays in the game-first experience`);
+  assert.equal(m.grid.length, 8, `lesson ${number} uses the full-height world`);
+  assert.equal(m.grid[0].length, 13, `lesson ${number} uses the full-width world`);
+  p.systemChoice = m.early.dataLab.correct;
+  if (m.early.dataLab.secondary) p.systemChoiceB = m.early.dataLab.secondary.correct;
+  const guided = run(m, p, m.solution, m.solutionFn);
+  assert.equal(guided.attempt.success, true, `lesson ${number} guided system task should pass: ${guided.attempt.failure}`);
+  assert.ok(guided.sim.completed, `lesson ${number} completes in the world, not only in a quiz`);
+
+  E.switchChallenge(p, "repair"); m = E.mission(base, p);
+  const broken = run(m, p, m.early.faulty, m.early.functionStarter);
+  assert.equal(broken.attempt.success, false, `lesson ${number} faulty system rule must fail`);
+  assert.equal(p.debugObservation?.challengeKey, m.early.key, `lesson ${number} stores current failure evidence`);
+  p.diagnosis = m.early.diagnosisAnswer;
+  p.systemChoice = m.early.dataLab.correct;
+  if (m.early.dataLab.secondary) p.systemChoiceB = m.early.dataLab.secondary.correct;
+  const repaired = run(m, p, m.solution, m.solutionFn);
+  assert.equal(repaired.attempt.success, true, `lesson ${number} repaired system should pass: ${repaired.attempt.failure}`);
+  assert.ok(p.repairEvidence, `lesson ${number} binds before/after repair evidence`);
+
+  E.switchChallenge(p, "challenge"); m = E.mission(base, p);
+  p.systemChoice = m.early.dataLab.correct;
+  if (m.early.dataLab.secondary) p.systemChoiceB = m.early.dataLab.secondary.correct;
+  const transfer = run(m, p, m.solution, m.solutionFn);
+  assert.equal(transfer.attempt.success, true, `lesson ${number} transfer world should pass: ${transfer.attempt.failure}`);
+  assert.equal(E.review(m, p, "我根据新地图重新检查状态、规则和停止条件。"), true);
+  assert.equal(p.mastered, true, `lesson ${number} completes construct-repair-transfer mastery`);
+  const rendered = context.CodeQuestEarlyLessonUI.render(m, p);
+  assert.doesNotMatch(rendered, /\bundefined\b|信标|\bbeacon\b/i, `lesson ${number} keeps student-facing terminology clean`);
+  assert.match(rendered, /early-system-lab/, `lesson ${number} renders the game-first system lab`);
+  checks += 10;
+}
+for (let number = 16; number <= 32; number += 1) {
+  const base = context.SignalRunnerCourseData.missions[number - 1];
+  for (const variant of [0, 1, 2]) {
+    const p = E.profile({ version: E.version, phase: "challenge", variant });
+    const m = E.mission(base, p);
+    p.systemChoice = m.early.dataLab.correct;
+    if (m.early.dataLab.secondary) p.systemChoiceB = m.early.dataLab.secondary.correct;
+    const proof = run(m, p, m.solution, m.solutionFn);
+    assert.equal(proof.attempt.success, true, `lesson ${number} transfer variant ${variant} should validate: ${proof.attempt.failure}`);
+    const rendered = context.CodeQuestEarlyLessonUI.render(m, p);
+    assert.doesNotMatch(rendered, /\bundefined\b|信标|\bbeacon\b/i, `lesson ${number} variant ${variant} keeps student-facing terminology clean`);
+    checks += 1;
+  }
+}
+{
+  const base = context.SignalRunnerCourseData.missions[14];
+  const p = E.profile({ version: E.version });
+  const m = E.mission(base, p);
+  p.prediction = m.early.prediction.answer;
+  const firstTick = run(m, p, m.solution, [], 1);
+  assert.equal(firstTick.sim.path.length, 2, "while advances exactly one tile on its first execution tick");
+  assert.notDeepEqual(firstTick.sim.path.at(-1), m.early.targets[0], "while must not flash directly to the gem");
+  assert.equal(firstTick.sim.queue[firstTick.sim.queueIndex]?.id, "whileBeacon", "the next loop check stays queued for the next tick");
+
+  const completed = run(m, p, m.solution);
+  const rendered = context.CodeQuestEarlyLessonUI.render(m, p);
+  const evidenceTag = rendered.match(/<details class="early-result early-evidence-disclosure"[^>]*>/)?.[0] || "";
+  assert.ok(completed.attempt.success);
+  assert.ok(evidenceTag, "evidence uses a disclosure control");
+  assert.doesNotMatch(evidenceTag, /\bopen\b/, "evidence is collapsed by default");
   checks += 5;
 }
 {
@@ -267,7 +384,7 @@ for (const base of bases) {
 {
   const old = {version:1, mastered:true, completed:true, phase:"challenge", draft:["move"], attempts:[]};
   const migrated = E.profile(old);
-  assert.equal(migrated.version, 4); assert.equal(migrated.mastered, false);
+  assert.equal(migrated.version, 6); assert.equal(migrated.mastered, false);
   assert.equal(migrated.completed, true); assert.equal(migrated.legacyEvidence.mastered, true);
   const {m,p}=prepare(bases[0]);run(m,p,m.solution);p.updatedAt="2026-09-14T01:00:00Z";
   const remote=E.profile(p);E.review(m,p,"新说明");p.updatedAt="2026-09-14T02:00:00Z";
@@ -282,4 +399,4 @@ for (const base of bases) {
   const key=c.earlyStorageKey("course-05");c.authUser={id:"B"};assert.notEqual(c.earlyStorageKey("course-05"),key);
   checks++;
 }
-console.log(`early-lessons: ${checks} behavior scenarios passed (v1.6 lessons 1–12, repair, transfer, migration).`);
+console.log(`early-lessons: ${checks} behavior scenarios passed (v1.7 lessons 1–32, repair, transfer, migration).`);

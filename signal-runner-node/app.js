@@ -158,6 +158,7 @@ window.addEventListener("unhandledrejection", (event) => {
     loadReference: document.querySelector("#loadReferenceBtn"),
     commandLimit: document.querySelector("#commandLimit"),
     paletteInstruction: document.querySelector("#paletteInstruction"),
+    commandExplanation: document.querySelector("#commandExplanation"),
     commandPalette: document.querySelector("#commandPalette"),
     programTabs: document.querySelector("#programTabs"),
     programList: document.querySelector("#programList"),
@@ -188,133 +189,155 @@ window.addEventListener("unhandledrejection", (event) => {
       name: "前进",
       hint: "沿当前方向走一格",
       kind: "basic",
-      code: "move();"
+      code: "move()"
     },
     back: {
       label: "back()",
       name: "后退",
       hint: "保持朝向后退一格",
       kind: "basic",
-      code: "back();"
+      code: "move_back()"
     },
     wait: {
       label: "wait()",
       name: "等待",
       hint: "原地等待一个时刻",
       kind: "basic",
-      code: "wait();"
+      code: "wait()"
     },
     left: {
-      label: "turnLeft()",
+      label: "turn_left()",
       name: "左转",
       hint: "方向逆时针旋转",
       kind: "basic",
-      code: "turnLeft();"
+      code: "turn_left()"
     },
     right: {
-      label: "turnRight()",
+      label: "turn_right()",
       name: "右转",
       hint: "方向顺时针旋转",
       kind: "basic",
-      code: "turnRight();"
+      code: "turn_right()"
     },
     collect: {
       label: "collect()",
       name: "采集",
-      hint: "采集当前格信标",
+      hint: "采集当前格宝石",
       kind: "system",
-      code: "collect();"
+      code: "collect()"
     },
     upload: {
       label: "upload()",
       name: "上传",
       hint: "在中继站完成任务",
       kind: "system",
-      code: "upload();"
+      code: "upload()"
     },
     shield: {
       label: "shield()",
       name: "开盾",
-      hint: "抵消下一格危险",
+      hint: "抵消下一格尖刺",
       kind: "system",
-      code: "shield();"
+      code: "shield()"
     },
     ifHazardShield: {
-      label: "if hazard",
-      name: "危险判断",
-      hint: "前方危险才开盾",
+      label: "if spike",
+      name: "尖刺判断",
+      hint: "前方尖刺才开盾",
       kind: "logic",
-      code: "if (scanAhead() === \"hazard\") shield();"
+      code: "if is_spike_ahead():\n    shield()",
+      breakdown: "1. 读取正前方一格 → 2. 只有尖刺在前方时才开盾",
+      translation: "if = 如果；spike = 尖刺；shield = 护盾"
     },
     ifWallRight: {
       label: "if wall",
       name: "墙面判断",
       hint: "前方 blocked 就右转，否则前进",
       kind: "logic",
-      code: "if (blockedAhead()) turnRight(); else move();"
+      code: "if is_blocked_ahead():\n    turn_right()\nelse:\n    move()",
+      breakdown: "1. 检查前方是否被挡 → 2. 被挡就右转，否则前进",
+      translation: "if = 如果；blocked = 被阻挡；else = 否则"
     },
     ifSensorAct: {
       label: "if sensor",
       name: "传感器判断",
       hint: "按实验台条件处理前方格",
       kind: "logic",
-      code: "if (scanAhead() === sensorTarget) act();"
+      code: "if scan_ahead() == sensor_target:\n    act()",
+      breakdown: "1. 传感器读取前方 → 2. 和目标状态比较 → 3. 相同才执行动作",
+      translation: "sensor = 传感器；scan ahead = 查看前方；act = 执行动作"
     },
     logicGuard: {
       label: "safeGuard()",
       name: "安全守卫",
       hint: "组合多个布尔条件决定前进或转向",
       kind: "logic",
-      code: "if (clear && enoughEnergy && !hazard) move(); else turnRight();"
+      code: "if is_clear() and enough_energy() and not is_spike_ahead():\n    move()\nelse:\n    turn_right()",
+      breakdown: "1. 同时检查通路、能量和尖刺 → 2. 全部安全就前进，否则右转",
+      translation: "and = 并且；not = 不是；safe guard = 安全守卫"
     },
     whileBeacon: {
-      label: "while not beacon",
-      name: "走到信标",
-      hint: "没有到达信标就继续移动",
+      label: "while not gem",
+      name: "走到宝石",
+      hint: "没有到达宝石就继续移动",
       kind: "logic",
-      code: "while (!onBeacon()) move();"
+      code: "while not at_gem():\n    move()",
+      breakdown: "1. 检查是否到达宝石 → 2. 未到就前进一步 → 3. 回到第 1 步",
+      translation: "while = 条件成立时重复；gem = 宝石"
     },
     whileRelay: {
       label: "while not relay",
       name: "走到中继站",
       hint: "没有到达中继站就继续移动",
       kind: "logic",
-      code: "while (!onRelay()) move();"
+      code: "while not at_relay():\n    move()",
+      breakdown: "1. 检查是否到达中继站 → 2. 未到就前进一步 → 3. 再次检查",
+      translation: "while = 条件成立时重复；relay = 中继站"
     },
     repeat2: {
       label: "repeat(2)",
       name: "循环 2 次",
       hint: "连续执行两次 move",
       kind: "logic",
-      code: "repeat(2) { move(); }"
+      code: "for _ in range(2):\n    move()",
+      breakdown: "把 move() 按顺序执行 2 次，每次只前进一步",
+      translation: "repeat / range = 重复范围；move = 前进"
     },
     repeat3: {
       label: "repeat(3)",
       name: "循环 3 次",
       hint: "连续执行三次 move",
       kind: "logic",
-      code: "repeat(3) { move(); }"
+      code: "for _ in range(3):\n    move()",
+      breakdown: "把 move() 按顺序执行 3 次，每次只前进一步",
+      translation: "repeat / range = 重复范围；move = 前进"
     },
     repeat4: {
       label: "repeat(4)",
       name: "循环 4 次",
       hint: "连续执行四次 move",
       kind: "logic",
-      code: "repeat(4) { move(); }"
+      code: "for _ in range(4):\n    move()",
+      breakdown: "把 move() 按顺序执行 4 次，每次只前进一步",
+      translation: "repeat / range = 重复范围；move = 前进"
     },
     repeat5: {
       label: "repeat(5)",
       name: "循环 5 次",
       hint: "连续执行五次 move",
       kind: "logic",
-      code: "repeat(5) { move(); }"
+      code: "for _ in range(5):\n    move()",
+      breakdown: "把 move() 按顺序执行 5 次，每次只前进一步",
+      translation: "repeat / range = 重复范围；move = 前进"
     },
     callRoute: {
       label: "routeA()",
       name: "调用函数",
       hint: "执行 routeA 里的指令",
       kind: "logic",
-      code: "routeA();"
+      code: "route_a()",
+      breakdown: "1. 进入已经定义好的路线 → 2. 顺序执行里面的动作 → 3. 返回主程序",
+      translation: "route = 路线；call = 调用；function = 函数"
     }
   };
 
@@ -324,10 +347,10 @@ window.addEventListener("unhandledrejection", (event) => {
       title: "启动巡航",
       concept: "序列",
       lesson: "Lesson 01",
-      story: "信标无人机刚刚上线。它只会按你排好的指令一条一条执行。",
-      target: "采集绿色信标，再到中继站上传。",
+      story: "Nova 刚刚上线。它只会按你排好的指令一条一条执行。",
+      target: "采集绿色宝石，再到中继站上传。",
       focus: "代码按顺序执行",
-      checkpoint: "学生要能解释为什么 collect() 必须发生在无人机站到信标格之后。",
+      checkpoint: "学生要能解释为什么 collect() 必须发生在 Nova 站到宝石格之后。",
       grid: [
         "__ggg__",
         "_SsBsR_",
@@ -347,7 +370,7 @@ window.addEventListener("unhandledrejection", (event) => {
       concept: "转向与日志",
       lesson: "Lesson 02",
       story: "维修区出现阻挡。程序撞墙时会停机，日志会告诉你是哪一步出了问题。",
-      target: "绕过阻挡，采集下方信标后上传。",
+      target: "绕过阻挡，采集下方宝石后上传。",
       focus: "用失败日志修正程序",
       checkpoint: "学生要能根据“撞墙”或“空采集”的日志定位是哪条指令顺序错了。",
       grid: [
@@ -366,13 +389,13 @@ window.addEventListener("unhandledrejection", (event) => {
     },
     {
       id: "sensor",
-      title: "危险传感器",
+      title: "尖刺传感器",
       concept: "条件判断",
       lesson: "Lesson 03",
       story: "前方有红色辐射格。直接穿过去会损失能量，传感器可以先判断再开盾。",
-      target: "只在危险前开盾，保留能量完成上传。",
+      target: "只在尖刺前开盾，保留能量完成上传。",
       focus: "if 条件不是装饰，它改变下一步行为",
-      checkpoint: "学生要能说明 ifHazardShield 只有在前方是危险格时才会真正开盾。",
+      checkpoint: "学生要能说明 ifHazardShield 只有在前方是尖刺格时才会真正开盾。",
       grid: [
         "__gggg__",
         "_SgHBsR_",
@@ -438,10 +461,10 @@ window.addEventListener("unhandledrejection", (event) => {
       title: "三塔同步",
       concept: "综合作品",
       lesson: "Lesson 06",
-      story: "最后的网络区需要采集三座信标。你要同时考虑路径、危险、循环和上传条件。",
-      target: "采集 3 座信标，在能量耗尽前回到中继站上传。",
+      story: "最后的网络区需要采集三座宝石。你要同时考虑路径、尖刺、循环和上传条件。",
+      target: "采集 3 座宝石，在能量耗尽前回到中继站上传。",
       focus: "综合调试：先让它能跑，再让它跑得清楚",
-      checkpoint: "学生要能用日志证明：三座信标都被采集，危险格被处理，最后在中继站上传。",
+      checkpoint: "学生要能用日志证明：三座宝石都被采集，尖刺格被处理，最后在中继站上传。",
       grid: [
         "__ggssss__",
         "_SssB.H.R_",
@@ -481,10 +504,10 @@ window.addEventListener("unhandledrejection", (event) => {
         title: "启动任务",
         concept: "顺序 · 采集 · 上传",
         lesson: "第 01 节",
-        story: "第一节正式课从读懂地图开始：先看起点、信标和中继站，再把路线拆成一条会被按顺序执行的程序。",
-        target: "完成核心路线：到达信标、采集、回到中继站上传。",
+        story: "第一节正式课从读懂地图开始：先看起点、宝石和中继站，再把路线拆成一条会被按顺序执行的程序。",
+        target: "完成核心路线：到达宝石、采集、回到中继站上传。",
         focus: "读懂地图目标，并把目标拆成程序步骤",
-        checkpoint: "学生要能说明为什么必须先移动到信标格再 collect()，再到中继站 upload()。",
+        checkpoint: "学生要能说明为什么必须先移动到宝石格再 collect()，再到中继站 upload()。",
         artifact: "第一张任务卡",
         knowledge: ["地图", "角色", "运行", "顺序", "采集", "上传"],
         devNote: "备用课程数据，正常情况下由 course-data.js 提供 48 节课程。",
@@ -534,10 +557,10 @@ window.addEventListener("unhandledrejection", (event) => {
       kicker: "14 岁 · 6 节课作品节点 Demo",
       progressLabel: "保留 6 关 demo",
       evidenceKicker: "作品节点",
-      evidenceTitle: "信标无人机作品卡",
-      completeTitle: "CodeQuestPlanet：三塔同步无人机",
+      evidenceTitle: "Nova 的宝石作品卡",
+      completeTitle: "CodeQuestPlanet：三塔同步任务",
       completeSkill: "序列、条件判断、循环压缩、函数封装、综合调试。",
-      completeValidation: "第 6 关需要采集 3 座信标、处理危险格，并在中继站上传。"
+      completeValidation: "第 6 关需要采集 3 座宝石、处理尖刺格，并在中继站上传。"
     }
   };
 
@@ -552,6 +575,7 @@ window.addEventListener("unhandledrejection", (event) => {
   let program = [];
   let routeProgram = [];
   let selectedProgramIndex = null;
+  let explainedCommandId = null;
   let selectedRouteChoiceId = null;
   let detectiveGuideOpen = false;
   let creatorTargetId = null;
@@ -618,13 +642,18 @@ window.addEventListener("unhandledrejection", (event) => {
 
   function earlyStorageKey(lessonId) {
     const contentId = courseMissions.find((item) => item.id === lessonId)?.contentId || lessonId;
+    return `signalRunnerNode.early.v1.7.${authUser?.id || (isLocalPreview ? "preview" : "signed-out")}.${contentId}`;
+  }
+
+  function legacyEarlyStorageKey(lessonId) {
+    const contentId = courseMissions.find((item) => item.id === lessonId)?.contentId || lessonId;
     return `signalRunnerNode.early.v1.6.${authUser?.id || (isLocalPreview ? "preview" : "signed-out")}.${contentId}`;
   }
 
   function earlyProfile(lessonId) {
     if (!earlyProfiles.has(lessonId)) {
       let saved;
-      try { saved = JSON.parse(localStorage.getItem(earlyStorageKey(lessonId)) || "null"); } catch (_) {}
+      try { saved = JSON.parse(localStorage.getItem(earlyStorageKey(lessonId)) || localStorage.getItem(legacyEarlyStorageKey(lessonId)) || "null"); } catch (_) {}
       earlyProfiles.set(lessonId, early.profile(saved));
     }
     return earlyProfiles.get(lessonId);
@@ -667,10 +696,15 @@ window.addEventListener("unhandledrejection", (event) => {
       showRunBlocker(problem);
       return false;
     }
+    sensorTarget = p.conditionSensor || m.early.defaultSensor || "hazard";
+    logicConnector = p.logicConnector || m.early.defaultConnector || "and";
+    logicHazardMode = p.logicHazardMode || m.early.defaultHazardMode || "not-hazard";
     earlyNotice = "运行中：观察位置和朝向。";
     earlyRun = { program: program.slice(), routeProgram: routeProgram.slice(), prediction: p.prediction, plan: p.plan,
       reason: p.reason, diagnosis: p.diagnosis || p.ruleDiagnosis, assisted: p.assisted, loopCount: Number(p.loopCount || 0),
-      loopBoundary: p.loopBoundary, trace: [], path: [], callSnapshots: [] };
+      loopBoundary: p.loopBoundary, conditionSensor: sensorTarget, logicConnector, logicHazardMode,
+      systemChoice: p.systemChoice, systemChoiceB: p.systemChoiceB,
+      trace: [], path: [], callSnapshots: [] };
     return true;
   }
 
@@ -680,7 +714,7 @@ window.addEventListener("unhandledrejection", (event) => {
     const success = !sim.failed && sim.collected.size >= m.required && (!m.early.requiresUpload || sim.completed);
     const attempt = early.result(m, p, { ...earlyRun, path: sim.path.slice(), success,
       tailCount: sim.firstCollectionStep ? Math.max(0, program.length - sim.firstCollectionStep) : 0,
-      failure: sim.failureMessage || (success ? "" : "程序结束时还没有采集全部信标") });
+      failure: sim.failureMessage || (success ? "" : "程序结束时还没有采集全部宝石") });
     earlyRun = null;
     early.record(p, attempt);
     p.explanation = ""; p.debug = ""; p.reflection = ""; p.reconciliation = "";
@@ -850,7 +884,7 @@ window.addEventListener("unhandledrejection", (event) => {
     const item = lessonById(lessonId);
     const normalizedStatus = status === "completed" ? "completed" : "started";
     const recordedAt = new Date().toISOString();
-    const storedPythonEvidence = item?.pythonStudio ? loadPythonEvidence(lessonId) : null;
+    const storedPythonEvidence = item?.pythonStudio && !early.isEarly(item) ? loadPythonEvidence(lessonId) : null;
     const codeEvidence = storedPythonEvidence?.lastSuccessful
       ? {
           language: "python",
@@ -942,7 +976,7 @@ window.addEventListener("unhandledrejection", (event) => {
         const local = earlyProfile(id);
         const merged = early.merge(local, row.progress?.earlyEvidence);
         if (earlyRun && currentMissions()[currentMissionIndex]?.id === id) {
-          for (const field of ["phase", "variant", "draft", "functionDraft", "functionName", "initializedKey", "prediction", "plan", "reason", "prerequisite", "diagnosis", "ruleDiagnosis", "failureReason"]) merged[field] = local[field];
+          for (const field of ["phase", "variant", "draft", "functionDraft", "functionName", "initializedKey", "prediction", "plan", "reason", "prerequisite", "diagnosis", "ruleDiagnosis", "failureReason", "conditionSensor", "logicConnector", "logicHazardMode", "systemChoice", "systemChoiceB"]) merged[field] = local[field];
           merged.assisted = local.assisted || Boolean(merged.exposures?.[`${local.phase}-${local.variant}`]?.assisted);
           if (merged.assisted) earlyRun.assisted = true;
         }
@@ -1186,7 +1220,7 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function activeFunctionName(activeMission = mission()) {
-    return early.isEarly(activeMission) && activeMission.lessonNo >= 9 ? earlyProfile(activeMission.id).functionName : "routeA";
+    return early.isEarly(activeMission) && activeMission.lessonNo >= 9 && activeMission.lessonNo <= 10 ? earlyProfile(activeMission.id).functionName : "routeA";
   }
 
   function setCurrentTargetProgram(next) {
@@ -1238,13 +1272,16 @@ window.addEventListener("unhandledrejection", (event) => {
       window.cancelAnimationFrame(animationFrame);
       animationFrame = null;
     }
-    const grid = parseGrid(mission().grid);
+    const activeMission = mission();
+    const grid = parseGrid(activeMission.grid);
+    if (activeMission.startOverride) grid.start = { ...activeMission.startOverride };
+    for (const target of activeMission.targetPositions || []) grid.beacons.set(tileKey(target.x, target.y), { x: target.x, y: target.y });
     sim = {
       grid,
       x: grid.start.x,
       y: grid.start.y,
-      dir: mission().startDir,
-      energy: mission().energy,
+      dir: activeMission.startDir,
+      energy: activeMission.energy,
       shield: 0,
       collected: new Set(),
       queue: [],
@@ -1259,7 +1296,10 @@ window.addEventListener("unhandledrejection", (event) => {
       motion: null,
       failurePose: null,
       failureType: null,
-      failureMessage: ""
+      failureMessage: "",
+      lastCondition: null,
+      loopRepetitions: {},
+      waitCount: 0
     };
   }
 
@@ -1467,7 +1507,7 @@ window.addEventListener("unhandledrejection", (event) => {
       failAtBlockedTile(
         next,
         `撞到岩石：当前位置 (${sim.x}, ${sim.y})，朝向${directionLabels[sim.dir]}。`,
-        `走出地图：探测员从 (${sim.x}, ${sim.y}) 向${directionLabels[sim.dir]}前进后跌落。`
+        `走出地图：Nova 从 (${sim.x}, ${sim.y}) 向${directionLabels[sim.dir]}前进后跌落。`
       );
       return;
     }
@@ -1494,13 +1534,13 @@ window.addEventListener("unhandledrejection", (event) => {
     if (hazard) {
       if (sim.shield > 0) {
         sim.shield -= 1;
-        log("穿过危险格：护盾生效。");
+        log("穿过尖刺格：护盾生效。");
       } else {
         sim.energy = Math.max(0, sim.energy - 4);
         if (sim.energy <= 0) {
-          fail("无护盾进入危险格，能量耗尽。", false);
+          fail("无护盾进入尖刺格，能量耗尽。", false);
         } else {
-          log("无护盾穿过危险格，额外损失 4 点能量。", "error");
+          log("无护盾穿过尖刺格，额外损失 4 点能量。", "error");
         }
       }
     } else {
@@ -1515,7 +1555,7 @@ window.addEventListener("unhandledrejection", (event) => {
       failAtBlockedTile(
         next,
         `后退撞到岩石：当前位置 (${sim.x}, ${sim.y})。`,
-        `后退走出地图：探测员从 (${sim.x}, ${sim.y}) 的边缘跌落。`
+        `后退走出地图：Nova 从 (${sim.x}, ${sim.y}) 的边缘跌落。`
       );
       return;
     }
@@ -1542,13 +1582,13 @@ window.addEventListener("unhandledrejection", (event) => {
     if (hazard) {
       if (sim.shield > 0) {
         sim.shield -= 1;
-        log("后退穿过危险格：护盾生效。");
+        log("后退穿过尖刺格：护盾生效。");
       } else {
         sim.energy = Math.max(0, sim.energy - 4);
         if (sim.energy <= 0) {
-          fail("无护盾后退进入危险格，能量耗尽。", false);
+          fail("无护盾后退进入尖刺格，能量耗尽。", false);
         } else {
-          log("后退进入危险格，额外损失 4 点能量。", "error");
+          log("后退进入尖刺格，额外损失 4 点能量。", "error");
         }
       }
     } else {
@@ -1569,7 +1609,14 @@ window.addEventListener("unhandledrejection", (event) => {
     } else if (id === "back") {
       moveBackward();
     } else if (id === "wait") {
-      log(`等待一个时刻：位置 (${sim.x}, ${sim.y})，朝向${directionLabels[sim.dir]}。`);
+      sim.waitCount += 1;
+      const gate = mission().timedGate;
+      if (gate && sim.waitCount >= Number(gate.requiredWaits || 1)) {
+        sim.grid.walls.delete(tileKey(gate.x, gate.y));
+        log(`等待第 ${sim.waitCount} 拍：共享通道已经空出。`, "success");
+      } else {
+        log(`等待第 ${sim.waitCount} 拍：位置 (${sim.x}, ${sim.y})，重新检查共享状态。`);
+      }
     } else if (id === "left") {
       const fromDir = sim.dir;
       sim.dir = turn(sim.dir, -1);
@@ -1595,14 +1642,14 @@ window.addEventListener("unhandledrejection", (event) => {
           log(`采集成功：${sim.collected.size} / ${mission().required}。`, "success");
         }
       } else {
-        fail("采集失败：当前位置没有可采集信标。");
+        fail("采集失败：当前位置没有可采集宝石。");
       }
     } else if (id === "upload") {
       const onRelay = sim.grid.relay && sim.x === sim.grid.relay.x && sim.y === sim.grid.relay.y;
       if (!onRelay) {
-        fail("上传失败：无人机不在中继站。");
+        fail("上传失败：Nova 不在中继站。");
       } else if (sim.collected.size < mission().required) {
-        fail(`上传失败：还需要 ${mission().required - sim.collected.size} 座信标。`);
+        fail(`上传失败：还需要 ${mission().required - sim.collected.size} 座宝石。`);
       } else if (early.isEarly(mission())) {
         sim.completed = true;
         sim.message = "任务完成";
@@ -1614,19 +1661,25 @@ window.addEventListener("unhandledrejection", (event) => {
     } else if (id === "shield") {
       if (spendEnergy(1, "开盾消耗能量")) {
         sim.shield = 1;
-        log("护盾已开启，可抵消下一格危险。");
+        log("护盾已开启，可抵消下一格尖刺。");
       }
     } else if (id === "ifHazardShield") {
-      if (frontKind() === "hazard") {
+      const kind = frontKind();
+      const matched = kind === "hazard";
+      sim.lastCondition = { kind: "if", sensor: "spike", observed: kind === "hazard" ? "spike" : kind, result: matched };
+      if (matched) {
         if (spendEnergy(1, "条件开盾消耗能量")) {
           sim.shield = 1;
-          log("条件成立：前方危险，自动开盾。");
+          log("条件成立：前方尖刺，自动开盾。");
         }
       } else {
-        log("条件不成立：前方不是危险格。");
+        log("条件不成立：前方不是尖刺格。");
       }
     } else if (id === "ifWallRight") {
-      if (frontKind() === "blocked") {
+      const kind = frontKind();
+      const matched = kind === "blocked";
+      sim.lastCondition = { kind: "if", sensor: "blocked", observed: kind, result: matched };
+      if (matched) {
         const fromDir = sim.dir;
         sim.dir = turn(sim.dir, 1);
         startMotion({ type: "turn", fromX: sim.x, fromY: sim.y, toX: sim.x, toY: sim.y, fromDir, toDir: sim.dir, duration: 240 });
@@ -1638,12 +1691,13 @@ window.addEventListener("unhandledrejection", (event) => {
     } else if (id === "ifSensorAct") {
       const kind = frontKind();
       const matches = kind === sensorTarget;
+      sim.lastCondition = { kind: "if", sensor: sensorTarget, observed: kind, result: matches };
       if (!matches) {
         log(`条件不成立：前方是 ${kind}，不是 ${sensorTarget}。`);
       } else if (kind === "hazard") {
         if (spendEnergy(1, "条件开盾消耗能量")) {
           sim.shield = 1;
-          log("条件成立：前方危险，自动开盾。");
+          log("条件成立：前方尖刺，自动开盾。");
         }
       } else if (kind === "blocked") {
         const fromDir = sim.dir;
@@ -1664,6 +1718,7 @@ window.addEventListener("unhandledrejection", (event) => {
       const safe = logicConnector === "and"
         ? conditions.every(Boolean)
         : conditions.some(Boolean);
+      sim.lastCondition = { kind: "boolean", values: conditions.slice(), connector: logicConnector, hazardMode: logicHazardMode, result: safe };
       if (safe) {
         log(`逻辑守卫为 true：${conditions.map((value) => value ? "T" : "F").join(" · ")}，执行前进。`);
         moveForward();
@@ -1678,25 +1733,28 @@ window.addEventListener("unhandledrejection", (event) => {
       const atTarget = () => isBeaconLoop
         ? sim.grid.beacons.has(tileKey(sim.x, sim.y)) && !sim.collected.has(tileKey(sim.x, sim.y))
         : Boolean(sim.grid.relay && sim.x === sim.grid.relay.x && sim.y === sim.grid.relay.y);
-      let repetitions = 0;
       const safetyLimit = sim.grid.width * sim.grid.height;
-      while (!atTarget() && !sim.failed && repetitions < safetyLimit) {
-        if (frontKind() === "blocked") {
-          const next = frontTile();
-          failAtBlockedTile(
-            next,
-            `while 撞到岩石：前方被挡住，但还没有到达${isBeaconLoop ? "信标" : "中继站"}。`,
-            `while 走出地图：还没有到达${isBeaconLoop ? "信标" : "中继站"}，探测员从边缘跌落。`
-          );
-          break;
-        }
-        moveForward();
-        repetitions += 1;
-      }
-      if (!sim.failed && atTarget()) {
-        log(`while 条件变为 false：经过 ${repetitions} 次移动，到达${isBeaconLoop ? "信标" : "中继站"}。`, "success");
-      } else if (!sim.failed && repetitions >= safetyLimit) {
+      const repetitions = Number(sim.loopRepetitions[id] || 0);
+      if (atTarget()) {
+        sim.lastCondition = { kind: "while", target: isBeaconLoop ? "beacon" : "relay", repetitions, result: false };
+        delete sim.loopRepetitions[id];
+        log(`while 条件变为 false：经过 ${repetitions} 次移动，到达${isBeaconLoop ? "宝石" : "中继站"}。`, "success");
+      } else if (repetitions >= safetyLimit) {
         fail("while 超过安全执行次数，可能缺少有效停止条件。");
+      } else if (frontKind() === "blocked") {
+        const next = frontTile();
+        delete sim.loopRepetitions[id];
+        failAtBlockedTile(
+          next,
+          `while 撞到岩石：前方被挡住，但还没有到达${isBeaconLoop ? "宝石" : "中继站"}。`,
+          `while 走出地图：还没有到达${isBeaconLoop ? "宝石" : "中继站"}，Nova 从边缘跌落。`
+        );
+      } else {
+        moveForward();
+        sim.loopRepetitions[id] = repetitions + 1;
+        sim.lastCondition = { kind: "while-check", target: isBeaconLoop ? "beacon" : "relay", repetitions: repetitions + 1, result: true };
+        sim.queue.splice(sim.queueIndex, 0, { id, origin: "control-loop", loopContinuation: true });
+        log(`while 条件仍为 true：完成第 ${repetitions + 1} 次移动，下一轮会重新检查。`);
       }
     }
   }
@@ -1725,6 +1783,7 @@ window.addEventListener("unhandledrejection", (event) => {
     const item = sim.queue[sim.queueIndex];
     sim.queueIndex += 1;
     sim.activeStepNumber = sim.queueIndex;
+    sim.lastCondition = null;
     let callSnapshot = null;
     if (earlyRun && item.callStart) {
       callSnapshot = { call: item.callIndex, before: { x: sim.x, y: sim.y, dir: sim.dir }, after: null, failed: false };
@@ -1738,7 +1797,8 @@ window.addEventListener("unhandledrejection", (event) => {
       callSnapshot.failed = sim.failed;
     }
     if (earlyRun) earlyRun.trace.push({ command: item.id, x: sim.x, y: sim.y, dir: sim.dir,
-      collected: sim.collected.size, energy: sim.energy, failed: sim.failed });
+      collected: sim.collected.size, energy: sim.energy, failed: sim.failed,
+      condition: sim.lastCondition ? { ...sim.lastCondition } : null });
     sim.activeStepNumber = null;
     if (earlyRun && (sim.failed || sim.completed || sim.queueIndex >= sim.queue.length)) finishEarlyRun();
 
@@ -2023,7 +2083,7 @@ window.addEventListener("unhandledrejection", (event) => {
           <div class="course-map-hero-copy">
             <p class="course-map-brand">CODE QUEST · 学习世界</p>
             <h2 id="courseMapTitle">CodeQuestPlanet<br>星际学院</h2>
-            <p>穿越当前开放的 ${courseStages.length} 个任务星区，从控制 Neo 的第一步，一路成长到能用数据和多对象协作重建星系。</p>
+            <p>穿越当前开放的 ${courseStages.length} 个任务星区，从控制 Nova（诺瓦）的第一步，一路成长到能用数据和多对象协作重建星系。</p>
             <div class="course-map-hero-progress" style="--progress: ${overallPercent}%">
               <div>
                 <span>探索进度</span>
@@ -2254,10 +2314,10 @@ window.addEventListener("unhandledrejection", (event) => {
 
   function renderHud() {
     const rows = [
-      ["位置", `(${sim.x}, ${sim.y})`],
+      ["Nova 位置", `(${sim.x}, ${sim.y})`],
       ["朝向", directionLabels[sim.dir]],
       ["能量", sim.energy],
-      ["信标", `${sim.collected.size} / ${mission().required}`]
+      ["宝石", `${sim.collected.size} / ${mission().required}`]
     ];
 
     dom.stateHud.innerHTML = rows.map(([label, value]) => `
@@ -2269,10 +2329,10 @@ window.addEventListener("unhandledrejection", (event) => {
 
     if (dom.worldFailureIndicator) {
       const failureTypes = {
-        fall: ["越界掉落", "探测员走出了地图边缘。"],
+        fall: ["越界掉落", "Nova 走出了地图边缘。"],
         "collision-fail": ["发生碰撞", "前方有岩石或墙体。"],
-        "hazard-fail": ["危险区停机", "没有足够能量安全穿过危险格。"],
-        "power-fail": ["能量耗尽", "探测员无法继续执行动作。"],
+        "hazard-fail": ["尖刺区停机", "没有足够能量安全穿过尖刺格。"],
+        "power-fail": ["能量耗尽", "Nova 无法继续执行动作。"],
         "action-fail": ["动作失败", "当前位置不满足这条指令。"]
       };
       const kind = sim.failureType || "action-fail";
@@ -2288,6 +2348,44 @@ window.addEventListener("unhandledrejection", (event) => {
     }
   }
 
+  function commandPresentation(id, m = mission()) {
+    const command = commandDefs[id];
+    if (!command) return null;
+    const isLoopCall = id === "callRoute" && early.isEarly(m) && [11, 12].includes(m.lessonNo);
+    return {
+      id,
+      command,
+      name: isLoopCall ? "重复循环体" : id === "callRoute" && early.isEarly(m) && m.lessonNo >= 9 ? "调用工具" : command.name,
+      label: isLoopCall ? `repeat(${earlyProfile(m.id).loopCount || "?"})` : id === "callRoute" && early.isEarly(m) && m.lessonNo >= 9 ? `${activeFunctionName(m)}()` : command.label,
+      breakdown: isLoopCall ? `把循环体中的全部动作按顺序重复 ${earlyProfile(m.id).loopCount || "所选"} 次` : command.breakdown,
+      translation: isLoopCall ? "repeat = 重复；loop body = 循环体" : command.translation
+    };
+  }
+
+  function renderCommandExplanation(m = mission()) {
+    if (!dom.commandExplanation) return;
+    const explainable = m.allowed.map((id) => commandPresentation(id, m)).filter((item) => item?.breakdown);
+    if (!explainable.length) {
+      dom.commandExplanation.hidden = true;
+      dom.commandExplanation.innerHTML = "";
+      return;
+    }
+    const selected = explainable.find((item) => item.id === explainedCommandId) || explainable[0];
+    explainedCommandId = selected.id;
+    const steps = selected.breakdown.split("→").map((step) => step.trim().replace(/^\d+\.\s*/, ""));
+    const terms = String(selected.translation || "").split("；").map((term) => term.trim()).filter(Boolean);
+    dom.commandExplanation.hidden = false;
+    dom.commandExplanation.innerHTML = `
+      <div class="command-explanation-heading">
+        <span>组合指令说明</span>
+        <strong>${selected.name}</strong>
+        <code>${selected.label}</code>
+      </div>
+      <ol class="command-explanation-steps">${steps.map((step, index) => `<li><span>${index + 1}</span>${step}</li>`).join("")}</ol>
+      ${terms.length ? `<div class="command-explanation-terms" aria-label="英文词义">${terms.map((term) => `<span>${term}</span>`).join("")}</div>` : ""}
+    `;
+  }
+
   function renderPalette() {
     const m = mission();
     const target = currentTargetProgram();
@@ -2295,25 +2393,25 @@ window.addEventListener("unhandledrejection", (event) => {
     const canReplace = hasSelectedProgramStep();
     dom.commandLimit.textContent = `${target.length} / ${limit} 个指令`;
     dom.paletteInstruction.textContent = canReplace
-      ? `替换第 ${selectedProgramIndex + 1} 步`
+      ? "请选择新指令"
       : m.lessonMode === "debug-detective" && target.length >= limit
         ? "先选中要修改的步骤"
         : m.lessonMode && m.lessonMode !== "standard" && target.length >= limit
           ? "点选步骤可以替换"
         : "点击加入";
+    dom.paletteInstruction.classList.toggle("is-replacing", canReplace);
+    renderCommandExplanation(m);
     dom.commandPalette.innerHTML = m.allowed.map((id) => {
-      const command = commandDefs[id];
-      if (!command) return "";
+      const presentation = commandPresentation(id, m);
+      if (!presentation) return "";
+      const { command } = presentation;
       const blockedInRoute = activeBoard === "route" && ["upload", "callRoute", ...(m.lessonNo >= 9 && m.lessonNo <= 11 ? [] : ["collect"])].includes(id);
       const disabled = (target.length >= limit && !canReplace) || blockedInRoute ? "disabled" : "";
       const style = command.kind === "logic" ? " is-logic" : command.kind === "system" ? " is-system" : "";
-      const isLoopCall = id === "callRoute" && early.isEarly(m) && [11, 12].includes(m.lessonNo);
-      const commandName = isLoopCall ? "重复循环体" : id === "callRoute" && early.isEarly(m) && m.lessonNo >= 9 ? "调用工具" : command.name;
-      const commandLabel = isLoopCall ? `repeat(${earlyProfile(m.id).loopCount || "?"})` : id === "callRoute" && early.isEarly(m) && m.lessonNo >= 9 ? `${activeFunctionName(m)}()` : command.label;
       return `
-        <button class="command-button${style}" data-command="${id}" ${disabled} type="button">
-          <strong>${commandName}</strong>
-          <small>${commandLabel} · ${command.hint}</small>
+        <button class="command-button${style}" data-command="${id}" ${disabled} type="button"${presentation.breakdown ? ' aria-describedby="commandExplanation"' : ""}>
+          <strong>${presentation.name}</strong>
+          <small>${presentation.label} · ${command.hint}</small>
         </button>
       `;
     }).join("");
@@ -2332,7 +2430,7 @@ window.addEventListener("unhandledrejection", (event) => {
       "loop-expander": "用循环表达重复，不是瞬移",
       "range-indent": "缩进决定循环体范围",
       "energy-lab": "同时检查路线与剩余能量",
-      "loop-creator": "先定危险格，再写参考解",
+      "loop-creator": "先定尖刺格，再写参考解",
       "condition-lab": "条件成立时才执行动作",
       "logic-guard": "组合布尔条件决定分支",
       "while-monitor": "每轮重新检查停止条件",
@@ -2351,7 +2449,8 @@ window.addEventListener("unhandledrejection", (event) => {
     dom.programTitle.textContent = activeBoard === "route"
       ? early.isEarly(mission()) && [11, 12].includes(mission().lessonNo) ? "循环体" : `函数 ${activeFunctionName()}()`
       : "我的程序";
-    dom.activeBoardHint.textContent = early.isEarly(mission()) ? "点选一步，再从指令区替换；× 可删除" : activeBoard === "route"
+    const earlyLesson = early.isEarly(mission());
+    const standardHint = activeBoard === "route"
       ? "只放路线动作"
       : mission().lessonMode === "debug-detective"
         ? "点选一步，再从左侧替换"
@@ -2374,6 +2473,8 @@ window.addEventListener("unhandledrejection", (event) => {
                 ? advancedProgramHint(mission().lessonMode)
                 : `配合${mission().advancedConfig?.toolTitle || "学习工具"}验证`
           : "按顺序执行";
+    dom.activeBoardHint.hidden = earlyLesson;
+    dom.activeBoardHint.textContent = standardHint;
 
     if (!target.length) {
       dom.programList.className = "program-list is-empty";
@@ -2383,11 +2484,12 @@ window.addEventListener("unhandledrejection", (event) => {
 
     dom.programList.className = "program-list";
     dom.programList.innerHTML = target.map((id, index) => `
-      <li class="program-chip${selectedProgramIndex === index ? " is-selected" : ""}">
-        <button class="program-select-button" data-program-index="${index}" type="button" aria-pressed="${selectedProgramIndex === index}">
+      <li class="program-chip${selectedProgramIndex === index ? " is-replacing" : ""}">
+        <div class="program-command-summary">
           <span>${index + 1}</span>
           <strong>${formatCommand(id)}</strong>
-        </button>
+        </div>
+        <button class="program-replace" data-replace-step="${index}" type="button" aria-label="替换 ${formatCommand(id)}">替换</button>
         <button class="program-remove" data-remove="${index}" type="button" aria-label="移除 ${formatCommand(id)}">×</button>
       </li>
     `).join("");
@@ -2428,15 +2530,15 @@ window.addEventListener("unhandledrejection", (event) => {
           x = nextX;
           y = nextY;
           effect = previewGrid.beacons.has(tileKey(x, y))
-            ? `到达信标格 (${x}, ${y})`
+            ? `到达宝石格 (${x}, ${y})`
             : `位置变为 (${x}, ${y})`;
         }
       } else if (command === "collect") {
         if (previewGrid.beacons.has(tileKey(x, y)) && !collected) {
           collected = true;
-          effect = "采集成功，信标变为 1 / 1";
+          effect = "采集成功，宝石变为 1 / 1";
         } else {
-          effect = "当前位置没有可采集的信标";
+          effect = "当前位置没有可采集的宝石";
           hasProblem = true;
         }
       }
@@ -2507,7 +2609,7 @@ window.addEventListener("unhandledrejection", (event) => {
           x = nextX;
           y = nextY;
           positionChange = previewGrid.beacons.has(tileKey(x, y))
-            ? `到达信标 (${x}, ${y})`
+            ? `到达宝石 (${x}, ${y})`
             : `移动到 (${x}, ${y})`;
         }
       } else if (command === "collect") {
@@ -2515,7 +2617,7 @@ window.addEventListener("unhandledrejection", (event) => {
           collected = true;
           positionChange = `在 (${x}, ${y}) 采集成功`;
         } else {
-          positionChange = `(${x}, ${y}) 没有信标`;
+          positionChange = `(${x}, ${y}) 没有宝石`;
           hasProblem = true;
         }
       }
@@ -2535,10 +2637,10 @@ window.addEventListener("unhandledrejection", (event) => {
       ? rows.join("")
       : `<div class="direction-change-empty" role="row"><span role="cell">放入指令后，这里会预览朝向和位置变化。</span></div>`;
     dom.directionCompass.dataset.direction = sim.dir;
-    dom.directionCompass.setAttribute("aria-label", `探测员当前朝向${directionLabels[sim.dir]}`);
+    dom.directionCompass.setAttribute("aria-label", `Nova 当前朝向${directionLabels[sim.dir]}`);
     dom.directionCompassValue.textContent = directionLabels[sim.dir];
     dom.directionLearningState.textContent = sim.completed
-      ? `实际朝向：${directionLabels[sim.dir]} · 已到达信标`
+      ? `实际朝向：${directionLabels[sim.dir]} · 已到达宝石`
       : sim.failed ? `实际朝向：${directionLabels[sim.dir]} · 查看失败步骤`
         : sim.expanded ? `实际朝向：${directionLabels[sim.dir]} · 已执行 ${Math.min(sim.queueIndex, program.length)} 步`
           : program.length ? `开始朝向：${directionLabels[activeMission.startDir]} · 已预览 ${program.length} 步` : `开始朝向：${directionLabels[activeMission.startDir]}`;
@@ -2611,9 +2713,9 @@ window.addEventListener("unhandledrejection", (event) => {
     `).join("");
 
     dom.coordinateScannerState.textContent = sim.completed
-      ? "两座信标的坐标都已验证"
+      ? "两座宝石的坐标都已验证"
       : sim.failed ? "坐标或朝向有误，查看失败步骤"
-        : sim.collected.size ? `已采集 ${sim.collected.size} / ${activeMission.required} 座信标`
+        : sim.collected.size ? `已采集 ${sim.collected.size} / ${activeMission.required} 座宝石`
           : sim.expanded ? `正在读取 (${sim.x}, ${sim.y})` : "读取起点与目标坐标";
   }
 
@@ -2624,13 +2726,13 @@ window.addEventListener("unhandledrejection", (event) => {
     const beacons = [...sim.grid.beacons.values()].sort((a, b) => a.y - b.y || a.x - b.x);
     const steps = [
       {
-        title: "采集信标 A",
-        detail: beacons[0] ? `前往 (${beacons[0].x}, ${beacons[0].y}) 并 collect()` : "找到第一座信标",
+        title: "采集宝石 A",
+        detail: beacons[0] ? `前往 (${beacons[0].x}, ${beacons[0].y}) 并 collect()` : "找到第一座宝石",
         done: beacons[0] ? sim.collected.has(tileKey(beacons[0].x, beacons[0].y)) : false
       },
       {
-        title: "采集信标 B",
-        detail: beacons[1] ? `前往 (${beacons[1].x}, ${beacons[1].y}) 并 collect()` : "找到第二座信标",
+        title: "采集宝石 B",
+        detail: beacons[1] ? `前往 (${beacons[1].x}, ${beacons[1].y}) 并 collect()` : "找到第二座宝石",
         done: beacons[1] ? sim.collected.has(tileKey(beacons[1].x, beacons[1].y)) : false
       },
       {
@@ -2715,7 +2817,7 @@ window.addEventListener("unhandledrejection", (event) => {
       ["朝向控制", "程序中使用了转向来改变后续路线", program.includes("left") || program.includes("right")],
       ["路线与限制", `程序没有超过 ${activeMission.limit} 步`, program.length > 0 && program.length <= activeMission.limit],
       ["日志验证", "已经运行或单步检查程序", sim.expanded],
-      ["分段采集", "两座信标都已采集", sim.collected.size === activeMission.required],
+      ["分段采集", "两座宝石都已采集", sim.collected.size === activeMission.required],
       ["最终上传", "携带全部信号抵达中继站并上传", sim.completed]
     ];
     const completedGateCount = gates.filter(([, , done]) => done).length;
@@ -2792,7 +2894,7 @@ window.addEventListener("unhandledrejection", (event) => {
         <div class="advanced-ledger">
           <div><span>移动</span><strong>−1 / 格</strong></div>
           <div><span>开启护盾</span><strong>−1</strong></div>
-          <div><span>无盾进入危险格</span><strong>−4 额外</strong></div>
+          <div><span>无盾进入尖刺格</span><strong>−4 额外</strong></div>
           <div class="${reserveMet ? "is-success" : "is-warning"}"><span>当前预算</span><strong>${reserveMet ? "达到保留线" : "低于保留线"}</strong></div>
         </div>
       `;
@@ -2802,31 +2904,33 @@ window.addEventListener("unhandledrejection", (event) => {
     if (mode === "loop-creator") {
       const hazards = m.advancedConfig?.loopHazards || [];
       const activeHazard = m.loopCreatorActiveHazard || hazards[0];
-      dom.advancedToolTitle.textContent = "循环危险关编辑器";
-      dom.advancedToolState.textContent = sim.completed ? "原创设置已通过验证" : `危险格 (${activeHazard.x}, ${activeHazard.y})`;
+      dom.advancedToolTitle.textContent = "循环尖刺关编辑器";
+      dom.advancedToolState.textContent = sim.completed ? "原创设置已通过验证" : `尖刺格 (${activeHazard.x}, ${activeHazard.y})`;
       dom.advancedLearningContent.innerHTML = `
         <div class="advanced-choice-row">${hazards.map((hazard) => renderChoice("loop-hazard", hazard.id, `${hazard.label} (${hazard.x}, ${hazard.y})`, hazard.id === activeHazard.id)).join("")}</div>
-        <div class="route-strip" aria-label="原创危险路线">
+        <div class="route-strip" aria-label="原创尖刺路线">
           ${Array.from({ length: 7 }, (_, index) => {
             const x = index + 1;
             const type = x === 1 ? "start" : x === 7 ? "beacon" : x === activeHazard.x ? "hazard" : "ground";
             return `<span class="is-${type}">${type === "start" ? "S" : type === "beacon" ? "B" : type === "hazard" ? "!" : ""}</span>`;
           }).join("")}
         </div>
-        <p class="advanced-feedback">切换危险格后，左侧 3D 地图和参考解会同步更新；循环仍需覆盖总共 6 格移动。</p>
+        <p class="advanced-feedback">切换尖刺格后，左侧 3D 地图和参考解会同步更新；循环仍需覆盖总共 6 格移动。</p>
       `;
       return;
     }
 
     if (mode === "condition-lab") {
-      const options = [["hazard", "危险格 hazard"], ["blocked", "阻挡 blocked"], ["clear", "可通行 clear"]];
+      const options = [["hazard", "尖刺格 spike"], ["blocked", "阻挡 blocked"], ["clear", "可通行 clear"]];
       const matches = front === sensorTarget;
+      const visibleTarget = sensorTarget === "hazard" ? "spike" : sensorTarget;
+      const visibleFront = front === "hazard" ? "spike" : front;
       dom.advancedToolTitle.textContent = "条件传感器";
-      dom.advancedToolState.textContent = `前方读取：${front} · 条件 ${matches ? "true" : "false"}`;
+      dom.advancedToolState.textContent = `前方读取：${visibleFront} · 条件 ${matches ? "true" : "false"}`;
       dom.advancedLearningContent.innerHTML = `
         <div class="advanced-choice-row">${options.map(([value, label]) => renderChoice("sensor", value, label, sensorTarget === value)).join("")}</div>
-        <pre class="structured-code"><code>if scanAhead() == "${sensorTarget}":\n    ${sensorTarget === "hazard" ? "shield()" : sensorTarget === "blocked" ? "turnRight()" : "move()"}</code></pre>
-        <div class="condition-result"><span>scanAhead()</span><strong>${front}</strong><span>判断结果</span><b class="${matches ? "is-true" : "is-false"}">${matches ? "true" : "false"}</b></div>
+        <pre class="structured-code"><code>if scan_ahead() == "${visibleTarget}":\n    ${sensorTarget === "hazard" ? "shield()" : sensorTarget === "blocked" ? "turn_right()" : "move()"}</code></pre>
+        <div class="condition-result"><span>scan_ahead()</span><strong>${visibleFront}</strong><span>判断结果</span><b class="${matches ? "is-true" : "is-false"}">${matches ? "true" : "false"}</b></div>
       `;
       return;
     }
@@ -2838,20 +2942,20 @@ window.addEventListener("unhandledrejection", (event) => {
       dom.advancedToolState.textContent = `表达式结果：${result ? "true" : "false"}`;
       dom.advancedLearningContent.innerHTML = `
         <div class="logic-builder-row"><span>连接方式</span>${renderChoice("logic-connector", "and", "AND", logicConnector === "and")}${renderChoice("logic-connector", "or", "OR", logicConnector === "or")}</div>
-        <div class="logic-builder-row"><span>危险条件</span>${renderChoice("logic-hazard", "not-hazard", "NOT hazard", logicHazardMode === "not-hazard")}${renderChoice("logic-hazard", "hazard", "hazard", logicHazardMode === "hazard")}</div>
-        <div class="logic-truth-row"><span>clear <b>${conditions[0] ? "T" : "F"}</b></span><span>enoughEnergy <b>${conditions[1] ? "T" : "F"}</b></span><span>${logicHazardMode === "not-hazard" ? "NOT hazard" : "hazard"} <b>${conditions[2] ? "T" : "F"}</b></span><strong class="${result ? "is-true" : "is-false"}">${result ? "MOVE" : "TURN"}</strong></div>
+        <div class="logic-builder-row"><span>尖刺条件</span>${renderChoice("logic-hazard", "not-hazard", "NOT spike", logicHazardMode === "not-hazard")}${renderChoice("logic-hazard", "hazard", "spike", logicHazardMode === "hazard")}</div>
+        <div class="logic-truth-row"><span>clear <b>${conditions[0] ? "T" : "F"}</b></span><span>enoughEnergy <b>${conditions[1] ? "T" : "F"}</b></span><span>${logicHazardMode === "not-hazard" ? "NOT spike" : "spike"} <b>${conditions[2] ? "T" : "F"}</b></span><strong class="${result ? "is-true" : "is-false"}">${result ? "MOVE" : "TURN"}</strong></div>
       `;
       return;
     }
 
     if (mode === "while-monitor") {
-      const onBeacon = sim.grid.beacons.has(currentKey) && !sim.collected.has(currentKey);
+      const onGem = sim.grid.beacons.has(currentKey) && !sim.collected.has(currentKey);
       const onRelay = Boolean(sim.grid.relay && sim.x === sim.grid.relay.x && sim.y === sim.grid.relay.y);
       dom.advancedToolTitle.textContent = "while 停止条件监视器";
       dom.advancedToolState.textContent = sim.completed ? "两个循环都已正确停止" : `位置 (${sim.x}, ${sim.y})`;
       dom.advancedLearningContent.innerHTML = `
-        <div class="while-condition-row"><code>while not onBeacon()</code><span>${onBeacon ? "false · 停止" : "true · 继续"}</span></div>
-        <div class="while-condition-row"><code>while not onRelay()</code><span>${onRelay ? "false · 停止" : sim.collected.size ? "true · 继续" : "等待采集后启用"}</span></div>
+        <div class="while-condition-row"><code>while not at_gem()</code><span>${onGem ? "false · 停止" : "true · 继续"}</span></div>
+        <div class="while-condition-row"><code>while not at_relay()</code><span>${onRelay ? "false · 停止" : sim.collected.size ? "true · 继续" : "等待采集后启用"}</span></div>
         <p class="advanced-feedback">循环每移动一格都会重新检查条件；到达目标的那一刻不再多走一步。</p>
       `;
       return;
@@ -2860,8 +2964,8 @@ window.addEventListener("unhandledrejection", (event) => {
     if (mode === "energy-boss") {
       const gates = [
         ["循环压缩", program.some((command) => command.startsWith("repeat"))],
-        ["信标 A", sim.collected.size >= 1],
-        ["信标 B", sim.collected.size >= 2],
+        ["宝石 A", sim.collected.size >= 1],
+        ["宝石 B", sim.collected.size >= 2],
         ["能量保留", sim.energy >= Number(m.minEnergy || 0)],
         ["中继站上传", sim.completed]
       ];
@@ -2922,7 +3026,7 @@ window.addEventListener("unhandledrejection", (event) => {
       const evidence = config.evidence || [];
       const points = [
         { label: "起点", ...sim.grid.start },
-        ...[...sim.grid.beacons.values()].map((point, index) => ({ label: `信标 ${String.fromCharCode(65 + index)}`, ...point })),
+        ...[...sim.grid.beacons.values()].map((point, index) => ({ label: `宝石 ${String.fromCharCode(65 + index)}`, ...point })),
         ...(sim.grid.relay ? [{ label: "中继站", ...sim.grid.relay }] : [])
       ];
       const evidenceMarkup = () => `<ul class="concept-evidence-list">${evidence.map((item, index) => {
@@ -2950,12 +3054,12 @@ window.addEventListener("unhandledrejection", (event) => {
       if (config.kind === "return") {
         const returnValue = selectedChoice.startsWith("isSafe")
           ? front === "clear" && sim.energy > 3
-          : selectedChoice.startsWith("onBeacon")
+          : selectedChoice.startsWith("at_gem") || selectedChoice.startsWith("onGem")
             ? sim.grid.beacons.has(currentKey)
             : sim.energy > 3;
         dom.advancedLearningContent.innerHTML = `
           ${choicesMarkup}
-          <div class="return-value-view"><code>${selectedChoice}</code><span>返回</span><strong class="${returnValue ? "is-true" : "is-false"}">${returnValue ? "true" : "false"}</strong><small>返回值本身不移动 Neo，必须被 if 或变量使用。</small></div>
+          <div class="return-value-view"><code>${selectedChoice}</code><span>返回</span><strong class="${returnValue ? "is-true" : "is-false"}">${returnValue ? "true" : "false"}</strong><small>返回值本身不移动 Nova，必须被 if 或变量使用。</small></div>
           ${evidenceMarkup()}
         `;
         return;
@@ -2984,10 +3088,10 @@ window.addEventListener("unhandledrejection", (event) => {
 
       if (config.kind === "record" || config.kind === "multi" || config.kind === "rule") {
         const records = config.kind === "record"
-          ? [["name", "Neo"], ["energy", sim.energy], ["position", `(${sim.x}, ${sim.y})`], ["carrying", sim.collected.size]]
+          ? [["name", "Nova"], ["energy", sim.energy], ["position", `(${sim.x}, ${sim.y})`], ["carrying", sim.collected.size]]
           : config.kind === "multi"
-            ? [["Neo", `位置 (${sim.x}, ${sim.y})`], ["维修工具", sim.expanded ? "正在同步" : "待命"], ["中继站", sim.completed ? "已接收" : "等待上传"]]
-            : [["grass", "消耗 1"], ["sand", "消耗 1"], ["water", "不可通行"], ["hazard", "额外消耗 4"]];
+            ? [["Nova", `位置 (${sim.x}, ${sim.y})`], ["维修工具", sim.expanded ? "正在同步" : "待命"], ["中继站", sim.completed ? "已接收" : "等待上传"]]
+            : [["grass", "消耗 1"], ["sand", "消耗 1"], ["water", "不可通行"], ["spike", "额外消耗 4"]];
         dom.advancedLearningContent.innerHTML = `
           ${choicesMarkup}
           <div class="record-inspector">${records.map(([key, value]) => `<div class="${selectedChoice === key ? "is-selected" : ""}"><code>${key}</code><strong>${value}</strong></div>`).join("")}</div>
@@ -3004,7 +3108,8 @@ window.addEventListener("unhandledrejection", (event) => {
             ${m.grid.flatMap((line, y) => [...line].map((tile, x) => {
               const isVisited = visited.has(tileKey(x, y));
               const type = tile === "_" ? "void" : tile === "#" ? "wall" : tile === "B" ? "beacon" : tile === "S" ? "start" : tile === "R" ? "relay" : tile === "H" ? "hazard" : "ground";
-              return `<span class="is-${type}${isVisited ? " is-visited" : ""}" title="(${x}, ${y}) ${type}">${type === "start" ? "S" : type === "beacon" ? "B" : type === "relay" ? "R" : type === "wall" ? "#" : type === "hazard" ? "!" : ""}</span>`;
+              const visibleType = type === "beacon" ? "gem" : type === "hazard" ? "spike" : type;
+              return `<span class="is-${type}${isVisited ? " is-visited" : ""}" title="(${x}, ${y}) ${visibleType}">${type === "start" ? "S" : type === "beacon" ? "B" : type === "relay" ? "R" : type === "wall" ? "#" : type === "hazard" ? "!" : ""}</span>`;
             })).join("")}
           </div>
           ${evidenceMarkup()}
@@ -3013,8 +3118,8 @@ window.addEventListener("unhandledrejection", (event) => {
       }
 
       if (config.kind === "timeline") {
-        const beats = [["时刻 0", "Neo 准备", "工具移动中"], ["时刻 1", selectedChoice, selectedChoice === "等待 1 拍" ? "工具到位" : "尚未同步"], ["时刻 2", "开始行动", "协作状态检查"]];
-        dom.advancedLearningContent.innerHTML = `${choicesMarkup}<ol class="sync-beat-list">${beats.map(([time, neo, tool], index) => `<li><span>${index}</span><strong>${time}</strong><small>Neo：${neo}</small><small>工具：${tool}</small></li>`).join("")}</ol>${evidenceMarkup()}`;
+        const beats = [["时刻 0", "Nova 准备", "工具移动中"], ["时刻 1", selectedChoice, selectedChoice === "等待 1 拍" ? "工具到位" : "尚未同步"], ["时刻 2", "开始行动", "协作状态检查"]];
+        dom.advancedLearningContent.innerHTML = `${choicesMarkup}<ol class="sync-beat-list">${beats.map(([time, nova, tool], index) => `<li><span>${index}</span><strong>${time}</strong><small>Nova：${nova}</small><small>工具：${tool}</small></li>`).join("")}</ol>${evidenceMarkup()}`;
         return;
       }
 
@@ -3058,15 +3163,21 @@ window.addEventListener("unhandledrejection", (event) => {
 
   function codeForCommand(id) {
     if (id === "ifSensorAct") {
-      const action = sensorTarget === "hazard" ? "shield();" : sensorTarget === "blocked" ? "turnRight();" : "move();";
-      return `if (scanAhead() === "${sensorTarget}") ${action}`;
+      const action = sensorTarget === "hazard" ? "shield()" : sensorTarget === "blocked" ? "turn_right()" : "move()";
+      const visibleTarget = sensorTarget === "hazard" ? "spike" : sensorTarget;
+      return `if scan_ahead() == "${visibleTarget}":\n    ${action}`;
     }
     if (id === "logicGuard") {
-      const connector = logicConnector === "and" ? "&&" : "||";
-      const hazardExpression = logicHazardMode === "not-hazard" ? "!isHazardAhead()" : "isHazardAhead()";
-      return `if (isClear() ${connector} enoughEnergy() ${connector} ${hazardExpression}) move(); else turnRight();`;
+      const connector = logicConnector === "and" ? "and" : "or";
+      const hazardExpression = logicHazardMode === "not-hazard" ? "not is_spike_ahead()" : "is_spike_ahead()";
+      return `if is_clear() ${connector} enough_energy() ${connector} ${hazardExpression}:\n    move()\nelse:\n    turn_right()`;
     }
     return commandDefs[id]?.code || id;
+  }
+
+  function indentPython(source, spaces = 4) {
+    const padding = " ".repeat(spaces);
+    return String(source).split("\n").map((line) => `${padding}${line}`).join("\n");
   }
 
   function renderCodeView() {
@@ -3085,7 +3196,21 @@ window.addEventListener("unhandledrejection", (event) => {
       dom.codeView.textContent = lines.length ? lines.join("\n") : "# 在主程序放入 repeat，再编辑循环体";
       return;
     }
-    if (early.isEarly(mission()) && mission().lessonNo >= 9) {
+    if (early.isEarly(mission()) && [13, 14, 15].includes(mission().lessonNo)) {
+      const activeMission = mission();
+      const p = earlyProfile(activeMission.id);
+      const sensor = p.conditionSensor || activeMission.early.defaultSensor || "状态";
+      const connector = p.logicConnector === "or" ? "or" : "and";
+      const hazardRule = (p.logicHazardMode || activeMission.early.defaultHazardMode) === "hazard" ? "is_spike_ahead()" : "not is_spike_ahead()";
+      const python = { move: ["move()"], left: ["turn_left()"], right: ["turn_right()"], collect: ["collect()"],
+        ifSensorAct: [`if scan_ahead() == \"${sensor === "hazard" ? "spike" : sensor}\":`, sensor === "blocked" ? "    turn_right()" : sensor === "clear" ? "    move()" : "    shield()"],
+        logicGuard: [`if is_clear() ${connector} enough_energy() ${connector} ${hazardRule}:`, "    move()", "else:", "    turn_right()"],
+        whileBeacon: ["while not at_gem():", "    move()"] };
+      const lines = program.flatMap((id) => python[id] || [id]);
+      dom.codeView.textContent = lines.length ? lines.join("\n") : "# 先用指令卡搭建；对应的 Python 会在这里同步出现";
+      return;
+    }
+    if (early.isEarly(mission()) && mission().lessonNo >= 9 && mission().lessonNo <= 10) {
       const functionName = activeFunctionName();
       const python = { move: "move()", left: "turn_left()", right: "turn_right()", back: "move_back()", collect: "collect()", upload: "upload()", callRoute: "visit_side()" };
       python.callRoute = `${functionName}()`;
@@ -3095,17 +3220,17 @@ window.addEventListener("unhandledrejection", (event) => {
       return;
     }
     const mainLines = program.length
-      ? program.map((id) => `  ${codeForCommand(id)}`)
-      : ["  // 选择指令"];
+      ? program.map((id) => indentPython(codeForCommand(id)))
+      : ["    # 选择指令"];
     const routeLines = routeProgram.length
-      ? routeProgram.map((id) => `  ${codeForCommand(id)}`)
-      : ["  // 添加函数动作"];
+      ? routeProgram.map((id) => indentPython(codeForCommand(id)))
+      : ["    # 添加函数动作"];
 
     const functionBlock = mission().functionEnabled
-      ? `function routeA() {\n${routeLines.join("\n")}\n}\n\n`
+      ? `def route_a():\n${routeLines.join("\n")}\n\n`
       : "";
 
-    dom.codeView.textContent = `${functionBlock}function main() {\n${mainLines.join("\n")}\n}`;
+    dom.codeView.textContent = `${functionBlock}def main():\n${mainLines.join("\n")}\n\nmain()`;
   }
 
   function renderLog() {
@@ -3169,7 +3294,7 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function isPythonStudioLesson(activeMission = mission()) {
-    return currentTrackId === "course" && Boolean(activeMission?.pythonStudio);
+    return currentTrackId === "course" && Boolean(activeMission?.pythonStudio) && !early.isEarly(activeMission);
   }
 
   function pythonStarterSource(activeMission = mission()) {
@@ -3589,7 +3714,7 @@ window.addEventListener("unhandledrejection", (event) => {
       setPythonFeedback(
         "normal",
         "等待运行",
-        mission().pythonStudio?.initialFeedback || "先运行错误程序，看看它为什么会停在危险格。"
+        mission().pythonStudio?.initialFeedback || "先运行错误程序，看看它为什么会停在尖刺格。"
       );
     }
   }
@@ -3718,9 +3843,9 @@ window.addEventListener("unhandledrejection", (event) => {
     if (!afterPlayback) {
       appendPythonLog(`第 ${line} 行没有执行：${message}`);
     } else if (pythonPlannedEvents.at(-1)?.type === "fall") {
-      appendPythonLog(`第 ${line} 行停止：探测员跌出通道。`);
+      appendPythonLog(`第 ${line} 行停止：Nova 跌出通道。`);
     } else if (pythonPlannedEvents.at(-1)?.type === "hazard-fail") {
-      appendPythonLog(`第 ${line} 行停止：探测员在危险格停机。`);
+      appendPythonLog(`第 ${line} 行停止：Nova 在尖刺格停机。`);
     } else {
       appendPythonLog(`第 ${line} 行停止：${message}`);
     }
@@ -4038,14 +4163,14 @@ window.addEventListener("unhandledrejection", (event) => {
         ? `本关至少要保留 ${minimumEnergy} 点能量。`
         : needsUpload && !pythonUploaded
           ? "还没有在中继站完成上传。"
-          : "还没有采集全部信标。";
+          : "还没有采集全部宝石。";
       startMotion(failureMotion(sim.failureType));
       sim.message = "程序结束，但任务没有完成";
       setPythonFeedback("error", "任务还没完成", sim.energy < minimumEnergy
-        ? `已经采集信标，但只剩 ${sim.energy} 点能量；本关至少要保留 ${minimumEnergy} 点。`
+        ? `已经采集宝石，但只剩 ${sim.energy} 点能量；本关至少要保留 ${minimumEnergy} 点。`
         : needsUpload && !pythonUploaded
           ? "程序已经结束，但还没有在中继站完成 upload()。检查第二个停止条件和最终位置。"
-          : "程序已经结束，但还没有采集全部信标。检查停止条件、位置和 collect()。"
+          : "程序已经结束，但还没有采集全部宝石。检查停止条件、位置和 collect()。"
       );
       savePythonEvidence({ lastOutcome: "incomplete" });
     }
@@ -4482,20 +4607,30 @@ window.addEventListener("unhandledrejection", (event) => {
     ctx.save();
     ctx.translate(c.x, c.y - layout.tileH * 0.02);
     ctx.scale(1, 0.52);
-    ctx.fillStyle = "rgba(255, 219, 215, 0.88)";
+    ctx.fillStyle = "rgba(76, 84, 94, 0.72)";
     ctx.beginPath();
     ctx.arc(0, 0, layout.tileW * 0.28, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
-    ctx.strokeStyle = "#d65245";
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(c.x, c.y - layout.tileH * 0.35);
-    ctx.lineTo(c.x + layout.tileW * 0.2, c.y + layout.tileH * 0.05);
-    ctx.lineTo(c.x - layout.tileW * 0.2, c.y + layout.tileH * 0.05);
-    ctx.closePath();
-    ctx.stroke();
+    const spikes = [
+      [-0.2, 0.08, 0.16, 0.38],
+      [0, 0.02, 0.19, 0.48],
+      [0.2, 0.1, 0.15, 0.34],
+      [-0.09, 0.18, 0.12, 0.28],
+      [0.11, 0.2, 0.11, 0.25]
+    ];
+    spikes.forEach(([offsetX, offsetY, width, height], index) => {
+      const baseY = c.y + layout.tileH * offsetY;
+      const halfWidth = layout.tileW * width;
+      ctx.fillStyle = index % 2 ? "#7f8993" : "#626b75";
+      ctx.beginPath();
+      ctx.moveTo(c.x + layout.tileW * offsetX, baseY - layout.tileH * height);
+      ctx.lineTo(c.x + layout.tileW * offsetX + halfWidth, baseY);
+      ctx.lineTo(c.x + layout.tileW * offsetX - halfWidth, baseY);
+      ctx.closePath();
+      ctx.fill();
+    });
   }
 
   function drawBeacon(layout, x, y, collected) {
@@ -4986,6 +5121,8 @@ window.addEventListener("unhandledrejection", (event) => {
       foam: new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.48, depthWrite: false, side: THREE.DoubleSide }),
       rock: new THREE.MeshStandardMaterial({ color: 0x8996a1, roughness: 0.78, flatShading: true }),
       rockLight: new THREE.MeshStandardMaterial({ color: 0xb9c3ca, roughness: 0.76, flatShading: true }),
+      spike: new THREE.MeshStandardMaterial({ color: 0x77818b, roughness: 0.7, metalness: 0.08, flatShading: true }),
+      spikeDark: new THREE.MeshStandardMaterial({ color: 0x4f5862, roughness: 0.76, metalness: 0.06, flatShading: true }),
       cliffPlate: new THREE.MeshStandardMaterial({ color: 0xb5bec6, roughness: 0.72, metalness: 0.02, flatShading: true }),
       gem: new THREE.MeshStandardMaterial({ color: 0xff2549, roughness: 0.28, metalness: 0.08, emissive: 0x45020b, emissiveIntensity: 0.25, flatShading: true }),
       gemGlow: new THREE.MeshBasicMaterial({ color: 0xff6680, transparent: true, opacity: 0.2, depthWrite: false }),
@@ -5027,6 +5164,7 @@ window.addEventListener("unhandledrejection", (event) => {
       pebble: new THREE.DodecahedronGeometry(0.085, 0),
       rockLarge: new THREE.DodecahedronGeometry(0.3, 0),
       rockSmall: new THREE.DodecahedronGeometry(0.19, 0),
+      spike: new THREE.ConeGeometry(0.11, 0.42, 5),
       gem: new THREE.OctahedronGeometry(0.26, 0),
       gemGlow: new THREE.SphereGeometry(0.38, 14, 8),
       gemGlyph: new THREE.CircleGeometry(0.048, 3),
@@ -5735,15 +5873,27 @@ window.addEventListener("unhandledrejection", (event) => {
     }
 
     function addHazard(parent, x, z) {
-      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.028, 28), materials.padBase);
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.29, 0.31, 0.045, 12), materials.spikeDark);
       base.position.set(x, surfaceY + 0.014, z);
+      base.scale.y = 0.55;
+      base.receiveShadow = true;
       parent.add(base);
 
-      const hazard = new THREE.Mesh(new THREE.ConeGeometry(0.21, 0.38, 3), materials.gem);
-      hazard.position.set(x, surfaceY + 0.22, z);
-      hazard.rotation.y = Math.PI / 6;
-      hazard.castShadow = true;
-      parent.add(hazard);
+      const placements = [
+        [0, 0, 1.05],
+        [-0.16, 0.08, 0.76],
+        [0.16, 0.08, 0.82],
+        [-0.08, -0.15, 0.64],
+        [0.13, -0.14, 0.6]
+      ];
+      placements.forEach(([dx, dz, scale], index) => {
+        const spike = new THREE.Mesh(geometry.spike, index % 2 ? materials.spike : materials.spikeDark);
+        spike.position.set(x + dx, surfaceY + 0.045 + 0.21 * scale, z + dz);
+        spike.scale.set(scale, scale, scale);
+        spike.rotation.y = (index * Math.PI) / 5;
+        spike.castShadow = true;
+        parent.add(spike);
+      });
     }
 
     function addGem(parent, x, z, collected) {
@@ -6067,8 +6217,16 @@ window.addEventListener("unhandledrejection", (event) => {
         const [x, y] = key.split(",").map(Number);
         const wx = worldX(x);
         const wz = worldZ(y);
-        addCylinder(vertices, [wx, 0.045, wz], 0.28, 0.035, [1.0, 0.78, 0.73, 1], 28);
-        addPyramid(vertices, [wx, 0.25, wz], 0.25, 0.38, [0.9, 0.18, 0.22, 1]);
+        addCylinder(vertices, [wx, 0.045, wz], 0.3, 0.04, [0.3, 0.34, 0.38, 1], 12);
+        [
+          [0, 0, 0.21, 0.42],
+          [-0.16, 0.08, 0.15, 0.3],
+          [0.16, 0.08, 0.16, 0.33],
+          [-0.08, -0.15, 0.12, 0.26],
+          [0.13, -0.14, 0.11, 0.24]
+        ].forEach(([dx, dz, radius, height], index) => {
+          addPyramid(vertices, [wx + dx, 0.06 + height / 2, wz + dz], radius, height, index % 2 ? [0.48, 0.52, 0.57, 1] : [0.31, 0.35, 0.39, 1]);
+        });
       });
 
       grid.beacons.forEach((beacon, key) => {
@@ -6554,7 +6712,18 @@ window.addEventListener("unhandledrejection", (event) => {
   dom.commandPalette.addEventListener("click", (event) => {
     const button = event.target.closest("[data-command]");
     if (!button || button.disabled) return;
+    if (commandDefs[button.dataset.command]?.breakdown || button.dataset.command === "callRoute") {
+      explainedCommandId = button.dataset.command;
+      renderCommandExplanation();
+    }
     addCommand(button.dataset.command);
+  });
+
+  dom.commandPalette.addEventListener("focusin", (event) => {
+    const button = event.target.closest("[data-command]");
+    if (!button || !(commandDefs[button.dataset.command]?.breakdown || button.dataset.command === "callRoute")) return;
+    explainedCommandId = button.dataset.command;
+    renderCommandExplanation();
   });
 
   dom.routeChoiceList.addEventListener("click", (event) => {
@@ -6647,10 +6816,9 @@ window.addEventListener("unhandledrejection", (event) => {
       return;
     }
 
-    const selectButton = event.target.closest("[data-program-index]");
-    if (!selectButton) return;
-    const nextIndex = Number(selectButton.dataset.programIndex);
-    selectedProgramIndex = selectedProgramIndex === nextIndex ? null : nextIndex;
+    const replaceButton = event.target.closest("[data-replace-step]");
+    if (!replaceButton) return;
+    selectedProgramIndex = Number(replaceButton.dataset.replaceStep);
     render();
   });
 
@@ -6818,6 +6986,7 @@ window.addEventListener("unhandledrejection", (event) => {
     hideRunBlocker();
     if (action === "build" || action === "show-review") {
       const target = action === "build" ? dom.operationPanel : earlyEvidencePanel;
+      if (action === "show-review") target.querySelector(".early-evidence-disclosure")?.setAttribute("open", "");
       target.scrollIntoView({ block: "start", behavior: "auto" });
       target.setAttribute("tabindex", "-1");
       target.focus({ preventScroll: true });
@@ -6825,13 +6994,13 @@ window.addEventListener("unhandledrejection", (event) => {
     }
     if (field) {
       p[field] = field === "loopCount" ? Number(button.dataset.value) : button.dataset.value;
-      if (field === "diagnosis") selectedProgramIndex = Number(p.diagnosis) - 1;
+      if (field === "diagnosis" && /^\d+$/.test(p.diagnosis)) selectedProgramIndex = Number(p.diagnosis) - 1;
       if (field === "plan") { selectedRouteChoiceId = p.plan; p.prediction = ""; }
       earlyNotice = "";
       if (field === "prerequisite" && p.prerequisite !== m.early.prerequisite.answer) {
-        earlyNotice = "再想想：转向不移动，采集要站在信标上。";
+        earlyNotice = "再想想：转向不移动，采集要站在宝石上。";
       }
-      if (["designerTarget", "actionLimit", "loopCount", "loopBoundary"].includes(field)) {
+      if (["designerTarget", "actionLimit", "loopCount", "loopBoundary", "conditionSensor", "logicConnector", "logicHazardMode", "systemChoice", "systemChoiceB"].includes(field)) {
         if (field === "designerTarget") { p.draft = []; program = []; p.guidedComplete = false; }
         resetSimulation();
       }

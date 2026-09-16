@@ -99,7 +99,7 @@
             <span class="world-state" id="worldState">等待运行</span>
           </div>
           <div class="canvas-shell">
-            <canvas id="gameCanvas" width="960" height="640" aria-label="无人机任务地图，地图左上方外侧包含随视角旋转的三维N向三角箭头"></canvas>
+            <canvas id="gameCanvas" width="960" height="640" aria-label="Nova 的任务地图，地图左上方外侧包含随视角旋转的三维 N 向三角箭头"></canvas>
             <div class="world-hud">
               <div class="gem-counter">
                 <span class="gem-mark" aria-hidden="true"></span>
@@ -142,43 +142,43 @@
             </div>
 
             <article class="playground-lesson-brief" id="sequenceLessonBrief" hidden>
-              <p class="playground-challenge"><strong>挑战：</strong>信标已经发出启动信号。让探测员向前移动两格，站到信标所在的格子，再完成采集。</p>
+              <p class="playground-challenge"><strong>挑战：</strong>宝石已经发出启动信号。让 Nova 向前移动两格，站到宝石所在的格子，再完成采集。</p>
               <p>程序里的指令会从上到下，一条接一条地发生：</p>
               <ul>
-                <li><span class="lesson-command">move()</span> 会让探测员沿当前朝向前进一格，并改变它的位置。</li>
+                <li><span class="lesson-command">move()</span> 会让 Nova 沿当前朝向前进一格，并改变它的位置。</li>
                 <li>排在上面的指令会先执行。下一条指令要等上一条完成后才会开始。</li>
-                <li><span class="lesson-command">collect()</span> 只有在探测员已经站到信标格时才会成功。</li>
+                <li><span class="lesson-command">collect()</span> 只有在 Nova 已经站到宝石格时才会成功。</li>
               </ul>
               <p class="playground-goal"><strong>完成挑战：</strong>依次放入两条 <span class="lesson-command">move()</span>，最后放入 <span class="lesson-command">collect()</span>，再运行你的程序。</p>
             </article>
 
             <article class="playground-lesson-brief" id="directionLessonBrief" hidden>
-              <p class="playground-challenge"><strong>挑战：</strong>探测员开始时面向东，但正前方被岩石挡住。让它先转向南走两格，再转向东抵达信标并完成采集。</p>
-              <p>屏幕上的方向不会替探测员做决定。程序执行时，要以探测员自己的朝向为准：</p>
+              <p class="playground-challenge"><strong>挑战：</strong>Nova 开始时面向东，但正前方被岩石挡住。让它先转向南走两格，再转向东抵达宝石并完成采集。</p>
+              <p>屏幕上的方向不会替 Nova 做决定。程序执行时，要以 Nova 自己的朝向为准：</p>
               <ul>
                 <li><span class="lesson-command">turnRight()</span> 和 <span class="lesson-command">turnLeft()</span> 只改变朝向，不会移动位置。</li>
-                <li><span class="lesson-command">move()</span> 会沿探测员此刻面对的方向前进一格。</li>
+                <li><span class="lesson-command">move()</span> 会沿 Nova 此刻面对的方向前进一格。</li>
                 <li>每次转向后，先看朝向罗盘，再决定下一次前进会走向哪里。</li>
               </ul>
               <p class="playground-goal"><strong>完成挑战：</strong>按照“右转 → 前进两格 → 左转 → 前进 → 采集”的路线排列程序，然后运行验证。</p>
             </article>
 
             <article class="playground-lesson-brief" id="routeLessonBrief" hidden>
-              <p class="playground-challenge"><strong>挑战：</strong>同一个信标可以从两条路线到达。先比较路线，再把你选择的路线翻译成程序并完成采集。</p>
+              <p class="playground-challenge"><strong>挑战：</strong>同一个宝石可以从两条路线到达。先比较路线，再把你选择的路线翻译成程序并完成采集。</p>
               <p>不要急着点击指令。先判断每条路线是否可行，再比较它们的代价：</p>
               <ul>
                 <li>动作数量越多，程序越长，需要检查的步骤也越多。</li>
                 <li>每次转向都会改变后续前进方向，也会增加出错机会。</li>
-                <li>路线能到达信标只是第一步，还要在正确位置执行 <span class="lesson-command">collect()</span>。</li>
+                <li>路线能到达宝石只是第一步，还要在正确位置执行 <span class="lesson-command">collect()</span>。</li>
               </ul>
               <p class="playground-goal"><strong>完成挑战：</strong>在路线比较板中选择方案，按照路线说明排列程序，然后运行验证你的选择。</p>
             </article>
 
             <article class="playground-lesson-brief" id="playgroundLessonBrief" hidden>
-              <p class="playground-challenge"><strong>挑战：</strong>导航程序在接近信标时转错了方向。运行这段错误程序，找出第一次偏离正确路线的步骤并修复它。</p>
-              <p>程序会从上到下逐步执行。先运行一次，观察探测员从哪一步开始偏离正确路线：</p>
+              <p class="playground-challenge"><strong>挑战：</strong>导航程序在接近宝石时转错了方向。运行这段错误程序，找出第一次偏离正确路线的步骤并修复它。</p>
+              <p>程序会从上到下逐步执行。先运行一次，观察 Nova 从哪一步开始偏离正确路线：</p>
               <ul>
-                <li><span class="lesson-command">move()</span> 让探测员沿当前方向前进一格。</li>
+                <li><span class="lesson-command">move()</span> 让 Nova 沿当前方向前进一格。</li>
                 <li><span class="lesson-command">turnLeft()</span> 和 <span class="lesson-command">turnRight()</span> 会改变下一次前进的方向。</li>
                 <li>日志会记录步骤编号，以及动作后的关键位置或朝向。第一处与预期不同的步骤，通常就是错误源头。</li>
               </ul>
@@ -187,21 +187,21 @@
             </article>
 
             <article class="playground-lesson-brief" id="coordinateLessonBrief" hidden>
-              <p class="playground-challenge"><strong>挑战：</strong>地图上有两座信标。根据坐标档案，先到达信标 A，再转向前往信标 B，并完成两次采集。</p>
+              <p class="playground-challenge"><strong>挑战：</strong>地图上有两座宝石。根据坐标档案，先到达宝石 A，再转向前往宝石 B，并完成两次采集。</p>
               <p>坐标用一对数字记录格子的位置。第一项是 x，第二项是 y：</p>
               <ul>
                 <li>向右移动一格，x 增加 1；向下移动一格，y 增加 1。</li>
                 <li><span class="lesson-command">turnLeft()</span> 和 <span class="lesson-command">turnRight()</span> 只改变朝向，不会立刻改变坐标。</li>
                 <li>旋转观察地图不会改变任何格子的坐标。坐标描述的是地图，不是镜头。</li>
               </ul>
-              <p class="playground-goal"><strong>完成挑战：</strong>按照坐标档案依次找到两座信标，每到一座信标就执行一次 <span class="lesson-command">collect()</span>。</p>
+              <p class="playground-goal"><strong>完成挑战：</strong>按照坐标档案依次找到两座宝石，每到一座宝石就执行一次 <span class="lesson-command">collect()</span>。</p>
             </article>
 
             <article class="playground-lesson-brief" id="segmentLessonBrief" hidden>
-              <p class="playground-challenge"><strong>挑战：</strong>这次任务分成三段：采集信标 A、采集信标 B、把两份信号带到中继站上传。</p>
+              <p class="playground-challenge"><strong>挑战：</strong>这次任务分成三段：采集宝石 A、采集宝石 B、把两份信号带到中继站上传。</p>
               <p>长程序可以用几个有完成条件的子目标来理解：</p>
               <ul>
-                <li>站在信标格执行 <span class="lesson-command">collect()</span> 后，携带状态会从 0 变为 1，再变为 2。</li>
+                <li>站在宝石格执行 <span class="lesson-command">collect()</span> 后，携带状态会从 0 变为 1，再变为 2。</li>
                 <li>必须先完成两次采集，最后才前往中继站。</li>
                 <li><span class="lesson-command">upload()</span> 只有在中继站且携带 2 份信号时才会成功。</li>
               </ul>
@@ -209,18 +209,18 @@
             </article>
 
             <article class="playground-lesson-brief" id="creatorLessonBrief" hidden>
-              <p class="playground-challenge"><strong>挑战：</strong>制作你的第一张原创路线关。选择一座信标的位置，再决定采用严格还是宽松的步数限制。</p>
+              <p class="playground-challenge"><strong>挑战：</strong>制作你的第一张原创路线关。选择一座宝石的位置，再决定采用严格还是宽松的步数限制。</p>
               <p>一张能交给别人玩的关卡，需要同时满足三条规则：</p>
               <ul>
-                <li>起点和目标必须清楚，信标不能放在岩石或地图外。</li>
-                <li>起点到信标必须存在一条可走的路线。</li>
+                <li>起点和目标必须清楚，宝石不能放在岩石或地图外。</li>
+                <li>起点到宝石必须存在一条可走的路线。</li>
                 <li>步数限制不能小于参考解法，否则关卡没有办法完成。</li>
               </ul>
               <p class="playground-goal"><strong>完成挑战：</strong>在原创路线工作台选择目标和限制，观察左侧 3D 地图改变，再写出程序并运行验证。</p>
             </article>
 
             <article class="playground-lesson-brief" id="capstoneLessonBrief" hidden>
-              <p class="playground-challenge"><strong>挑战：</strong>陨石干扰了信号网络。穿过一张更长的陌生地图，采集两座信标，再抵达中继站完成最终上传。</p>
+              <p class="playground-challenge"><strong>挑战：</strong>陨石干扰了信号网络。穿过一张更长的陌生地图，采集两座宝石，再抵达中继站完成最终上传。</p>
               <p>这一关没有新指令。你要把前七课的方法组合起来：</p>
               <ul>
                 <li>先观察起点、朝向、坐标和完整路线，再开始编程。</li>
@@ -251,7 +251,7 @@
                 <span id="directionLearningState">实际朝向：东</span>
               </div>
               <div class="direction-learning-layout">
-                <div class="direction-compass" id="directionCompass" data-direction="E" role="img" aria-label="探测员当前朝向东">
+                <div class="direction-compass" id="directionCompass" data-direction="E" role="img" aria-label="Nova 当前朝向东">
                   <span class="compass-north">北</span>
                   <span class="compass-east">东</span>
                   <span class="compass-south">南</span>
@@ -285,7 +285,7 @@
                 <span id="coordinateScannerState">读取地图坐标</span>
               </div>
               <div class="coordinate-readout">
-                <span>Neo 当前坐标</span>
+                <span>Nova 当前坐标</span>
                 <strong id="coordinateCurrentValue">(1, 6)</strong>
                 <small>x → 向右增加　y → 向下增加</small>
               </div>
@@ -309,11 +309,11 @@
                 <strong>原创路线工作台</strong>
                 <span id="creatorValidationState">关卡规则通过检查</span>
               </div>
-              <p class="creator-workbench-instruction">选择一个带坐标的候选格，3D 地图会立即移动信标。</p>
-              <div class="creator-map-editor" id="creatorMapEditor" role="group" aria-label="信标位置候选地图"></div>
+              <p class="creator-workbench-instruction">选择一个带坐标的候选格，3D 地图会立即移动宝石。</p>
+              <div class="creator-map-editor" id="creatorMapEditor" role="group" aria-label="宝石位置候选地图"></div>
               <div class="creator-settings">
                 <div>
-                  <span>信标位置</span>
+                  <span>宝石位置</span>
                   <div class="creator-choice-row" id="creatorTargetOptions"></div>
                 </div>
                 <div>
@@ -388,6 +388,8 @@
               <button class="tab-button" data-board="route" type="button">routeA()</button>
             </div>
 
+            <section class="command-explanation" id="commandExplanation" aria-live="polite" hidden></section>
+
             <div class="builder-grid">
               <section class="palette-panel">
                 <div class="panel-title">
@@ -430,14 +432,14 @@
             <div class="python-studio-heading">
               <div>
                 <span id="pythonStudioKicker">第 13 课 · 简单 if</span>
-                <h3 id="pythonStudioTitle">修复危险判断</h3>
+                <h3 id="pythonStudioTitle">修复尖刺判断</h3>
               </div>
               <strong class="python-save-state" id="pythonSaveState" data-state="saved">草稿已保存</strong>
             </div>
 
             <div class="python-first-task">
               <span id="pythonTaskBadge">修改第 2 行</span>
-              <p id="pythonTaskText">把 <code>is_blocked_ahead()</code>（前方是否被阻挡）改成 <code>is_hazard_ahead()</code>（前方是否危险）。</p>
+              <p id="pythonTaskText">把 <code>is_blocked_ahead()</code>（前方是否被阻挡）改成 <code>is_spike_ahead()</code>（前方是否有尖刺）。</p>
             </div>
 
             <div class="python-code-workspace">
@@ -491,7 +493,7 @@
                 <h4 id="pythonFeedbackTitle">调试反馈</h4>
                 <span id="pythonFeedbackKind">等待运行</span>
               </div>
-              <p id="pythonFeedbackMessage" aria-live="polite">先运行错误程序，看看它为什么会停在危险格。</p>
+              <p id="pythonFeedbackMessage" aria-live="polite">先运行错误程序，看看它为什么会停在尖刺格。</p>
               <ol id="pythonExecutionLog"></ol>
             </section>
 
