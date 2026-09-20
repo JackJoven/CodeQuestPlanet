@@ -1,6 +1,6 @@
 (function (root) {
   "use strict";
-  const version = 6;
+  const version = 7;
   const directions = ["N", "E", "S", "W"];
   const vectors = { N: [0, -1], E: [1, 0], S: [0, 1], W: [-1, 0] };
   const labels = { N: "北", E: "东", S: "南", W: "西" };
@@ -31,9 +31,11 @@
   }
 
   function profile(saved) {
-    const p = saved?.version === version ? copy(saved) : [2, 3, 4, 5].includes(saved?.version)
-      ? copy(saved) : saved?.version === 1
-        ? { legacyEvidence: copy(saved), completed: saved.completed === true, updatedAt: saved.updatedAt || "" } : {};
+    const p = saved?.version === version ? copy(saved) : [1, 2, 3, 4, 5, 6].includes(saved?.version)
+      ? { ...copy(saved), legacyEvidence: copy(saved), mastered: false, guidedComplete: false,
+        attempts: [], guidedEvidence: null, repairEvidence: null, masteryEvidence: null, debugObservation: null,
+        transferEvidence: {}, explanationEvidence: null, semanticExposures: {}, currentFingerprint: "",
+        contentRevision: null } : {};
     return {
       version, phase: "guided", variant: 0, draft: [], prediction: "", plan: "", reason: "",
       prerequisite: "", explanation: "", debug: "", diagnosis: "", reflection: "", repairEvidence: null, debugObservation: null, hintLevel: 0, assisted: false,
@@ -41,7 +43,9 @@
       designerTarget: "", obstacles: [], actionLimit: "tight", ruleFixed: false, ruleRevised: false, ruleDiagnosis: "", failureReason: "",
       loopCount: 0, loopBoundary: "", conditionSensor: "", logicConnector: "", logicHazardMode: "",
       systemChoice: "", systemChoiceB: "",
+      semanticExposures: {}, transferEvidence: {}, currentFingerprint: "",
       ...p,
+      version,
       phase: ["challenge", "repair"].includes(p.phase) ? p.phase : "guided",
       variant: integer(p.variant) % 3,
       draft: commands(p.draft), functionDraft: commands(p.functionDraft), savedFunction: commands(p.savedFunction),
@@ -55,8 +59,8 @@
       systemChoice: typeof p.systemChoice === "string" ? p.systemChoice.slice(0, 80) : "",
       systemChoiceB: typeof p.systemChoiceB === "string" ? p.systemChoiceB.slice(0, 80) : "",
       hintLevel: Math.min(3, integer(p.hintLevel)),
-      assisted: p.assisted === true, mastered: p.mastered === true, completed: p.completed === true,
-      attempts: Array.isArray(p.attempts) ? p.attempts.map(normalizeAttempt).filter(Boolean).slice(-6) : []
+      assisted: p.assisted === true, mastered: false, completed: p.completed === true,
+      attempts: Array.isArray(p.attempts) ? p.attempts.map(normalizeAttempt).filter(Boolean).slice(-12) : []
     };
   }
 
@@ -872,7 +876,7 @@
     return missionFunction(base, p);
   }
 
-  function mission(base, p) {
+  function legacyMission(base, p) {
     if (!isEarly(base)) return base;
     if (base.lessonNo === 6) return missionSix(base, p);
     if (base.lessonNo >= 16) return missionAdvanced(base, p);
@@ -990,14 +994,25 @@
     };
   }
 
+  function mission(base, p) {
+    const adapter = root.CodeQuestStructuredLessons.get(base);
+    if (adapter) return adapter.mission(base, p);
+    const m = legacyMission(base, p);
+    m.contentRevision = `1.7-${base.lessonNo}-evidence2`;
+    p.contentRevision = m.contentRevision;
+    m.faultDescriptor = m.early.repairing ? { program: m.early.faulty, function: m.early.faultyFunction } : null;
+    if (root.CodeQuestEvidence.fingerprint(m) !== p.currentFingerprint) root.CodeQuestEvidence.enter(p, m);
+    return m;
+  }
+
   function canRun(m, p, hasPrerequisite = false) {
+    if (m.early.v18) return "";
     if (m.lessonNo >= 16) {
       const lab = m.early.dataLab;
       const observedCurrentFailure = p.debugObservation?.challengeKey === m.early.key;
       if (m.early.repairing && !observedCurrentFailure) return "";
       if (m.early.repairing && !p.diagnosis) return "请先根据原始失败判断哪个规则断开了。";
-      if ((p.systemChoice || lab.selectedChoice) !== lab.correct) return `请先完成任务台中的“${lab.prompt}”。`;
-      if (lab.secondary && (p.systemChoiceB || lab.selectedChoiceB) !== lab.secondary.correct) return `请先完成任务台中的“${lab.secondary.prompt}”。`;
+      // Legacy advanced choices do not drive an executable concept. They are practice only.
       return "";
     }
     if (m.lessonNo === 7) {
@@ -1009,8 +1024,8 @@
     }
     if ([9, 10].includes(m.lessonNo)) return "";
     if ([11, 12].includes(m.lessonNo)) {
-      if (Number(p.loopCount) !== Number(m.early.expectedLoopCount)) return `请先选择本场需要的 ${m.early.expectedLoopCount} 轮。`;
-      if (p.loopBoundary !== m.early.expectedBoundary) return "请先判断 collect() 应在循环内还是循环外。";
+      if (!Number.isInteger(Number(p.loopCount)) || Number(p.loopCount) < 0 || Number(p.loopCount) > 8) return "循环次数需要是 0 到 8 的整数。";
+      if (!["inside", "outside"].includes(p.loopBoundary)) return "先把采集放在循环内或循环外，再观察运行。";
       return "";
     }
     if (m.lessonNo === 13) {
@@ -1103,14 +1118,16 @@
     if (m.lessonNo === 15 && run.success && !conceptSuccess) failure = "这张图走通了，但固定步数不能证明距离变化后仍然有效";
     if (m.lessonNo >= 16 && run.success && !conceptSuccess) failure = "世界结果完成了，但本课的数据规则或核心结构还没有真实参与运行";
     if (run.success && !targetOrderCorrect) failure = "宝石都采集到了，但顺序与任务要求不一致";
-    const validatedSuccess = conceptSuccess && targetOrderCorrect;
+    const validatedSuccess = conceptSuccess && targetOrderCorrect && m.lessonNo < 16;
+    if (m.lessonNo >= 16 && run.success) failure = "练习已完成；本课的核心操作尚待升级，暂不认定知识点掌握。";
     const programMatchesFault = JSON.stringify(run.program) === JSON.stringify(m.early.faulty);
     const isFaulty = m.lessonNo >= 16 ? programMatchesFault
       : m.lessonNo === 13 ? programMatchesFault && run.conditionSensor !== m.early.expectedSensor
       : m.lessonNo === 14 ? programMatchesFault && (run.logicConnector !== m.early.expectedConnector || run.logicHazardMode !== m.early.expectedHazardMode)
         : m.lessonNo === 15 ? !run.program.includes("whileBeacon")
           : programMatchesFault && (!m.early.faultyFunction || JSON.stringify(run.routeProgram) === JSON.stringify(m.early.faultyFunction));
-    return { ...copy(run), success: validatedSuccess, failure, challengeKey: m.early.key, independent: m.early.independent,
+    return { ...copy(run), worldSuccess: Boolean(run.success), success: validatedSuccess, failure,
+      contentRevision: m.contentRevision, fingerprint: root.CodeQuestEvidence.fingerprint(m), challengeKey: m.early.key, independent: m.early.independent,
       lessonNo: m.lessonNo, phase: p.phase, assisted: Boolean(run.assisted), predictionCorrect: [7, 11, 12].includes(m.lessonNo) || !m.early.prediction.options.length || run.prediction === m.early.prediction.answer,
       actualRoute: actual?.id || "custom", routeMatches: !planned || divergence === null,
       diagnosisCorrect: String(run.diagnosis || p.ruleDiagnosis) === String(diagnosisAnswer),
@@ -1122,7 +1139,8 @@
   }
 
   function record(p, attempt) {
-    p.attempts = [...p.attempts, attempt].slice(-6);
+    p.attempts = [...p.attempts, attempt].slice(-12);
+    if (attempt.worldSuccess) p.completed = true;
     if (attempt.phase === "repair" && !attempt.success && (attempt.isFaulty || attempt.lessonNo === 7 || attempt.lessonNo === 10 || attempt.lessonNo >= 13)) p.debugObservation = copy(attempt);
     if (attempt.phase === "challenge" && !attempt.success) p.playtestObservation = copy(attempt);
     if (attempt.success) {
@@ -1155,45 +1173,57 @@
     if (p.guidedComplete && p.repairEvidence && attempt.independent && !attempt.assisted
       && attempt.predictionCorrect && attempt.targetOrderCorrect
       && challengeProof && (m.lessonNo !== 3 || attempt.routeMatches || attempt.reconciled)) {
-      p.mastered = true;
-      p.masteryEvidence = copy(attempt);
+      p.executionEvidence = copy(attempt);
     }
+    // Free text is retained for a teacher; merely entering text is not an explanation assessment.
+    p.explanationStatus = "teacher-review";
+    p.mastered = false;
     return true;
   }
 
   function switchChallenge(p, phase, next = false) {
     const variant = next ? (p.variant + 1) % 3 : p.variant;
     // Returning to the same challenge must not erase a reference/hint exposure.
-    p.exposures = { ...(p.exposures || {}), [`${p.phase}-${p.variant}`]: { assisted: p.assisted, hintLevel: p.hintLevel } };
-    const exposure = p.exposures[`${phase}-${variant}`] || {};
+    const exposure = {};
     Object.assign(p, { phase, variant, draft: [], functionDraft: [], initializedKey: "", prediction: "", plan: "", reason: "", loopCount: 0, loopBoundary: "",
       conditionSensor: "", logicConnector: "", logicHazardMode: "", systemChoice: "", systemChoiceB: "",
       explanation: "", debug: "", diagnosis: "", reflection: "", reconciliation: "", ruleDiagnosis: "", failureReason: "",
-      ruleFixed: false, ruleRevised: false, assisted: Boolean(exposure.assisted), hintLevel: exposure.hintLevel || 0 });
+      ruleFixed: false, ruleRevised: false, assisted: Boolean(exposure.assisted), hintLevel: exposure.hintLevel || 0, currentFingerprint: "" });
     return p;
   }
 
   function merge(local, remote) {
-    if (![1, 2, 3, 4, 5, version].includes(remote?.version)) return profile(local);
+    if (![1, 2, 3, 4, 5, 6, version].includes(remote?.version)) return profile(local);
     const a = profile(local), b = profile(remote);
-    const latest = Date.parse(b.updatedAt) > Date.parse(a.updatedAt || "1970-01-01") ? b : a;
+    const supported = p => root.CodeQuestStructuredLessons.forRevision(p.contentRevision) ? 2 : /^1\.7-\d+-evidence2$/.test(p.contentRevision || "") ? 1 : 0;
+    const latest = supported(a) !== supported(b) ? supported(a) > supported(b) ? a : b
+      : Date.parse(b.updatedAt) > Date.parse(a.updatedAt || "1970-01-01") ? b : a;
     const older = latest === a ? b : a;
-    const attempts = [...new Map([...older.attempts, ...latest.attempts].map((r) => [r.id, r])).values()]
-      .sort((x, y) => String(x.at).localeCompare(String(y.at))).slice(-6);
+    const sameRevision = a.contentRevision === b.contentRevision;
+    const attempts = [...new Map([...(sameRevision ? older.attempts : []), ...latest.attempts].map((r) => [r.id, r])).values()]
+      .sort((x, y) => String(x.at).localeCompare(String(y.at))).slice(-12);
     const exposures = {};
     for (const key of new Set([...Object.keys(a.exposures || {}), ...Object.keys(b.exposures || {})])) {
       exposures[key] = { assisted: Boolean(a.exposures?.[key]?.assisted || b.exposures?.[key]?.assisted), hintLevel: Math.max(a.exposures?.[key]?.hintLevel || 0, b.exposures?.[key]?.hintLevel || 0) };
     }
-    return { ...latest, attempts, exposures,
+    const merged = { ...latest, attempts, exposures,
+      semanticExposures: root.CodeQuestEvidence.mergeExposures(a.semanticExposures, b.semanticExposures),
+      transferEvidence: sameRevision ? root.CodeQuestEvidence.mergeTransferProofs(older.transferEvidence, latest.transferEvidence) : latest.transferEvidence,
+      parameterIntroEvidence: sameRevision ? { ...older.parameterIntroEvidence, ...latest.parameterIntroEvidence } : latest.parameterIntroEvidence,
       assisted: Boolean(latest.assisted || exposures[`${latest.phase}-${latest.variant}`]?.assisted),
-      guidedComplete: a.guidedComplete || b.guidedComplete, completed: a.completed || b.completed,
-      mastered: a.mastered || b.mastered,
+      guidedComplete: latest.guidedComplete || (sameRevision && older.guidedComplete), completed: a.completed || b.completed,
+      mastered: false,
       legacyEvidence: latest.legacyEvidence || older.legacyEvidence,
-      debugObservation: latest.debugObservation || older.debugObservation,
-      playtestObservation: latest.playtestObservation || older.playtestObservation,
-      repairEvidence: latest.repairEvidence || older.repairEvidence,
-      guidedEvidence: latest.guidedEvidence || older.guidedEvidence,
-      masteryEvidence: latest.masteryEvidence || older.masteryEvidence };
+      contentArchives: { ...older.contentArchives, ...latest.contentArchives },
+      debugObservation: latest.debugObservation || (sameRevision && older.debugObservation),
+      playtestObservation: latest.playtestObservation || (sameRevision && older.playtestObservation),
+      repairEvidence: latest.repairEvidence || (sameRevision && older.repairEvidence),
+      guidedEvidence: latest.guidedEvidence || (sameRevision && older.guidedEvidence),
+      explanationEvidence: latest.explanationEvidence || (sameRevision && older.explanationEvidence),
+      masteryEvidence: null };
+    merged.assisted = Boolean(merged.semanticExposures?.[merged.currentFingerprint]?.assisted);
+    root.CodeQuestStructuredLessons.forRevision(merged.contentRevision)?.reconcile(merged);
+    return merged;
   }
 
   root.CodeQuestEarlyLessons = { version, reasons, labels, isEarly, profile, mission, canRun, result, record, review, switchChallenge, merge, pathFor, shortestProgram };

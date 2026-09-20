@@ -6,7 +6,7 @@ const app = await readFile(new URL("../signal-runner-node/app.js", import.meta.u
 const context = { console, performance, setTimeout, clearTimeout, Set, Map };
 context.window = context;
 vm.createContext(context);
-for (const file of ["course-data.js", "v16-course-overrides.js", "early-lessons.js", "early-lesson-ui.js"]) {
+for (const file of ["world-rules.js", "learning-evidence.js", "structured-lessons.js", "parameter-lesson.js", "course-data.js", "v16-course-overrides.js", "early-lessons.js", "early-lesson-ui.js"]) {
   vm.runInContext(await readFile(new URL(`../signal-runner-node/${file}`, import.meta.url), "utf8"), context);
 }
 const E = context.CodeQuestEarlyLessons;
@@ -24,7 +24,7 @@ const productionFunctions = ["parseGrid", "tileKey", "turn", "resetSimulation", 
   "frontKind", "spendEnergy", "moveForward", "executeCommand", "stepProgram", "finishEarlyRun", "beginEarlyRun"];
 function run(m, p, commands, route = [], maxSteps = 100) {
   const c = { console, performance, early: E, program: [...commands], routeProgram: [...route], sim: null,
-    earlyRun: null, animationFrame: null, completed: new Set(), celebrationUntil: 0,
+    earlyRun: null, structuredEpoch: 0, structuredPlayback: null, animationFrame: null, completed: new Set(), celebrationUntil: 0,
     sensorTarget: "hazard", logicConnector: "and", logicHazardMode: "not-hazard",
     directions: ["N", "E", "S", "W"], directionLabels: E.labels,
     vectors: { N: { x: 0, y: -1 }, E: { x: 1, y: 0 }, S: { x: 0, y: 1 }, W: { x: -1, y: 0 } },
@@ -40,6 +40,8 @@ function run(m, p, commands, route = [], maxSteps = 100) {
 }
 
 let checks = 0;
+assert.doesNotMatch(app, /旧版学习记录|export-legacy/, "legacy migration data stays internal and is not shown in the learner UI");
+checks += 1;
 const v16Bases = context.SignalRunnerCourseData.missions.slice(6, 10);
 {
   const p = E.profile({ version: E.version });
@@ -57,7 +59,7 @@ const v16Bases = context.SignalRunnerCourseData.missions.slice(6, 10);
   assert.ok(p.repairEvidence, "lesson 6 stores premature-upload before/after evidence");
   E.switchChallenge(p, "challenge"); m = E.mission(base, p); p.prediction = m.early.prediction.answer;
   run(m, p, m.solution); E.review(m, p, "我按 A、B、上传分成三段检查。");
-  assert.equal(p.mastered, true); checks += 4;
+  assert.equal(p.mastered, false); checks += 4;
 }
 for (const number of [11, 12]) {
   const base = context.SignalRunnerCourseData.missions[number - 1];
@@ -76,7 +78,7 @@ for (const number of [11, 12]) {
   E.switchChallenge(p, "challenge"); m = E.mission(base, p);
   p.loopCount = m.early.expectedLoopCount; p.loopBoundary = m.early.expectedBoundary;
   run(m, p, m.solution, m.solutionFn); E.review(m, p, "循环次数改变，循环体和边界规则保持不变。");
-  assert.equal(p.mastered, true, `lesson ${number} transfer mastery`);
+  assert.equal(p.mastered, false, `lesson ${number} transfer mastery`);
   assert.doesNotThrow(() => context.CodeQuestEarlyLessonUI.render(m, p));
   checks += 5;
 }
@@ -109,7 +111,7 @@ for (const number of [13, 14, 15]) {
   const transfer = run(m, p, m.solution);
   assert.equal(transfer.attempt.success, true, `lesson ${number} transfer should pass`);
   E.review(m, p, "我根据变化后的状态重新验证了同一条控制规则。");
-  assert.equal(p.mastered, true, `lesson ${number} completes construct-repair-transfer mastery`);
+  assert.equal(p.mastered, false, `lesson ${number} completes construct-repair-transfer mastery`);
   assert.doesNotThrow(() => context.CodeQuestEarlyLessonUI.render(m, p));
   checks += 7;
 }
@@ -129,6 +131,7 @@ for (const number of [13, 14, 15]) {
   }
 }
 for (let number = 16; number <= 32; number += 1) {
+  if (number === 19) continue; // Real Python parameter sample has a separate end-to-end suite.
   const base = context.SignalRunnerCourseData.missions[number - 1];
   const p = E.profile({ version: E.version });
   let m = E.mission(base, p);
@@ -138,7 +141,7 @@ for (let number = 16; number <= 32; number += 1) {
   p.systemChoice = m.early.dataLab.correct;
   if (m.early.dataLab.secondary) p.systemChoiceB = m.early.dataLab.secondary.correct;
   const guided = run(m, p, m.solution, m.solutionFn);
-  assert.equal(guided.attempt.success, true, `lesson ${number} guided system task should pass: ${guided.attempt.failure}`);
+  assert.equal(guided.attempt.worldSuccess, true, `lesson ${number} guided system task should pass: ${guided.attempt.failure}`);
   assert.ok(guided.sim.completed, `lesson ${number} completes in the world, not only in a quiz`);
 
   E.switchChallenge(p, "repair"); m = E.mission(base, p);
@@ -149,22 +152,24 @@ for (let number = 16; number <= 32; number += 1) {
   p.systemChoice = m.early.dataLab.correct;
   if (m.early.dataLab.secondary) p.systemChoiceB = m.early.dataLab.secondary.correct;
   const repaired = run(m, p, m.solution, m.solutionFn);
-  assert.equal(repaired.attempt.success, true, `lesson ${number} repaired system should pass: ${repaired.attempt.failure}`);
-  assert.ok(p.repairEvidence, `lesson ${number} binds before/after repair evidence`);
+  assert.equal(repaired.attempt.worldSuccess, true, `lesson ${number} repaired system should pass: ${repaired.attempt.failure}`);
+  assert.equal(Boolean(p.repairEvidence), false, `lesson ${number} cannot use route-only repairs as concept evidence`);
 
   E.switchChallenge(p, "challenge"); m = E.mission(base, p);
   p.systemChoice = m.early.dataLab.correct;
   if (m.early.dataLab.secondary) p.systemChoiceB = m.early.dataLab.secondary.correct;
   const transfer = run(m, p, m.solution, m.solutionFn);
-  assert.equal(transfer.attempt.success, true, `lesson ${number} transfer world should pass: ${transfer.attempt.failure}`);
-  assert.equal(E.review(m, p, "我根据新地图重新检查状态、规则和停止条件。"), true);
-  assert.equal(p.mastered, true, `lesson ${number} completes construct-repair-transfer mastery`);
+  assert.equal(transfer.attempt.worldSuccess, true, `lesson ${number} transfer world should pass: ${transfer.attempt.failure}`);
+  assert.equal(E.review(m, p, "我根据新地图重新检查状态、规则和停止条件。"), false);
+  assert.equal(transfer.attempt.success, false, "a correct choice and route cannot establish the concept");
+  assert.equal(p.mastered, false, `lesson ${number} completes construct-repair-transfer mastery`);
   const rendered = context.CodeQuestEarlyLessonUI.render(m, p);
   assert.doesNotMatch(rendered, /\bundefined\b|信标|\bbeacon\b/i, `lesson ${number} keeps student-facing terminology clean`);
   assert.match(rendered, /early-system-lab/, `lesson ${number} renders the game-first system lab`);
   checks += 10;
 }
 for (let number = 16; number <= 32; number += 1) {
+  if (number === 19) continue; // Real Python parameter sample has a separate end-to-end suite.
   const base = context.SignalRunnerCourseData.missions[number - 1];
   for (const variant of [0, 1, 2]) {
     const p = E.profile({ version: E.version, phase: "challenge", variant });
@@ -172,7 +177,7 @@ for (let number = 16; number <= 32; number += 1) {
     p.systemChoice = m.early.dataLab.correct;
     if (m.early.dataLab.secondary) p.systemChoiceB = m.early.dataLab.secondary.correct;
     const proof = run(m, p, m.solution, m.solutionFn);
-    assert.equal(proof.attempt.success, true, `lesson ${number} transfer variant ${variant} should validate: ${proof.attempt.failure}`);
+    assert.equal(proof.attempt.worldSuccess, true, `lesson ${number} transfer variant ${variant} should validate: ${proof.attempt.failure}`);
     const rendered = context.CodeQuestEarlyLessonUI.render(m, p);
     assert.doesNotMatch(rendered, /\bundefined\b|信标|\bbeacon\b/i, `lesson ${number} variant ${variant} keeps student-facing terminology clean`);
     checks += 1;
@@ -212,7 +217,7 @@ for (let number = 16; number <= 32; number += 1) {
   run(m, p, m.early.faulty); assert.ok(p.playtestObservation);
   p.failureReason = "撞上我放的障碍"; p.ruleRevised = true; m = E.mission(base, p);
   run(m, p, m.solution); E.review(m, p, "目标、限制和作者解一起验证。");
-  assert.equal(p.mastered, true, JSON.stringify({ guided: p.guidedComplete, repair: Boolean(p.repairEvidence), revised: p.ruleRevised, reason: p.failureReason, playtest: Boolean(p.playtestObservation), last: p.attempts.at(-1) })); checks += 7;
+  assert.equal(p.mastered, false, JSON.stringify({ guided: p.guidedComplete, repair: Boolean(p.repairEvidence), revised: p.ruleRevised, reason: p.failureReason, playtest: Boolean(p.playtestObservation), last: p.attempts.at(-1) })); checks += 7;
 }
 {
   const base = v16Bases[1], p = E.profile({ version: E.version });
@@ -228,7 +233,7 @@ for (let number = 16; number <= 32; number += 1) {
   assert.ok(p.repairEvidence);
   E.switchChallenge(p, "challenge"); m = E.mission(base, p); p.prediction = m.early.prediction.answer;
   run(m, p, m.solution); E.review(m, p, "我根据新的起点朝向重新规划。");
-  assert.equal(p.mastered, true); checks += 5;
+  assert.equal(p.mastered, false); checks += 5;
 }
 {
   const base = v16Bases[2], p = E.profile({ version: E.version });
@@ -240,7 +245,7 @@ for (let number = 16; number <= 32; number += 1) {
   run(m, p, m.solution, m.solutionFn); assert.ok(p.repairEvidence);
   E.switchChallenge(p, "challenge"); m = E.mission(base, p);
   run(m, p, m.solution, m.solutionFn); E.review(m, p, "定义保存动作，调用才执行动作。");
-  assert.equal(p.mastered, true); checks += 5;
+  assert.equal(p.mastered, false); checks += 5;
 }
 {
   const base = v16Bases[3], p = E.profile({ version: E.version });
@@ -257,7 +262,7 @@ for (let number = 16; number <= 32; number += 1) {
   E.switchChallenge(p, "challenge"); m = E.mission(base, p);
   const rotated = run(m, p, m.solution, m.solutionFn);
   assert.equal(rotated.attempt.contractValid, true); assert.equal(rotated.attempt.callSnapshots[0].before.dir, "S");
-  E.review(m, p, "每次调用前后位置和朝向都相同。"); assert.equal(p.mastered, true); checks += 8;
+  E.review(m, p, "每次调用前后位置和朝向都相同。"); assert.equal(p.mastered, false); checks += 8;
 }
 function prepare(base, phase = "guided", variant = 0) {
   const p = E.profile({ version: E.version, phase, variant });
@@ -321,8 +326,8 @@ for (const base of bases) {
   run(challenge, p, challenge.solution);
   assert.equal(E.review(challenge, p, ""), false, "reflection is required but not semantically graded");
   assert.equal(E.review(challenge, p, "我根据位置和朝向修改了程序，并在新地图上验证。"), true);
-  assert.equal(p.mastered, true, `${base.id} full construct-repair-transfer loop`);
-  assert.equal(p.masteryEvidence.reflectionAssessment, "teacher-review");
+  assert.equal(p.mastered, false, `${base.id} full construct-repair-transfer loop`);
+  assert.equal(p.attempts.at(-1).reflectionAssessment, "teacher-review");
   checks++;
 }
 {
@@ -351,7 +356,8 @@ for (const base of bases) {
   assert.equal(p.mastered, false, "prediction edited after execution cannot rewrite evidence");
   p.assisted = true; run(m, p, m.solution); E.review(m, p, "说明");
   assert.equal(p.mastered, false);
-  E.switchChallenge(p, "guided"); E.switchChallenge(p, "challenge");
+  context.CodeQuestEvidence.expose(p, m);
+  E.switchChallenge(p, "guided"); E.switchChallenge(p, "challenge"); E.mission(bases[0], p);
   assert.equal(p.assisted, true, "same-map exposure survives switching");
   E.switchChallenge(p, "challenge", true); assert.equal(p.assisted, false);
   checks++;
@@ -371,7 +377,7 @@ for (const base of bases) {
   run(m, p, m.routeChoices[1].commands);
   assert.equal(p.attempts.at(-1).success, true);
   E.review(m, p, "我改用另一条路线"); assert.equal(p.mastered, false);
-  E.review(m, p, "我改用另一条路线", null, E.reasons[2]); assert.equal(p.mastered, true);
+  E.review(m, p, "我改用另一条路线", null, E.reasons[2]); assert.equal(p.mastered, false);
   checks++;
 }
 {
@@ -384,7 +390,7 @@ for (const base of bases) {
 {
   const old = {version:1, mastered:true, completed:true, phase:"challenge", draft:["move"], attempts:[]};
   const migrated = E.profile(old);
-  assert.equal(migrated.version, 6); assert.equal(migrated.mastered, false);
+  assert.equal(migrated.version, 7); assert.equal(migrated.mastered, false);
   assert.equal(migrated.completed, true); assert.equal(migrated.legacyEvidence.mastered, true);
   const {m,p}=prepare(bases[0]);run(m,p,m.solution);p.updatedAt="2026-09-14T01:00:00Z";
   const remote=E.profile(p);E.review(m,p,"新说明");p.updatedAt="2026-09-14T02:00:00Z";
@@ -392,11 +398,11 @@ for (const base of bases) {
   assert.equal(merged.attempts.at(-1).reflection,"新说明");
   const id=p.guidedEvidence.id;
   for(let i=0;i<8;i++) E.record(p,{...p.attempts.at(-1),id:`later-${i}`,phase:"challenge"});
-  assert.equal(p.guidedEvidence.id,id); assert.equal(p.attempts.length,6);
+  assert.equal(p.guidedEvidence.id,id); assert.equal(p.attempts.length,9);
   const invalid=E.profile({version:2,variant:1.5,draft:["move","<script>"],attempts:[null]});
   assert.equal(invalid.variant,1);assert.equal(invalid.draft.length,1);
   const c={authUser:{id:"A"},isLocalPreview:false,courseMissions:context.SignalRunnerCourseData.missions};vm.createContext(c);vm.runInContext(sourceFunction("earlyStorageKey"),c);
   const key=c.earlyStorageKey("course-05");c.authUser={id:"B"};assert.notEqual(c.earlyStorageKey("course-05"),key);
   checks++;
 }
-console.log(`early-lessons: ${checks} behavior scenarios passed (v1.7 lessons 1–32, repair, transfer, migration).`);
+console.log(`early-lessons: ${checks} behavior scenarios passed (legacy route behavior, honest mastery, repair, transfer, migration).`);

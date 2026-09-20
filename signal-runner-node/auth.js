@@ -1,5 +1,7 @@
 (function () {
-  const isLocalPreview = window.location.protocol === "file:";
+  const isLocalPreview = window.location.protocol === "file:"
+    || (["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname)
+      && new URLSearchParams(window.location.search).get("preview") === "1");
 
   const api = {
     me: "/api/auth/me",

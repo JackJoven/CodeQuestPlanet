@@ -1,0 +1,3702 @@
+{
+  "date": "2026-09-16",
+  "method": "production-functions-with-render-storage-animation-stubs",
+  "inventory": [
+    {
+      "no": 1,
+      "title": "启动信号",
+      "mode": "thinking-lab",
+      "guidedSize": [
+        9,
+        5
+      ],
+      "passable": 17,
+      "symbols": [
+        "#",
+        "B",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "3af29fc7ce69",
+      "guidedProgram": [
+        "move",
+        "move",
+        "collect"
+      ],
+      "transferHashes": [
+        "265ee89eb9a6",
+        "5556fd1979b3",
+        "ad8365219d0f"
+      ],
+      "transferPrograms": [
+        [
+          "move",
+          "move",
+          "move",
+          "move",
+          "collect"
+        ],
+        [
+          "move",
+          "move",
+          "move",
+          "move",
+          "move",
+          "collect"
+        ],
+        [
+          "move",
+          "move",
+          "move",
+          "move",
+          "move",
+          "move",
+          "collect"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "correctChoiceIndex": null,
+      "allowed": [
+        "move",
+        "collect"
+      ],
+      "gate": null
+    },
+    {
+      "no": 2,
+      "title": "谁的左和右",
+      "mode": "thinking-lab",
+      "guidedSize": [
+        8,
+        7
+      ],
+      "passable": 28,
+      "symbols": [
+        "#",
+        "B",
+        "S",
+        "_",
+        "g",
+        "s"
+      ],
+      "guidedHash": "01cc44aee8f0",
+      "guidedProgram": [
+        "right",
+        "move",
+        "move",
+        "left",
+        "move",
+        "collect"
+      ],
+      "transferHashes": [
+        "d2b1a762890e",
+        "c02915d9dd99",
+        "50a8644896a0"
+      ],
+      "transferPrograms": [
+        [
+          "right",
+          "move",
+          "move",
+          "left",
+          "move",
+          "collect"
+        ],
+        [
+          "right",
+          "move",
+          "move",
+          "left",
+          "move",
+          "collect"
+        ],
+        [
+          "right",
+          "move",
+          "move",
+          "left",
+          "move",
+          "collect"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "correctChoiceIndex": null,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect"
+      ],
+      "gate": null
+    },
+    {
+      "no": 3,
+      "title": "先画路线再出发",
+      "mode": "thinking-lab",
+      "guidedSize": [
+        9,
+        5
+      ],
+      "passable": 19,
+      "symbols": [
+        "#",
+        "B",
+        "H",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "324e5970d91e",
+      "guidedProgram": [
+        "move",
+        "move",
+        "collect"
+      ],
+      "transferHashes": [
+        "1849ce68818b",
+        "58bf2a5b5cc7",
+        "2b4f82265e54"
+      ],
+      "transferPrograms": [
+        [
+          "left",
+          "move",
+          "right",
+          "move",
+          "move",
+          "right",
+          "move",
+          "collect"
+        ],
+        [
+          "left",
+          "move",
+          "right",
+          "move",
+          "move",
+          "right",
+          "move",
+          "collect"
+        ],
+        [
+          "left",
+          "move",
+          "right",
+          "move",
+          "move",
+          "right",
+          "move",
+          "collect"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "correctChoiceIndex": null,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect"
+      ],
+      "gate": null
+    },
+    {
+      "no": 4,
+      "title": "调试侦探社",
+      "mode": "thinking-lab",
+      "guidedSize": [
+        9,
+        7
+      ],
+      "passable": 32,
+      "symbols": [
+        "#",
+        "B",
+        "S",
+        "_",
+        "g",
+        "s",
+        "~"
+      ],
+      "guidedHash": "6c59f09f7a38",
+      "guidedProgram": [
+        "right",
+        "move",
+        "move",
+        "left",
+        "move",
+        "collect"
+      ],
+      "transferHashes": [
+        "78e7f817ac9d",
+        "3e26832a6ec7",
+        "8eafba29d94c"
+      ],
+      "transferPrograms": [
+        [
+          "right",
+          "move",
+          "move",
+          "left",
+          "move",
+          "move",
+          "collect"
+        ],
+        [
+          "right",
+          "move",
+          "move",
+          "left",
+          "move",
+          "move",
+          "collect"
+        ],
+        [
+          "right",
+          "move",
+          "move",
+          "left",
+          "move",
+          "move",
+          "collect"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "correctChoiceIndex": null,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect"
+      ],
+      "gate": null
+    },
+    {
+      "no": 5,
+      "title": "星图坐标站",
+      "mode": "thinking-lab",
+      "guidedSize": [
+        12,
+        8
+      ],
+      "passable": 41,
+      "symbols": [
+        "#",
+        "B",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "d5b4dc643182",
+      "guidedProgram": [
+        "move",
+        "move",
+        "collect",
+        "left",
+        "move",
+        "move",
+        "right",
+        "move",
+        "move",
+        "collect"
+      ],
+      "transferHashes": [
+        "d77063ff9bdb",
+        "e386fba87607",
+        "f5e05e4d3a01"
+      ],
+      "transferPrograms": [
+        [
+          "move",
+          "move",
+          "collect",
+          "left",
+          "move",
+          "move",
+          "right",
+          "move",
+          "move",
+          "move",
+          "collect"
+        ],
+        [
+          "move",
+          "move",
+          "collect",
+          "left",
+          "move",
+          "move",
+          "right",
+          "move",
+          "move",
+          "move",
+          "collect"
+        ],
+        [
+          "move",
+          "move",
+          "collect",
+          "left",
+          "move",
+          "move",
+          "right",
+          "move",
+          "move",
+          "move",
+          "collect"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "correctChoiceIndex": null,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect"
+      ],
+      "gate": null
+    },
+    {
+      "no": 6,
+      "title": "三段救援任务",
+      "mode": "v16-segment-rescue",
+      "guidedSize": [
+        9,
+        3
+      ],
+      "passable": 7,
+      "symbols": [
+        "B",
+        "R",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "e531b2727d01",
+      "guidedProgram": [
+        "move",
+        "move",
+        "collect",
+        "move",
+        "move",
+        "collect",
+        "move",
+        "move",
+        "upload"
+      ],
+      "transferHashes": [
+        "ee6bebc58648",
+        "3f77dbfe6a12",
+        "57777d64f955"
+      ],
+      "transferPrograms": [
+        [
+          "move",
+          "collect",
+          "move",
+          "move",
+          "move",
+          "collect",
+          "move",
+          "move",
+          "upload"
+        ],
+        [
+          "move",
+          "move",
+          "move",
+          "collect",
+          "move",
+          "collect",
+          "move",
+          "move",
+          "move",
+          "upload"
+        ],
+        [
+          "move",
+          "move",
+          "collect",
+          "move",
+          "move",
+          "move",
+          "collect",
+          "move",
+          "upload"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "correctChoiceIndex": null,
+      "allowed": [
+        "move",
+        "collect",
+        "upload"
+      ],
+      "gate": null
+    },
+    {
+      "no": 7,
+      "title": "设计一条可解路线",
+      "mode": "v16-route-designer",
+      "guidedSize": [
+        9,
+        7
+      ],
+      "passable": 35,
+      "symbols": [
+        "B",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "11e870fb9886",
+      "guidedProgram": [
+        "move",
+        "move",
+        "left",
+        "move",
+        "move",
+        "collect"
+      ],
+      "transferHashes": [
+        "11e870fb9886",
+        "11e870fb9886",
+        "11e870fb9886"
+      ],
+      "transferPrograms": [
+        [
+          "move",
+          "move",
+          "left",
+          "move",
+          "move",
+          "collect"
+        ],
+        [
+          "move",
+          "move",
+          "left",
+          "move",
+          "move",
+          "collect"
+        ],
+        [
+          "move",
+          "move",
+          "left",
+          "move",
+          "move",
+          "collect"
+        ]
+      ],
+      "uniqueTransfers": 1,
+      "correctChoiceIndex": null,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect"
+      ],
+      "gate": null
+    },
+    {
+      "no": 8,
+      "title": "第一场独立救援",
+      "mode": "v16-capstone",
+      "guidedSize": [
+        11,
+        7
+      ],
+      "passable": 39,
+      "symbols": [
+        "#",
+        "B",
+        "R",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "13226eefcffa",
+      "guidedProgram": [
+        "move",
+        "move",
+        "collect",
+        "move",
+        "move",
+        "right",
+        "move",
+        "move",
+        "collect",
+        "left",
+        "move",
+        "move",
+        "move",
+        "right",
+        "move",
+        "move",
+        "upload"
+      ],
+      "transferHashes": [
+        "1e5501d595a2",
+        "41fc36e111aa",
+        "3c22ab1469cb"
+      ],
+      "transferPrograms": [
+        [
+          "move",
+          "move",
+          "move",
+          "collect"
+        ],
+        [
+          "left",
+          "move",
+          "move",
+          "move",
+          "collect"
+        ],
+        [
+          "right",
+          "move",
+          "move",
+          "move",
+          "collect"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "correctChoiceIndex": null,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "upload"
+      ],
+      "gate": null
+    },
+    {
+      "no": 9,
+      "title": "把动作装进工具箱",
+      "mode": "v16-function-toolbox",
+      "guidedSize": [
+        11,
+        5
+      ],
+      "passable": 12,
+      "symbols": [
+        "B",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "94718fe24aa5",
+      "guidedProgram": [
+        "move",
+        "move",
+        "callRoute",
+        "move",
+        "move",
+        "callRoute",
+        "move",
+        "move",
+        "callRoute"
+      ],
+      "transferHashes": [
+        "7a702edea9c3",
+        "7a702edea9c3",
+        "7a702edea9c3"
+      ],
+      "transferPrograms": [
+        [
+          "move",
+          "callRoute",
+          "move",
+          "move",
+          "move",
+          "callRoute",
+          "move",
+          "move",
+          "move",
+          "callRoute"
+        ],
+        [
+          "move",
+          "callRoute",
+          "move",
+          "move",
+          "move",
+          "callRoute",
+          "move",
+          "move",
+          "move",
+          "callRoute"
+        ],
+        [
+          "move",
+          "callRoute",
+          "move",
+          "move",
+          "move",
+          "callRoute",
+          "move",
+          "move",
+          "move",
+          "callRoute"
+        ]
+      ],
+      "uniqueTransfers": 1,
+      "correctChoiceIndex": null,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "callRoute"
+      ],
+      "gate": null
+    },
+    {
+      "no": 10,
+      "title": "一个工具，多处使用",
+      "mode": "v16-function-contract",
+      "guidedSize": [
+        11,
+        5
+      ],
+      "passable": 12,
+      "symbols": [
+        "B",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "94718fe24aa5",
+      "guidedProgram": [
+        "move",
+        "move",
+        "callRoute",
+        "move",
+        "move",
+        "callRoute",
+        "move",
+        "move",
+        "callRoute"
+      ],
+      "transferHashes": [
+        "c3f7477dc093",
+        "c3f7477dc093",
+        "c3f7477dc093"
+      ],
+      "transferPrograms": [
+        [
+          "move",
+          "move",
+          "callRoute",
+          "move",
+          "move",
+          "callRoute",
+          "move",
+          "move",
+          "callRoute"
+        ],
+        [
+          "move",
+          "move",
+          "callRoute",
+          "move",
+          "move",
+          "callRoute",
+          "move",
+          "move",
+          "callRoute"
+        ],
+        [
+          "move",
+          "move",
+          "callRoute",
+          "move",
+          "move",
+          "callRoute",
+          "move",
+          "move",
+          "callRoute"
+        ]
+      ],
+      "uniqueTransfers": 1,
+      "correctChoiceIndex": null,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "callRoute"
+      ],
+      "gate": null
+    },
+    {
+      "no": 11,
+      "title": "找出重复的一组",
+      "mode": "v16-loop-unit",
+      "guidedSize": [
+        10,
+        3
+      ],
+      "passable": 8,
+      "symbols": [
+        "B",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "48ab8336c6a6",
+      "guidedProgram": [
+        "callRoute"
+      ],
+      "transferHashes": [
+        "662dc8c98fc5",
+        "662dc8c98fc5",
+        "662dc8c98fc5"
+      ],
+      "transferPrograms": [
+        [
+          "callRoute"
+        ],
+        [
+          "callRoute"
+        ],
+        [
+          "callRoute"
+        ]
+      ],
+      "uniqueTransfers": 1,
+      "correctChoiceIndex": null,
+      "allowed": [
+        "move",
+        "collect",
+        "callRoute"
+      ],
+      "gate": null
+    },
+    {
+      "no": 12,
+      "title": "循环到哪里为止",
+      "mode": "v16-loop-boundary",
+      "guidedSize": [
+        8,
+        3
+      ],
+      "passable": 6,
+      "symbols": [
+        "B",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "05c8783bcf72",
+      "guidedProgram": [
+        "callRoute",
+        "collect"
+      ],
+      "transferHashes": [
+        "8b63ad1bab1c",
+        "af1a47b2b677",
+        "05c8783bcf72"
+      ],
+      "transferPrograms": [
+        [
+          "callRoute",
+          "collect"
+        ],
+        [
+          "callRoute",
+          "collect"
+        ],
+        [
+          "callRoute",
+          "collect"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "correctChoiceIndex": null,
+      "allowed": [
+        "move",
+        "collect",
+        "callRoute"
+      ],
+      "gate": null
+    },
+    {
+      "no": 13,
+      "title": "看到尖刺再行动",
+      "mode": "v17-condition-lab",
+      "guidedSize": [
+        11,
+        7
+      ],
+      "passable": 42,
+      "symbols": [
+        "#",
+        "B",
+        "H",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "0e828b0e766c",
+      "guidedProgram": [
+        "move",
+        "move",
+        "ifSensorAct",
+        "move",
+        "move",
+        "move",
+        "move",
+        "move",
+        "collect"
+      ],
+      "transferHashes": [
+        "b7f50c8496e0",
+        "44881fcc1c02",
+        "b5fa2df874bf"
+      ],
+      "transferPrograms": [
+        [
+          "move",
+          "move",
+          "ifSensorAct",
+          "move",
+          "move",
+          "move",
+          "move",
+          "move",
+          "collect"
+        ],
+        [
+          "ifSensorAct",
+          "move",
+          "move",
+          "move",
+          "move",
+          "move",
+          "move",
+          "move",
+          "collect"
+        ],
+        [
+          "move",
+          "move",
+          "move",
+          "ifSensorAct",
+          "move",
+          "move",
+          "move",
+          "move",
+          "collect"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "correctChoiceIndex": null,
+      "allowed": [
+        "move",
+        "ifSensorAct",
+        "collect"
+      ],
+      "gate": null
+    },
+    {
+      "no": 14,
+      "title": "写一条安全规则",
+      "mode": "v17-boolean-lab",
+      "guidedSize": [
+        10,
+        7
+      ],
+      "passable": 38,
+      "symbols": [
+        "#",
+        "B",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "800d5417238d",
+      "guidedProgram": [
+        "logicGuard",
+        "move",
+        "move",
+        "move",
+        "move",
+        "collect"
+      ],
+      "transferHashes": [
+        "8c81d2d639dc",
+        "b27331e424ff",
+        "b04d6ac7ef18"
+      ],
+      "transferPrograms": [
+        [
+          "logicGuard",
+          "move",
+          "move",
+          "move",
+          "collect"
+        ],
+        [
+          "logicGuard",
+          "move",
+          "move",
+          "collect"
+        ],
+        [
+          "logicGuard",
+          "move",
+          "move",
+          "move",
+          "collect"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "correctChoiceIndex": null,
+      "allowed": [
+        "move",
+        "logicGuard",
+        "collect"
+      ],
+      "gate": null
+    },
+    {
+      "no": 15,
+      "title": "不数步，也能到达",
+      "mode": "v17-while-lab",
+      "guidedSize": [
+        12,
+        7
+      ],
+      "passable": 47,
+      "symbols": [
+        "#",
+        "B",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "f72820bbc6ad",
+      "guidedProgram": [
+        "whileBeacon",
+        "collect"
+      ],
+      "transferHashes": [
+        "5028e0e2fecb",
+        "7dfca91eb872",
+        "c1cd2b70a344"
+      ],
+      "transferPrograms": [
+        [
+          "whileBeacon",
+          "collect"
+        ],
+        [
+          "whileBeacon",
+          "collect"
+        ],
+        [
+          "whileBeacon",
+          "collect"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "correctChoiceIndex": null,
+      "allowed": [
+        "move",
+        "whileBeacon",
+        "collect"
+      ],
+      "gate": null
+    },
+    {
+      "no": 16,
+      "title": "自动救援程序",
+      "mode": "v17-system-lab-16",
+      "guidedSize": [
+        13,
+        8
+      ],
+      "passable": 63,
+      "symbols": [
+        "#",
+        "B",
+        "H",
+        "R",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "8298090eff76",
+      "guidedProgram": [
+        "repeat2",
+        "ifHazardShield",
+        "whileBeacon",
+        "collect",
+        "right",
+        "repeat2",
+        "left",
+        "whileRelay",
+        "upload"
+      ],
+      "transferHashes": [
+        "45fbc53a61b7",
+        "8298090eff76",
+        "0db50dd5e3d5"
+      ],
+      "transferPrograms": [
+        [
+          "repeat2",
+          "ifHazardShield",
+          "whileBeacon",
+          "collect",
+          "left",
+          "whileRelay",
+          "upload"
+        ],
+        [
+          "repeat2",
+          "ifHazardShield",
+          "whileBeacon",
+          "collect",
+          "right",
+          "repeat2",
+          "left",
+          "whileRelay",
+          "upload"
+        ],
+        [
+          "move",
+          "ifHazardShield",
+          "whileBeacon",
+          "collect",
+          "right",
+          "repeat3",
+          "left",
+          "whileRelay",
+          "upload"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "choices": [
+        "先判断，再循环",
+        "先移动，再检查",
+        "每格都开盾"
+      ],
+      "correctChoiceIndex": 0,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "upload",
+        "repeat2",
+        "ifHazardShield",
+        "whileBeacon",
+        "whileRelay"
+      ],
+      "gate": null
+    },
+    {
+      "no": 17,
+      "title": "会记数的 Nova",
+      "mode": "v17-system-lab-17",
+      "guidedSize": [
+        13,
+        8
+      ],
+      "passable": 63,
+      "symbols": [
+        "#",
+        "B",
+        "R",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "d64e555878b2",
+      "guidedProgram": [
+        "repeat4",
+        "collect",
+        "right",
+        "repeat3",
+        "collect",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "transferHashes": [
+        "50b3a6dead8d",
+        "d64e555878b2",
+        "bd4387825378"
+      ],
+      "transferPrograms": [
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat4",
+          "collect",
+          "left",
+          "repeat5",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat4",
+          "collect",
+          "right",
+          "repeat3",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat5",
+          "collect",
+          "right",
+          "repeat3",
+          "left",
+          "repeat4",
+          "upload"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "choices": [
+        "成功采集后 +1",
+        "采集前先 +1",
+        "到终点一次性填写"
+      ],
+      "correctChoiceIndex": 0,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "upload",
+        "repeat4",
+        "repeat3"
+      ],
+      "gate": null
+    },
+    {
+      "no": 18,
+      "title": "能量账本",
+      "mode": "v17-system-lab-18",
+      "guidedSize": [
+        13,
+        8
+      ],
+      "passable": 63,
+      "symbols": [
+        "#",
+        "B",
+        "H",
+        "R",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "2f5e3a59258c",
+      "guidedProgram": [
+        "repeat2",
+        "ifHazardShield",
+        "repeat3",
+        "collect",
+        "right",
+        "repeat2",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "transferHashes": [
+        "fcde1c4b561e",
+        "2f5e3a59258c",
+        "2f5e3a59258c"
+      ],
+      "transferPrograms": [
+        [
+          "ifHazardShield",
+          "repeat3",
+          "collect",
+          "right",
+          "repeat5",
+          "collect",
+          "right",
+          "repeat3",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat2",
+          "ifHazardShield",
+          "repeat3",
+          "collect",
+          "right",
+          "repeat2",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat2",
+          "ifHazardShield",
+          "repeat3",
+          "collect",
+          "right",
+          "repeat2",
+          "left",
+          "repeat4",
+          "upload"
+        ]
+      ],
+      "uniqueTransfers": 2,
+      "choices": [
+        "共用一份账本",
+        "每个动作各算各的",
+        "只在终点检查"
+      ],
+      "correctChoiceIndex": 0,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "upload",
+        "repeat2",
+        "ifHazardShield",
+        "repeat3",
+        "repeat4"
+      ],
+      "gate": null
+    },
+    {
+      "no": 19,
+      "title": "给工具一个参数",
+      "mode": "v17-system-lab-19",
+      "guidedSize": [
+        13,
+        8
+      ],
+      "passable": 63,
+      "symbols": [
+        "#",
+        "B",
+        "R",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "12b5c4270768",
+      "guidedProgram": [
+        "callRoute",
+        "collect",
+        "right",
+        "callRoute",
+        "collect",
+        "left",
+        "repeat3",
+        "upload"
+      ],
+      "transferHashes": [
+        "12b5c4270768",
+        "12b5c4270768",
+        "12b5c4270768"
+      ],
+      "transferPrograms": [
+        [
+          "callRoute",
+          "collect",
+          "right",
+          "callRoute",
+          "collect",
+          "left",
+          "repeat3",
+          "upload"
+        ],
+        [
+          "callRoute",
+          "collect",
+          "right",
+          "callRoute",
+          "collect",
+          "left",
+          "repeat3",
+          "upload"
+        ],
+        [
+          "callRoute",
+          "collect",
+          "right",
+          "callRoute",
+          "collect",
+          "left",
+          "repeat3",
+          "upload"
+        ]
+      ],
+      "uniqueTransfers": 1,
+      "choices": [
+        "从参数槽传入",
+        "写死在函数里面",
+        "复制多个同名工具"
+      ],
+      "correctChoiceIndex": 0,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "upload",
+        "callRoute",
+        "repeat3"
+      ],
+      "gate": null
+    },
+    {
+      "no": 20,
+      "title": "让函数交回答案",
+      "mode": "v17-system-lab-20",
+      "guidedSize": [
+        13,
+        8
+      ],
+      "passable": 63,
+      "symbols": [
+        "#",
+        "B",
+        "R",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "bd4387825378",
+      "guidedProgram": [
+        "repeat3",
+        "collect",
+        "right",
+        "repeat5",
+        "collect",
+        "right",
+        "repeat3",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "transferHashes": [
+        "8298090eff76",
+        "bd4387825378",
+        "d64e555878b2"
+      ],
+      "transferPrograms": [
+        [
+          "repeat2",
+          "ifHazardShield",
+          "repeat3",
+          "collect",
+          "right",
+          "repeat2",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat5",
+          "collect",
+          "right",
+          "repeat3",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat4",
+          "collect",
+          "right",
+          "repeat3",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "choices": [
+        "交给 if 决策",
+        "只显示答案",
+        "继续固定路线"
+      ],
+      "correctChoiceIndex": 0,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "upload",
+        "repeat3",
+        "repeat5",
+        "repeat4"
+      ],
+      "gate": null
+    },
+    {
+      "no": 21,
+      "title": "一张会变化的清单",
+      "mode": "v17-system-lab-21",
+      "guidedSize": [
+        13,
+        8
+      ],
+      "passable": 63,
+      "symbols": [
+        "#",
+        "B",
+        "R",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "50b3a6dead8d",
+      "guidedProgram": [
+        "repeat3",
+        "collect",
+        "right",
+        "repeat4",
+        "collect",
+        "left",
+        "repeat5",
+        "collect",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "transferHashes": [
+        "bd4387825378",
+        "50b3a6dead8d",
+        "d64e555878b2"
+      ],
+      "transferPrograms": [
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat5",
+          "collect",
+          "right",
+          "repeat3",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat4",
+          "collect",
+          "left",
+          "repeat5",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat4",
+          "collect",
+          "right",
+          "repeat3",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "choices": [
+        "读取清单第一项",
+        "永远选最近的",
+        "把 A→B 写死"
+      ],
+      "correctChoiceIndex": 0,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "upload",
+        "repeat3",
+        "repeat4",
+        "repeat5"
+      ],
+      "gate": null
+    },
+    {
+      "no": 22,
+      "title": "清单变长以后",
+      "mode": "v17-system-lab-22",
+      "guidedSize": [
+        13,
+        8
+      ],
+      "passable": 63,
+      "symbols": [
+        "#",
+        "B",
+        "R",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "50b3a6dead8d",
+      "guidedProgram": [
+        "repeat3",
+        "collect",
+        "right",
+        "repeat4",
+        "collect",
+        "left",
+        "repeat5",
+        "collect",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "transferHashes": [
+        "50b3a6dead8d",
+        "50b3a6dead8d",
+        "bd4387825378"
+      ],
+      "transferPrograms": [
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat4",
+          "collect",
+          "left",
+          "repeat5",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat4",
+          "collect",
+          "left",
+          "repeat5",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat5",
+          "collect",
+          "right",
+          "repeat3",
+          "left",
+          "repeat4",
+          "upload"
+        ]
+      ],
+      "uniqueTransfers": 2,
+      "choices": [
+        "重新读取 len(targets)",
+        "继续使用旧长度",
+        "只检查最后一项"
+      ],
+      "correctChoiceIndex": 0,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "upload",
+        "repeat3",
+        "repeat4",
+        "repeat5"
+      ],
+      "gate": null
+    },
+    {
+      "no": 23,
+      "title": "用名字查规则",
+      "mode": "v17-system-lab-23",
+      "guidedSize": [
+        13,
+        8
+      ],
+      "passable": 63,
+      "symbols": [
+        "#",
+        "B",
+        "H",
+        "R",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "8298090eff76",
+      "guidedProgram": [
+        "repeat2",
+        "ifHazardShield",
+        "repeat3",
+        "collect",
+        "right",
+        "repeat2",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "transferHashes": [
+        "d64e555878b2",
+        "8298090eff76",
+        "8298090eff76"
+      ],
+      "transferPrograms": [
+        [
+          "ifHazardShield",
+          "repeat4",
+          "collect",
+          "right",
+          "repeat3",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat2",
+          "ifHazardShield",
+          "repeat3",
+          "collect",
+          "right",
+          "repeat2",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat2",
+          "ifHazardShield",
+          "repeat3",
+          "collect",
+          "right",
+          "repeat2",
+          "left",
+          "repeat4",
+          "upload"
+        ]
+      ],
+      "uniqueTransfers": 2,
+      "choices": [
+        "用当前地形名查找",
+        "总用第一条规则",
+        "始终直接 move"
+      ],
+      "correctChoiceIndex": 0,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "upload",
+        "repeat2",
+        "ifHazardShield",
+        "repeat3",
+        "repeat4"
+      ],
+      "gate": null
+    },
+    {
+      "no": 24,
+      "title": "救援调度台",
+      "mode": "v17-system-lab-24",
+      "guidedSize": [
+        13,
+        8
+      ],
+      "passable": 63,
+      "symbols": [
+        "#",
+        "B",
+        "R",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "50b3a6dead8d",
+      "guidedProgram": [
+        "repeat3",
+        "collect",
+        "right",
+        "repeat4",
+        "collect",
+        "left",
+        "repeat5",
+        "collect",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "transferHashes": [
+        "50b3a6dead8d",
+        "50b3a6dead8d",
+        "bd4387825378"
+      ],
+      "transferPrograms": [
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat4",
+          "collect",
+          "left",
+          "repeat5",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat4",
+          "collect",
+          "left",
+          "repeat5",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat5",
+          "collect",
+          "right",
+          "repeat3",
+          "left",
+          "repeat4",
+          "upload"
+        ]
+      ],
+      "uniqueTransfers": 2,
+      "choices": [
+        "先读取任务队列",
+        "随便先取一条规则",
+        "先出发再决定"
+      ],
+      "correctChoiceIndex": 0,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "upload",
+        "repeat3",
+        "repeat4",
+        "repeat5"
+      ],
+      "gate": null
+    },
+    {
+      "no": 25,
+      "title": "地图藏在表格里",
+      "mode": "v17-system-lab-25",
+      "guidedSize": [
+        13,
+        8
+      ],
+      "passable": 63,
+      "symbols": [
+        "#",
+        "B",
+        "R",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "bd4387825378",
+      "guidedProgram": [
+        "repeat3",
+        "collect",
+        "right",
+        "repeat5",
+        "collect",
+        "right",
+        "repeat3",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "transferHashes": [
+        "50b3a6dead8d",
+        "bd4387825378",
+        "d64e555878b2"
+      ],
+      "transferPrograms": [
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat4",
+          "collect",
+          "left",
+          "repeat5",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat5",
+          "collect",
+          "right",
+          "repeat3",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat4",
+          "collect",
+          "right",
+          "repeat3",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "choices": [
+        "先行 y，再列 x",
+        "先列 x，再行 y",
+        "只看画面猜"
+      ],
+      "correctChoiceIndex": 0,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "upload",
+        "repeat3",
+        "repeat5",
+        "repeat4"
+      ],
+      "gate": null
+    },
+    {
+      "no": 26,
+      "title": "用数据修一座桥",
+      "mode": "v17-system-lab-26",
+      "guidedSize": [
+        13,
+        8
+      ],
+      "passable": 63,
+      "symbols": [
+        "#",
+        "B",
+        "R",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "d64e555878b2",
+      "guidedProgram": [
+        "repeat4",
+        "collect",
+        "right",
+        "repeat3",
+        "collect",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "transferHashes": [
+        "50b3a6dead8d",
+        "d64e555878b2",
+        "bd4387825378"
+      ],
+      "transferPrograms": [
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat4",
+          "collect",
+          "left",
+          "repeat5",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat4",
+          "collect",
+          "right",
+          "repeat3",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat5",
+          "collect",
+          "right",
+          "repeat3",
+          "left",
+          "repeat4",
+          "upload"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "choices": [
+        "遍历施工表生成",
+        "只手动放一格",
+        "照着图片摆放"
+      ],
+      "correctChoiceIndex": 0,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "upload",
+        "repeat4",
+        "repeat3"
+      ],
+      "gate": null
+    },
+    {
+      "no": 27,
+      "title": "把任务交给谁",
+      "mode": "v17-system-lab-27",
+      "guidedSize": [
+        13,
+        8
+      ],
+      "passable": 63,
+      "symbols": [
+        "#",
+        "B",
+        "R",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "bd4387825378",
+      "guidedProgram": [
+        "repeat3",
+        "collect",
+        "right",
+        "repeat5",
+        "collect",
+        "right",
+        "repeat3",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "transferHashes": [
+        "50b3a6dead8d",
+        "bd4387825378",
+        "8298090eff76"
+      ],
+      "transferPrograms": [
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat4",
+          "collect",
+          "left",
+          "repeat5",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat5",
+          "collect",
+          "right",
+          "repeat3",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat2",
+          "ifHazardShield",
+          "repeat3",
+          "collect",
+          "right",
+          "repeat2",
+          "left",
+          "repeat4",
+          "upload"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "choices": [
+        "匹配任务与能力",
+        "总选最近的",
+        "随机分配"
+      ],
+      "correctChoiceIndex": 0,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "upload",
+        "repeat3",
+        "repeat5",
+        "repeat4"
+      ],
+      "gate": null
+    },
+    {
+      "no": 28,
+      "title": "两个同款机器人",
+      "mode": "v17-system-lab-28",
+      "guidedSize": [
+        13,
+        8
+      ],
+      "passable": 63,
+      "symbols": [
+        "#",
+        "B",
+        "R",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "d64e555878b2",
+      "guidedProgram": [
+        "repeat4",
+        "collect",
+        "right",
+        "repeat3",
+        "collect",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "transferHashes": [
+        "50b3a6dead8d",
+        "d64e555878b2",
+        "bd4387825378"
+      ],
+      "transferPrograms": [
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat4",
+          "collect",
+          "left",
+          "repeat5",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat4",
+          "collect",
+          "right",
+          "repeat3",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat5",
+          "collect",
+          "right",
+          "repeat3",
+          "left",
+          "repeat4",
+          "upload"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "choices": [
+        "各自保存一份",
+        "共用一个 energy",
+        "每步都重置两个"
+      ],
+      "correctChoiceIndex": 0,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "upload",
+        "repeat4",
+        "repeat3"
+      ],
+      "gate": null
+    },
+    {
+      "no": 29,
+      "title": "接力运输",
+      "mode": "v17-system-lab-29",
+      "guidedSize": [
+        13,
+        8
+      ],
+      "passable": 63,
+      "symbols": [
+        "#",
+        "B",
+        "R",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "bd4387825378",
+      "guidedProgram": [
+        "repeat3",
+        "collect",
+        "right",
+        "repeat5",
+        "collect",
+        "right",
+        "repeat3",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "transferHashes": [
+        "50b3a6dead8d",
+        "bd4387825378",
+        "d64e555878b2"
+      ],
+      "transferPrograms": [
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat4",
+          "collect",
+          "left",
+          "repeat5",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat5",
+          "collect",
+          "right",
+          "repeat3",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat4",
+          "collect",
+          "right",
+          "repeat3",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "choices": [
+        "两个对象到同一格",
+        "隔空直接转移",
+        "先上传再交接"
+      ],
+      "correctChoiceIndex": 0,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "upload",
+        "repeat3",
+        "repeat5",
+        "repeat4"
+      ],
+      "gate": null
+    },
+    {
+      "no": 30,
+      "title": "等到通道真的空了",
+      "mode": "v17-system-lab-30",
+      "guidedSize": [
+        13,
+        8
+      ],
+      "passable": 62,
+      "symbols": [
+        "#",
+        "B",
+        "R",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "1da18307fc3b",
+      "guidedProgram": [
+        "wait",
+        "wait",
+        "repeat3",
+        "collect",
+        "left",
+        "repeat3",
+        "right",
+        "repeat4",
+        "upload"
+      ],
+      "transferHashes": [
+        "1da18307fc3b",
+        "1da18307fc3b",
+        "1da18307fc3b"
+      ],
+      "transferPrograms": [
+        [
+          "wait",
+          "wait",
+          "repeat3",
+          "collect",
+          "left",
+          "repeat3",
+          "right",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "wait",
+          "wait",
+          "repeat3",
+          "collect",
+          "left",
+          "repeat3",
+          "right",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "wait",
+          "wait",
+          "repeat3",
+          "collect",
+          "left",
+          "repeat3",
+          "right",
+          "repeat4",
+          "upload"
+        ]
+      ],
+      "uniqueTransfers": 1,
+      "choices": [
+        "重新检查通道",
+        "等固定次数就走",
+        "直接进入通道"
+      ],
+      "correctChoiceIndex": 0,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "upload",
+        "wait",
+        "repeat3",
+        "repeat4"
+      ],
+      "gate": {
+        "x": 3,
+        "y": 4,
+        "requiredWaits": 2
+      }
+    },
+    {
+      "no": 31,
+      "title": "让别人也能玩",
+      "mode": "v17-system-lab-31",
+      "guidedSize": [
+        13,
+        8
+      ],
+      "passable": 63,
+      "symbols": [
+        "#",
+        "B",
+        "R",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "50b3a6dead8d",
+      "guidedProgram": [
+        "repeat3",
+        "collect",
+        "right",
+        "repeat4",
+        "collect",
+        "left",
+        "repeat5",
+        "collect",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "transferHashes": [
+        "d64e555878b2",
+        "50b3a6dead8d",
+        "bd4387825378"
+      ],
+      "transferPrograms": [
+        [
+          "repeat4",
+          "collect",
+          "right",
+          "repeat3",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat4",
+          "collect",
+          "left",
+          "repeat5",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat3",
+          "collect",
+          "right",
+          "repeat5",
+          "collect",
+          "right",
+          "repeat3",
+          "left",
+          "repeat4",
+          "upload"
+        ]
+      ],
+      "uniqueTransfers": 3,
+      "choices": [
+        "作者解 + 反例",
+        "只保存作者解",
+        "只交最终截图"
+      ],
+      "correctChoiceIndex": 0,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "upload",
+        "repeat3",
+        "repeat4",
+        "repeat5"
+      ],
+      "gate": null
+    },
+    {
+      "no": 32,
+      "title": "重建中继站",
+      "mode": "v17-system-lab-32",
+      "guidedSize": [
+        13,
+        8
+      ],
+      "passable": 63,
+      "symbols": [
+        "#",
+        "B",
+        "H",
+        "R",
+        "S",
+        "_",
+        "g"
+      ],
+      "guidedHash": "8298090eff76",
+      "guidedProgram": [
+        "repeat2",
+        "ifHazardShield",
+        "whileBeacon",
+        "collect",
+        "right",
+        "repeat2",
+        "left",
+        "whileRelay",
+        "upload"
+      ],
+      "transferHashes": [
+        "50b3a6dead8d",
+        "8298090eff76",
+        "8298090eff76"
+      ],
+      "transferPrograms": [
+        [
+          "ifHazardShield",
+          "repeat3",
+          "collect",
+          "right",
+          "repeat4",
+          "collect",
+          "left",
+          "repeat5",
+          "collect",
+          "left",
+          "repeat4",
+          "upload"
+        ],
+        [
+          "repeat2",
+          "ifHazardShield",
+          "whileBeacon",
+          "collect",
+          "right",
+          "repeat2",
+          "left",
+          "whileRelay",
+          "upload"
+        ],
+        [
+          "repeat2",
+          "ifHazardShield",
+          "repeat3",
+          "collect",
+          "right",
+          "repeat2",
+          "left",
+          "repeat4",
+          "upload"
+        ]
+      ],
+      "uniqueTransfers": 2,
+      "choices": [
+        "保持模块约定",
+        "把逻辑全塞进一处",
+        "只看最终结果"
+      ],
+      "correctChoiceIndex": 0,
+      "allowed": [
+        "move",
+        "left",
+        "right",
+        "collect",
+        "upload",
+        "repeat2",
+        "ifHazardShield",
+        "whileBeacon",
+        "whileRelay"
+      ],
+      "gate": null
+    }
+  ],
+  "fullFlows": [
+    {
+      "no": 16,
+      "guided": true,
+      "broken": "世界结果完成了，但本课的数据规则或核心结构还没有真实参与运行",
+      "declaredDiagnosis": "先移动破坏了模块约定",
+      "repaired": true,
+      "repairBound": true,
+      "transfer": true,
+      "mastered": true,
+      "reflectionAssessment": "teacher-review",
+      "program": [
+        "repeat2",
+        "ifHazardShield",
+        "whileBeacon",
+        "collect",
+        "left",
+        "whileRelay",
+        "upload"
+      ],
+      "route": [],
+      "traceCommands": [
+        "move",
+        "ifHazardShield",
+        "whileBeacon",
+        "collect",
+        "left",
+        "whileRelay",
+        "upload"
+      ],
+      "simulationStateKeys": [
+        "grid",
+        "x",
+        "y",
+        "dir",
+        "energy",
+        "shield",
+        "collected",
+        "queue",
+        "queueIndex",
+        "expanded",
+        "activeStepNumber",
+        "failed",
+        "completed",
+        "message",
+        "logs",
+        "path",
+        "motion",
+        "failurePose",
+        "failureType",
+        "failureMessage",
+        "lastCondition",
+        "loopRepetitions",
+        "waitCount",
+        "firstCollectionStep"
+      ],
+      "gate": null
+    },
+    {
+      "no": 17,
+      "guided": true,
+      "broken": "采集失败：当前位置没有可采集宝石。",
+      "declaredDiagnosis": "计数发生在事件之前",
+      "repaired": true,
+      "repairBound": true,
+      "transfer": true,
+      "mastered": true,
+      "reflectionAssessment": "teacher-review",
+      "program": [
+        "repeat3",
+        "collect",
+        "right",
+        "repeat4",
+        "collect",
+        "left",
+        "repeat5",
+        "collect",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "route": [],
+      "traceCommands": [
+        "move",
+        "collect",
+        "right",
+        "left",
+        "upload"
+      ],
+      "simulationStateKeys": [
+        "grid",
+        "x",
+        "y",
+        "dir",
+        "energy",
+        "shield",
+        "collected",
+        "queue",
+        "queueIndex",
+        "expanded",
+        "activeStepNumber",
+        "failed",
+        "completed",
+        "message",
+        "logs",
+        "path",
+        "motion",
+        "failurePose",
+        "failureType",
+        "failureMessage",
+        "lastCondition",
+        "loopRepetitions",
+        "waitCount",
+        "firstCollectionStep"
+      ],
+      "gate": null
+    },
+    {
+      "no": 18,
+      "guided": true,
+      "broken": "世界结果完成了，但本课的数据规则或核心结构还没有真实参与运行",
+      "declaredDiagnosis": "护盾没有写回共享账本",
+      "repaired": true,
+      "repairBound": true,
+      "transfer": true,
+      "mastered": true,
+      "reflectionAssessment": "teacher-review",
+      "program": [
+        "ifHazardShield",
+        "repeat3",
+        "collect",
+        "right",
+        "repeat5",
+        "collect",
+        "right",
+        "repeat3",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "route": [],
+      "traceCommands": [
+        "ifHazardShield",
+        "move",
+        "collect",
+        "right",
+        "left",
+        "upload"
+      ],
+      "simulationStateKeys": [
+        "grid",
+        "x",
+        "y",
+        "dir",
+        "energy",
+        "shield",
+        "collected",
+        "queue",
+        "queueIndex",
+        "expanded",
+        "activeStepNumber",
+        "failed",
+        "completed",
+        "message",
+        "logs",
+        "path",
+        "motion",
+        "failurePose",
+        "failureType",
+        "failureMessage",
+        "lastCondition",
+        "loopRepetitions",
+        "waitCount",
+        "firstCollectionStep"
+      ],
+      "gate": null
+    },
+    {
+      "no": 19,
+      "guided": true,
+      "broken": "采集失败：当前位置没有可采集宝石。",
+      "declaredDiagnosis": "距离被写死在函数里",
+      "repaired": true,
+      "repairBound": true,
+      "transfer": true,
+      "mastered": true,
+      "reflectionAssessment": "teacher-review",
+      "program": [
+        "callRoute",
+        "collect",
+        "right",
+        "callRoute",
+        "collect",
+        "left",
+        "repeat3",
+        "upload"
+      ],
+      "route": [
+        "repeat3"
+      ],
+      "traceCommands": [
+        "move",
+        "collect",
+        "right",
+        "left",
+        "upload"
+      ],
+      "simulationStateKeys": [
+        "grid",
+        "x",
+        "y",
+        "dir",
+        "energy",
+        "shield",
+        "collected",
+        "queue",
+        "queueIndex",
+        "expanded",
+        "activeStepNumber",
+        "failed",
+        "completed",
+        "message",
+        "logs",
+        "path",
+        "motion",
+        "failurePose",
+        "failureType",
+        "failureMessage",
+        "lastCondition",
+        "loopRepetitions",
+        "waitCount",
+        "firstCollectionStep"
+      ],
+      "gate": null
+    },
+    {
+      "no": 20,
+      "guided": true,
+      "broken": "采集失败：当前位置没有可采集宝石。",
+      "declaredDiagnosis": "返回值没有被调用处使用",
+      "repaired": true,
+      "repairBound": true,
+      "transfer": true,
+      "mastered": true,
+      "reflectionAssessment": "teacher-review",
+      "program": [
+        "repeat2",
+        "ifHazardShield",
+        "repeat3",
+        "collect",
+        "right",
+        "repeat2",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "route": [],
+      "traceCommands": [
+        "move",
+        "ifHazardShield",
+        "collect",
+        "right",
+        "left",
+        "upload"
+      ],
+      "simulationStateKeys": [
+        "grid",
+        "x",
+        "y",
+        "dir",
+        "energy",
+        "shield",
+        "collected",
+        "queue",
+        "queueIndex",
+        "expanded",
+        "activeStepNumber",
+        "failed",
+        "completed",
+        "message",
+        "logs",
+        "path",
+        "motion",
+        "failurePose",
+        "failureType",
+        "failureMessage",
+        "lastCondition",
+        "loopRepetitions",
+        "waitCount",
+        "firstCollectionStep"
+      ],
+      "gate": null
+    },
+    {
+      "no": 21,
+      "guided": true,
+      "broken": "采集失败：当前位置没有可采集宝石。",
+      "declaredDiagnosis": "路线没有读取清单顺序",
+      "repaired": true,
+      "repairBound": true,
+      "transfer": true,
+      "mastered": true,
+      "reflectionAssessment": "teacher-review",
+      "program": [
+        "repeat3",
+        "collect",
+        "right",
+        "repeat5",
+        "collect",
+        "right",
+        "repeat3",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "route": [],
+      "traceCommands": [
+        "move",
+        "collect",
+        "right",
+        "left",
+        "upload"
+      ],
+      "simulationStateKeys": [
+        "grid",
+        "x",
+        "y",
+        "dir",
+        "energy",
+        "shield",
+        "collected",
+        "queue",
+        "queueIndex",
+        "expanded",
+        "activeStepNumber",
+        "failed",
+        "completed",
+        "message",
+        "logs",
+        "path",
+        "motion",
+        "failurePose",
+        "failureType",
+        "failureMessage",
+        "lastCondition",
+        "loopRepetitions",
+        "waitCount",
+        "firstCollectionStep"
+      ],
+      "gate": null
+    },
+    {
+      "no": 22,
+      "guided": true,
+      "broken": "采集失败：当前位置没有可采集宝石。",
+      "declaredDiagnosis": "循环还在使用旧长度",
+      "repaired": true,
+      "repairBound": true,
+      "transfer": true,
+      "mastered": true,
+      "reflectionAssessment": "teacher-review",
+      "program": [
+        "repeat3",
+        "collect",
+        "right",
+        "repeat4",
+        "collect",
+        "left",
+        "repeat5",
+        "collect",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "route": [],
+      "traceCommands": [
+        "move",
+        "collect",
+        "right",
+        "left",
+        "upload"
+      ],
+      "simulationStateKeys": [
+        "grid",
+        "x",
+        "y",
+        "dir",
+        "energy",
+        "shield",
+        "collected",
+        "queue",
+        "queueIndex",
+        "expanded",
+        "activeStepNumber",
+        "failed",
+        "completed",
+        "message",
+        "logs",
+        "path",
+        "motion",
+        "failurePose",
+        "failureType",
+        "failureMessage",
+        "lastCondition",
+        "loopRepetitions",
+        "waitCount",
+        "firstCollectionStep"
+      ],
+      "gate": null
+    },
+    {
+      "no": 23,
+      "guided": true,
+      "broken": "世界结果完成了，但本课的数据规则或核心结构还没有真实参与运行",
+      "declaredDiagnosis": "查找使用了错误的地形键",
+      "repaired": true,
+      "repairBound": true,
+      "transfer": true,
+      "mastered": true,
+      "reflectionAssessment": "teacher-review",
+      "program": [
+        "ifHazardShield",
+        "repeat4",
+        "collect",
+        "right",
+        "repeat3",
+        "collect",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "route": [],
+      "traceCommands": [
+        "ifHazardShield",
+        "move",
+        "collect",
+        "right",
+        "left",
+        "upload"
+      ],
+      "simulationStateKeys": [
+        "grid",
+        "x",
+        "y",
+        "dir",
+        "energy",
+        "shield",
+        "collected",
+        "queue",
+        "queueIndex",
+        "expanded",
+        "activeStepNumber",
+        "failed",
+        "completed",
+        "message",
+        "logs",
+        "path",
+        "motion",
+        "failurePose",
+        "failureType",
+        "failureMessage",
+        "lastCondition",
+        "loopRepetitions",
+        "waitCount",
+        "firstCollectionStep"
+      ],
+      "gate": null
+    },
+    {
+      "no": 24,
+      "guided": true,
+      "broken": "采集失败：当前位置没有可采集宝石。",
+      "declaredDiagnosis": "派发前漏检了库存",
+      "repaired": true,
+      "repairBound": true,
+      "transfer": true,
+      "mastered": true,
+      "reflectionAssessment": "teacher-review",
+      "program": [
+        "repeat3",
+        "collect",
+        "right",
+        "repeat4",
+        "collect",
+        "left",
+        "repeat5",
+        "collect",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "route": [],
+      "traceCommands": [
+        "move",
+        "collect",
+        "right",
+        "left",
+        "upload"
+      ],
+      "simulationStateKeys": [
+        "grid",
+        "x",
+        "y",
+        "dir",
+        "energy",
+        "shield",
+        "collected",
+        "queue",
+        "queueIndex",
+        "expanded",
+        "activeStepNumber",
+        "failed",
+        "completed",
+        "message",
+        "logs",
+        "path",
+        "motion",
+        "failurePose",
+        "failureType",
+        "failureMessage",
+        "lastCondition",
+        "loopRepetitions",
+        "waitCount",
+        "firstCollectionStep"
+      ],
+      "gate": null
+    },
+    {
+      "no": 25,
+      "guided": true,
+      "broken": "采集失败：当前位置没有可采集宝石。",
+      "declaredDiagnosis": "行与列的顺序颠倒",
+      "repaired": true,
+      "repairBound": true,
+      "transfer": true,
+      "mastered": true,
+      "reflectionAssessment": "teacher-review",
+      "program": [
+        "repeat3",
+        "collect",
+        "right",
+        "repeat4",
+        "collect",
+        "left",
+        "repeat5",
+        "collect",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "route": [],
+      "traceCommands": [
+        "move",
+        "collect",
+        "right",
+        "left",
+        "upload"
+      ],
+      "simulationStateKeys": [
+        "grid",
+        "x",
+        "y",
+        "dir",
+        "energy",
+        "shield",
+        "collected",
+        "queue",
+        "queueIndex",
+        "expanded",
+        "activeStepNumber",
+        "failed",
+        "completed",
+        "message",
+        "logs",
+        "path",
+        "motion",
+        "failurePose",
+        "failureType",
+        "failureMessage",
+        "lastCondition",
+        "loopRepetitions",
+        "waitCount",
+        "firstCollectionStep"
+      ],
+      "gate": null
+    },
+    {
+      "no": 26,
+      "guided": true,
+      "broken": "采集失败：当前位置没有可采集宝石。",
+      "declaredDiagnosis": "施工表只生成了一格",
+      "repaired": true,
+      "repairBound": true,
+      "transfer": true,
+      "mastered": true,
+      "reflectionAssessment": "teacher-review",
+      "program": [
+        "repeat3",
+        "collect",
+        "right",
+        "repeat4",
+        "collect",
+        "left",
+        "repeat5",
+        "collect",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "route": [],
+      "traceCommands": [
+        "move",
+        "collect",
+        "right",
+        "left",
+        "upload"
+      ],
+      "simulationStateKeys": [
+        "grid",
+        "x",
+        "y",
+        "dir",
+        "energy",
+        "shield",
+        "collected",
+        "queue",
+        "queueIndex",
+        "expanded",
+        "activeStepNumber",
+        "failed",
+        "completed",
+        "message",
+        "logs",
+        "path",
+        "motion",
+        "failurePose",
+        "failureType",
+        "failureMessage",
+        "lastCondition",
+        "loopRepetitions",
+        "waitCount",
+        "firstCollectionStep"
+      ],
+      "gate": null
+    },
+    {
+      "no": 27,
+      "guided": true,
+      "broken": "世界结果完成了，但本课的数据规则或核心结构还没有真实参与运行",
+      "declaredDiagnosis": "对象能力与任务不匹配",
+      "repaired": true,
+      "repairBound": true,
+      "transfer": true,
+      "mastered": true,
+      "reflectionAssessment": "teacher-review",
+      "program": [
+        "repeat3",
+        "collect",
+        "right",
+        "repeat4",
+        "collect",
+        "left",
+        "repeat5",
+        "collect",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "route": [],
+      "traceCommands": [
+        "move",
+        "collect",
+        "right",
+        "left",
+        "upload"
+      ],
+      "simulationStateKeys": [
+        "grid",
+        "x",
+        "y",
+        "dir",
+        "energy",
+        "shield",
+        "collected",
+        "queue",
+        "queueIndex",
+        "expanded",
+        "activeStepNumber",
+        "failed",
+        "completed",
+        "message",
+        "logs",
+        "path",
+        "motion",
+        "failurePose",
+        "failureType",
+        "failureMessage",
+        "lastCondition",
+        "loopRepetitions",
+        "waitCount",
+        "firstCollectionStep"
+      ],
+      "gate": null
+    },
+    {
+      "no": 28,
+      "guided": true,
+      "broken": "采集失败：当前位置没有可采集宝石。",
+      "declaredDiagnosis": "两个实例错误共享了状态",
+      "repaired": true,
+      "repairBound": true,
+      "transfer": true,
+      "mastered": true,
+      "reflectionAssessment": "teacher-review",
+      "program": [
+        "repeat3",
+        "collect",
+        "right",
+        "repeat4",
+        "collect",
+        "left",
+        "repeat5",
+        "collect",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "route": [],
+      "traceCommands": [
+        "move",
+        "collect",
+        "right",
+        "left",
+        "upload"
+      ],
+      "simulationStateKeys": [
+        "grid",
+        "x",
+        "y",
+        "dir",
+        "energy",
+        "shield",
+        "collected",
+        "queue",
+        "queueIndex",
+        "expanded",
+        "activeStepNumber",
+        "failed",
+        "completed",
+        "message",
+        "logs",
+        "path",
+        "motion",
+        "failurePose",
+        "failureType",
+        "failureMessage",
+        "lastCondition",
+        "loopRepetitions",
+        "waitCount",
+        "firstCollectionStep"
+      ],
+      "gate": null
+    },
+    {
+      "no": 29,
+      "guided": true,
+      "broken": "采集失败：当前位置没有可采集宝石。",
+      "declaredDiagnosis": "交接时双方不在同一位置",
+      "repaired": true,
+      "repairBound": true,
+      "transfer": true,
+      "mastered": true,
+      "reflectionAssessment": "teacher-review",
+      "program": [
+        "repeat3",
+        "collect",
+        "right",
+        "repeat4",
+        "collect",
+        "left",
+        "repeat5",
+        "collect",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "route": [],
+      "traceCommands": [
+        "move",
+        "collect",
+        "right",
+        "left",
+        "upload"
+      ],
+      "simulationStateKeys": [
+        "grid",
+        "x",
+        "y",
+        "dir",
+        "energy",
+        "shield",
+        "collected",
+        "queue",
+        "queueIndex",
+        "expanded",
+        "activeStepNumber",
+        "failed",
+        "completed",
+        "message",
+        "logs",
+        "path",
+        "motion",
+        "failurePose",
+        "failureType",
+        "failureMessage",
+        "lastCondition",
+        "loopRepetitions",
+        "waitCount",
+        "firstCollectionStep"
+      ],
+      "gate": null
+    },
+    {
+      "no": 30,
+      "guided": true,
+      "broken": "撞到岩石：当前位置 (2, 4)，朝向东。",
+      "declaredDiagnosis": "固定延迟没有重新检查占位",
+      "repaired": true,
+      "repairBound": true,
+      "transfer": true,
+      "mastered": true,
+      "reflectionAssessment": "teacher-review",
+      "program": [
+        "wait",
+        "wait",
+        "repeat3",
+        "collect",
+        "left",
+        "repeat3",
+        "right",
+        "repeat4",
+        "upload"
+      ],
+      "route": [],
+      "traceCommands": [
+        "wait",
+        "move",
+        "collect",
+        "left",
+        "right",
+        "upload"
+      ],
+      "simulationStateKeys": [
+        "grid",
+        "x",
+        "y",
+        "dir",
+        "energy",
+        "shield",
+        "collected",
+        "queue",
+        "queueIndex",
+        "expanded",
+        "activeStepNumber",
+        "failed",
+        "completed",
+        "message",
+        "logs",
+        "path",
+        "motion",
+        "failurePose",
+        "failureType",
+        "failureMessage",
+        "lastCondition",
+        "loopRepetitions",
+        "waitCount",
+        "firstCollectionStep"
+      ],
+      "gate": {
+        "x": 3,
+        "y": 4,
+        "requiredWaits": 2
+      }
+    },
+    {
+      "no": 31,
+      "guided": true,
+      "broken": "采集失败：当前位置没有可采集宝石。",
+      "declaredDiagnosis": "测试包漏掉了边界情况",
+      "repaired": true,
+      "repairBound": true,
+      "transfer": true,
+      "mastered": true,
+      "reflectionAssessment": "teacher-review",
+      "program": [
+        "repeat4",
+        "collect",
+        "right",
+        "repeat3",
+        "collect",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "route": [],
+      "traceCommands": [
+        "move",
+        "collect",
+        "right",
+        "left",
+        "upload"
+      ],
+      "simulationStateKeys": [
+        "grid",
+        "x",
+        "y",
+        "dir",
+        "energy",
+        "shield",
+        "collected",
+        "queue",
+        "queueIndex",
+        "expanded",
+        "activeStepNumber",
+        "failed",
+        "completed",
+        "message",
+        "logs",
+        "path",
+        "motion",
+        "failurePose",
+        "failureType",
+        "failureMessage",
+        "lastCondition",
+        "loopRepetitions",
+        "waitCount",
+        "firstCollectionStep"
+      ],
+      "gate": null
+    },
+    {
+      "no": 32,
+      "guided": true,
+      "broken": "世界结果完成了，但本课的数据规则或核心结构还没有真实参与运行",
+      "declaredDiagnosis": "模块约定被合并后失去边界",
+      "repaired": true,
+      "repairBound": true,
+      "transfer": true,
+      "mastered": true,
+      "reflectionAssessment": "teacher-review",
+      "program": [
+        "ifHazardShield",
+        "repeat3",
+        "collect",
+        "right",
+        "repeat4",
+        "collect",
+        "left",
+        "repeat5",
+        "collect",
+        "left",
+        "repeat4",
+        "upload"
+      ],
+      "route": [],
+      "traceCommands": [
+        "ifHazardShield",
+        "move",
+        "collect",
+        "right",
+        "left",
+        "upload"
+      ],
+      "simulationStateKeys": [
+        "grid",
+        "x",
+        "y",
+        "dir",
+        "energy",
+        "shield",
+        "collected",
+        "queue",
+        "queueIndex",
+        "expanded",
+        "activeStepNumber",
+        "failed",
+        "completed",
+        "message",
+        "logs",
+        "path",
+        "motion",
+        "failurePose",
+        "failureType",
+        "failureMessage",
+        "lastCondition",
+        "loopRepetitions",
+        "waitCount",
+        "firstCollectionStep"
+      ],
+      "gate": null
+    }
+  ],
+  "fixedWaitTransfers": [
+    {
+      "variant": 0,
+      "hash": "1da18307fc3b",
+      "program": [
+        "wait",
+        "wait",
+        "repeat3",
+        "collect",
+        "left",
+        "repeat3",
+        "right",
+        "repeat4",
+        "upload"
+      ],
+      "passed": true,
+      "waits": 2,
+      "conditionEvents": 0
+    },
+    {
+      "variant": 1,
+      "hash": "1da18307fc3b",
+      "program": [
+        "wait",
+        "wait",
+        "repeat3",
+        "collect",
+        "left",
+        "repeat3",
+        "right",
+        "repeat4",
+        "upload"
+      ],
+      "passed": true,
+      "waits": 2,
+      "conditionEvents": 0
+    },
+    {
+      "variant": 2,
+      "hash": "1da18307fc3b",
+      "program": [
+        "wait",
+        "wait",
+        "repeat3",
+        "collect",
+        "left",
+        "repeat3",
+        "right",
+        "repeat4",
+        "upload"
+      ],
+      "passed": true,
+      "waits": 2,
+      "conditionEvents": 0
+    }
+  ],
+  "tailResult": {
+    "no": 17,
+    "passed": true,
+    "plannedActions": 18,
+    "executedActions": 16,
+    "unexecuted": [
+      "move",
+      "collect"
+    ],
+    "completed": true,
+    "failed": false
+  },
+  "wrongLoopBlocked": "请先选择本场需要的 3 轮。",
+  "migration": [
+    {
+      "oldVersion": 2,
+      "returnedVersion": 2,
+      "mastered": true,
+      "guidedComplete": true
+    },
+    {
+      "oldVersion": 3,
+      "returnedVersion": 3,
+      "mastered": true,
+      "guidedComplete": true
+    },
+    {
+      "oldVersion": 4,
+      "returnedVersion": 4,
+      "mastered": true,
+      "guidedComplete": true
+    },
+    {
+      "oldVersion": 5,
+      "returnedVersion": 5,
+      "mastered": true,
+      "guidedComplete": true
+    }
+  ],
+  "duplicateHintReset": {
+    "beforeHash": "1da18307fc3b",
+    "afterHash": "1da18307fc3b",
+    "nextAssisted": false,
+    "nextVariant": 1
+  },
+  "mapReuse": {
+    "guidedGroups": [
+      [
+        16,
+        18,
+        23,
+        32
+      ],
+      [
+        17,
+        26,
+        28
+      ],
+      [
+        19
+      ],
+      [
+        20,
+        25,
+        27,
+        29
+      ],
+      [
+        21,
+        22,
+        24,
+        31
+      ],
+      [
+        30
+      ]
+    ],
+    "guidedUniqueGrids": 6,
+    "allAdvancedUniqueGrids": 8,
+    "comparison": "grid only; energy and program are not included"
+  },
+  "sourceHashes": {
+    "app.js": "0899f8c0ed44f8c187fec6b1dfd500cb3b5a17f48d73b28a09ca3d0012f5e820",
+    "course-data.js": "e3eb5ee317cc4f8a03af0364f836a3680cd96334c558611b24ff13aad5117b05",
+    "v16-course-overrides.js": "132a877a86aedad6fbd0536c45a58c08b3d96dc1d9859a13d6c743ae7d5f7177",
+    "early-lessons.js": "9977a274046b00a6fd6c941797c133fd3c8a39657fc59954dd6f852f5f8da26b",
+    "early-lesson-ui.js": "3b9dafad1d462c2642c58dee289bce9849defadda10d04bd4f5affb44f68b075"
+  }
+}

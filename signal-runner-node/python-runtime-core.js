@@ -7,6 +7,8 @@
     "turn_right",
     "shield",
     "collect",
+    "try_collect",
+    "check_count",
     "upload",
     "is_spike_ahead",
     "is_blocked_ahead",
@@ -122,7 +124,9 @@
       }
 
       while (functionStack.length && indentSize <= functionStack[functionStack.length - 1].indent) {
-        functionStack.pop();
+        const ending = functionStack.pop();
+        output.push(`${" ".repeat(ending.indent + 4)}__trace_function_exit__("${ending.name}")`);
+        lineMap.set(output.length, studentLine);
       }
 
       const activeFunction = functionStack[functionStack.length - 1] || null;
@@ -141,7 +145,8 @@
 
       output.push(`${indent}__trace_line__(${studentLine})`);
       lineMap.set(output.length, studentLine);
-      output.push(line);
+      const rangeLoop = line.match(/^(\s*for\s+\w+\s+in\s+range\()([^,]+)(\):\s*(?:#.*)?)$/);
+      output.push(rangeLoop ? `${rangeLoop[1]}__trace_range__(${rangeLoop[2]}, ${JSON.stringify(rangeLoop[2].trim())})${rangeLoop[3]}` : line);
       lineMap.set(output.length, studentLine);
 
       const assignment = trimmed.match(/^([A-Za-z_]\w*)\s*=(?!=)/);
@@ -201,6 +206,11 @@
         }
       }
     });
+    while (functionStack.length) {
+      const ending = functionStack.pop();
+      output.push(`${" ".repeat(ending.indent + 4)}__trace_function_exit__("${ending.name}")`);
+      lineMap.set(output.length, source.split("\n").length);
+    }
     return { code: output.join("\n"), lineMap };
   }
 
@@ -371,6 +381,12 @@
     const apiCallLimit = options.apiCallLimit ?? 48;
     const allowedFunctions = options.allowedFunctions || defaultAllowedFunctions;
     const world = options.world || null;
+    const terrain = world?.terrain || null;
+    const terrainRules = root.CodeQuestWorldRules;
+    if (terrain) {
+      if (!terrainRules) throw new Error("地形运行器未加载。");
+      terrainRules.validate(world, terrain);
+    }
     const objectModel = Boolean(options.objectModel);
     const multiObject = Boolean(options.multiObject);
     const languageFeatures = new Set(options.languageFeatures || []);
@@ -396,6 +412,9 @@
     let apiCallCount;
     let worldPortals;
     let activeObjectName;
+    let callStack;
+    let lastEventState;
+    let callSequence;
 
     function initialState() {
       if (world) {
@@ -410,6 +429,7 @@
           collected: false,
           collectedKeys: [],
           uploaded: false,
+          gates: Object.fromEntries((terrain?.gates || []).map(g => [g.id, false])),
           variables: {},
           objects: {},
           functions: {},
@@ -497,7 +517,13 @@
 
     function pushEvent(type, message, details = {}) {
       guardApiCall();
-      plannedEvents.push({ type, message, line: currentStudentLine, state: { ...plannedState }, ...details });
+      if (terrain && ["move", "turn", "collect", "collect-attempt", "upload", "shield", "teleport", "switch"].includes(type)) advanceEnvironment();
+      const position = state => ({ x: state.x, y: state.y, height: terrainRules.height(terrain, state), direction: state.directionName });
+      const transition = terrain && ["move", "turn", "teleport", "collision-fail", "hazard-fail"].includes(type)
+        ? { actor: activeObjectName || "Nova", from: position(lastEventState), to: position(plannedState), tick: plannedState.ticks, trigger: type } : undefined;
+      plannedEvents.push({ type, message, line: currentStudentLine, callId: callStack?.at(-1)?.id || null,
+        state: JSON.parse(JSON.stringify(plannedState)), ...(transition ? { transition } : {}), ...details });
+      lastEventState = { ...plannedState };
     }
 
     function runtimeFailure(message) {
@@ -616,6 +642,7 @@
         const args = Array.isArray(names) && Array.isArray(values)
           ? Object.fromEntries(names.map((parameterName, index) => [String(parameterName), values[index]]))
           : {};
+        callStack.push({ id: ++callSequence, name: functionName, args });
         const currentFunction = plannedState.functions[functionName] || { name: functionName, calls: [], returns: [] };
         plannedState.functions = {
           ...plannedState.functions,
@@ -630,6 +657,24 @@
           `第 ${currentStudentLine} 行：调用 ${functionName}(${argumentText})。`,
           { functionCall: { name: functionName, arguments: args } }
         );
+        return Sk.builtin.none.none$;
+      });
+
+      Sk.builtins.__trace_range__ = new Sk.builtin.func(function (value, expression) {
+        const expr = String(Sk.ffi.remapToJs(expression));
+        const args = callStack.at(-1)?.args || {};
+        const bindings = Object.fromEntries(Object.entries(args).filter(([name]) => new RegExp(`\\b${name}\\b`).test(expr)));
+        pushEvent("range-input", `循环读取 ${expr} → ${Sk.ffi.remapToJs(value)}。`,
+          { range: { expression: expr, value: Sk.ffi.remapToJs(value), bindings } });
+        return value;
+      });
+      function endFunction(name) {
+        if (callStack.at(-1)?.name !== name) return;
+        pushEvent("function-end", `函数 ${name} 调用结束。`, { functionEnd: { name } });
+        callStack.pop();
+      }
+      Sk.builtins.__trace_function_exit__ = new Sk.builtin.func(function (name) {
+        endFunction(String(Sk.ffi.remapToJs(name)));
         return Sk.builtin.none.none$;
       });
 
@@ -649,6 +694,7 @@
           `第 ${currentStudentLine} 行：${functionName}() 返回 ${JSON.stringify(result)}。`,
           { functionReturn: { name: functionName, value: result } }
         );
+        endFunction(functionName);
         return Sk.builtin.none.none$;
       });
 
@@ -1000,6 +1046,10 @@
       Sk.builtins.move = new Sk.builtin.func(function () {
         if (world) {
           const next = worldAhead();
+          if (terrain) {
+            const problem = terrainRules.movement(world, terrain, plannedState, next);
+            if (problem) animatedFailure("collision-fail", problem, { failureKind: "terrain", attemptedX: next.x, attemptedY: next.y });
+          }
           if (isWorldBlocked(next.x, next.y)) {
             const blockedTile = worldTile(next.x, next.y);
             const failureType = blockedTile === "#" ? "collision-fail" : "fall";
@@ -1023,7 +1073,7 @@
               failureKind: "unshielded-hazard"
             });
           }
-          const portalDestination = worldPortals.get(worldKey(plannedState.x, plannedState.y));
+          const portalDestination = !terrain && worldPortals.get(worldKey(plannedState.x, plannedState.y));
           if (portalDestination) {
             const entrance = { x: plannedState.x, y: plannedState.y };
             plannedState.x = portalDestination.x;
@@ -1089,6 +1139,29 @@
         return Sk.builtin.none.none$;
       });
 
+      Sk.builtins.teleport = new Sk.builtin.func(function () {
+        if (!terrain) runtimeFailure("当前任务没有独立传送动作。");
+        const from = { x: plannedState.x, y: plannedState.y };
+        const to = terrainRules.destination(terrain, plannedState);
+        if (!to) animatedFailure("action-fail", "先站上传送台，再执行传送。", { failureKind: "portal-away" });
+        const problem = terrainRules.landing(world, terrain, plannedState, to);
+        if (problem) animatedFailure("action-fail", `传送未发生：${problem}`, { failureKind: "portal-blocked" });
+        if (worldTile(to.x, to.y) === "H" && !plannedState.shieldActive)
+          animatedFailure("action-fail", "传送未发生：出口是尖刺格，需要先开启护盾。", { failureKind: "portal-hazard" });
+        plannedState.x = to.x; plannedState.y = to.y;
+        pushEvent("teleport", `传送：(${from.x}, ${from.y}) → (${to.x}, ${to.y})；朝向与物品保持。`, { portal: { from, to } });
+        return Sk.builtin.none.none$;
+      });
+
+      Sk.builtins.activate_switch = new Sk.builtin.func(function () {
+        const control = terrain?.switches?.find(s => terrainRules.same(s.at, plannedState));
+        if (!control) animatedFailure("action-fail", "当前位置没有开关。", { failureKind: "switch-away" });
+        const ids = terrain.gates.filter(g => g.switchId === control.id).map(g => g.id);
+        plannedState.gates = { ...plannedState.gates, ...Object.fromEntries(ids.map(id => [id, true])) };
+        pushEvent("switch", "开关已激活；离开后门仍保持打开。", { switchId: control.id, openedGates: ids });
+        return Sk.builtin.none.none$;
+      });
+
       Sk.builtins.shield = new Sk.builtin.func(function () {
         if (plannedState.energy <= 0) runtimeFailure("没有足够能量开启护盾。");
         plannedState.energy -= 1;
@@ -1117,6 +1190,42 @@
         return Sk.builtin.none.none$;
       });
 
+      Sk.builtins.try_collect = new Sk.builtin.func(function () {
+        if (!world) runtimeFailure("当前任务没有可恢复的采集尝试。");
+        const key = worldKey(plannedState.x, plannedState.y);
+        const before = collectedCount();
+        const onGem = isBeaconAt(plannedState.x, plannedState.y);
+        const duplicate = onGem && plannedState.collectedKeys.includes(key);
+        const success = onGem && !duplicate;
+        if (success) {
+          plannedState.collectedKeys = [...plannedState.collectedKeys, key];
+          plannedState.collected = collectedCount() >= Number(world.required || 0);
+        }
+        const after = collectedCount();
+        const reason = success ? "collected" : duplicate ? "already-collected" : "empty";
+        const resultText = success ? "成功" : duplicate ? "重复采集，不增加宝石" : "空采，不增加宝石";
+        pushEvent("collect-attempt", `第 ${currentStudentLine} 行 try_collect()：${resultText}；实际宝石 ${before} → ${after}。`, {
+          collectAttempt: { x: plannedState.x, y: plannedState.y, success, reason, worldCountBefore: before, worldCountAfter: after }
+        });
+        return new Sk.builtin.bool(success);
+      });
+
+      Sk.builtins.check_count = new Sk.builtin.func(function (value) {
+        if (!world || !terrain) runtimeFailure("当前任务没有计数门。");
+        const count = Number(Sk.ffi.remapToJs(value));
+        const actual = collectedCount();
+        const expected = Number(world.required || 0);
+        const gateIds = (terrain.gates || []).filter(g => g.kind === "count").map(g => g.id);
+        const passed = Number.isFinite(count) && count === actual && actual === expected;
+        if (passed) plannedState.gates = { ...plannedState.gates, ...Object.fromEntries(gateIds.map(id => [id, true])) };
+        pushEvent("count-check", passed
+          ? `第 ${currentStudentLine} 行 check_count()：count=${count}，实际宝石=${actual}，计数门已打开。`
+          : `第 ${currentStudentLine} 行 check_count()：count=${count}，实际宝石=${actual}，目标=${expected}；计数门拒绝打开。`,
+        { countCheck: { value: count, actual, expected, passed, gateIds } });
+        if (!passed) runtimeFailure(`计数没有通过：count=${count}，实际宝石=${actual}，目标=${expected}。`);
+        return new Sk.builtin.bool(true);
+      });
+
       Sk.builtins.is_spike_ahead = new Sk.builtin.func(function () {
         const result = world
           ? worldTile(worldAhead().x, worldAhead().y) === "H"
@@ -1127,7 +1236,7 @@
 
       Sk.builtins.is_blocked_ahead = new Sk.builtin.func(function () {
         const result = world
-          ? isWorldBlocked(worldAhead().x, worldAhead().y)
+          ? terrain ? Boolean(terrainRules.movement(world, terrain, plannedState, worldAhead())) : isWorldBlocked(worldAhead().x, worldAhead().y)
           : plannedState.position >= beaconPosition;
         pushEvent("condition", `第 ${currentStudentLine} 行 is_blocked_ahead() → ${result ? "True" : "False"}。`);
         return new Sk.builtin.bool(result);
@@ -1135,7 +1244,7 @@
 
       Sk.builtins.is_path_clear = new Sk.builtin.func(function () {
         const result = world
-          ? !isWorldBlocked(worldAhead().x, worldAhead().y)
+          ? terrain ? !terrainRules.movement(world, terrain, plannedState, worldAhead()) : !isWorldBlocked(worldAhead().x, worldAhead().y)
           : plannedState.position < beaconPosition;
         pushEvent("condition", `第 ${currentStudentLine} 行 is_path_clear() → ${result ? "True" : "False"}。`);
         return new Sk.builtin.bool(result);
@@ -1182,6 +1291,8 @@
     async function compile(source) {
       currentStudentLine = 1;
       apiCallCount = 0;
+      callStack = [];
+      callSequence = 0;
       if (world && baseWorld) {
         world.grid = baseWorld.grid.slice();
         world.start = { ...baseWorld.start };
@@ -1192,6 +1303,7 @@
       worldPortals = new Map();
       activeObjectName = null;
       plannedState = initialState();
+      lastEventState = { ...plannedState };
       plannedEvents = [];
 
       validateSource(source, allowedFunctions, languageFeatures);

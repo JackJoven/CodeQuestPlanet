@@ -343,7 +343,8 @@ async function saveProgress(req, res) {
   const user = await requireUser(req, res);
   if (!user) return;
 
-  const body = await readJson(req);
+  // Execution traces are larger than login/forms; retain the default limit on all other routes.
+  const body = await readJson(req, { maxBytes: 512 * 1024 });
   const courseId = String(body.courseId || "signal-runner").trim().slice(0, 80);
   const lessonId = String(body.lessonId || "").trim().slice(0, 120);
   const status = body.status === "completed" ? "completed" : "started";

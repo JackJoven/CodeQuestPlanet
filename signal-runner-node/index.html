@@ -98,6 +98,7 @@
             </div>
             <span class="world-state" id="worldState">等待运行</span>
           </div>
+          <div id="structuredProgramPanel" hidden></div>
           <div class="canvas-shell">
             <canvas id="gameCanvas" width="960" height="640" aria-label="Nova 的任务地图，地图左上方外侧包含随视角旋转的三维 N 向三角箭头"></canvas>
             <div class="world-hud">
@@ -388,6 +389,7 @@
               <button class="tab-button" data-board="route" type="button">routeA()</button>
             </div>
 
+            <section id="structuredFunctionPanel" hidden></section>
             <section class="command-explanation" id="commandExplanation" aria-live="polite" hidden></section>
 
             <div class="builder-grid">
@@ -425,8 +427,10 @@
               <button class="tool-button" id="resetBtn" type="button">复位</button>
               <button class="tool-button" id="clearBtn" type="button">清空</button>
             </div>
+            <div id="structuredRunFeedback" hidden></div>
           </section>
 
+          <section id="structuredLessonSupport" class="early-lesson-panel" hidden></section>
           <section class="early-lesson-panel early-evidence-panel" id="earlyEvidencePanel" aria-label="本课运行结果与理解检查" hidden></section>
           <section class="python-lesson-studio" id="pythonLessonStudio" aria-labelledby="pythonStudioTitle" hidden>
             <div class="python-studio-heading">
@@ -579,6 +583,17 @@
     <script src="./vendor/three.global.js"></script>
     <script src="./vendor/skulpt-1.2.0.min.js"></script>
     <script src="./python-runtime-core.js"></script>
+    <script src="./world-rules.js"></script>
+    <script src="./learning-evidence.js"></script>
+    <script src="./structured-lessons.js"></script>
+    <script src="./foundation-lessons.js"></script>
+    <script src="./foundation-lessons-ui.js"></script>
+    <script src="./navigation-lessons.js"></script>
+    <script src="./navigation-lessons-ui.js"></script>
+    <script src="./state-lesson.js"></script>
+    <script src="./state-lesson-ui.js"></script>
+    <script src="./parameter-lesson.js"></script>
+    <script src="./parameter-lesson-ui.js"></script>
     <script src="./course-data.js"></script>
     <script src="./v16-course-overrides.js"></script>
     <script src="./early-lessons.js"></script>

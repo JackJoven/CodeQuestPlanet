@@ -8,6 +8,29 @@
 .early-evidence-panel .early-result:first-child { margin-top: 0; border-top: 0; padding-top: 0; }
 .student-page #operationPanel { scroll-margin-top: 80px; }
 .early-lesson-panel[hidden] { display: none; }
+.parameter-workspace { display: block; }
+.parameter-map-wrap { min-width: 0; }
+.parameter-map { width: 100%; max-height: 340px; }
+.parameter-overview { margin: 14px 0; }
+.parameter-overview .parameter-map { max-width: 440px; }
+.parameter-distances { color: var(--cq-accent) !important; }
+.parameter-editor { min-width: 0; }
+.parameter-body { margin-top: 12px; padding: 12px; border-radius: 8px; background: var(--cq-surface); color: var(--cq-text); }
+.parameter-body b { color: var(--cq-accent); }
+.parameter-calls { display: flex; flex-wrap: wrap; gap: 12px; }
+.parameter-field { display: flex; align-items: center; justify-content: space-between; flex: 1 1 140px; gap: 10px; margin: 12px 0; color: var(--cq-text); font-size: .9rem; }
+.parameter-field select { min-height: 44px; min-width: 76px; padding: 8px; border: 1px solid var(--cq-line-strong); border-radius: 8px; background: var(--cq-surface); color: var(--cq-text); font: inherit; }
+.parameter-field select:focus-visible { outline: 3px solid var(--cq-gold); outline-offset: 2px; }
+.parameter-live { min-height: 2em; color: var(--cq-accent) !important; }
+.parameter-code { margin-top: 16px; }
+.parameter-code pre { max-height: 320px; overflow: auto; font: .875rem/1.8 monospace; }
+.parameter-code pre span { display: block; padding: 0 8px; white-space: pre; }
+.parameter-code .is-active { background: var(--cq-accent); color: var(--cq-bg-deep); }
+.parameter-evidence-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .875rem; }
+.parameter-evidence-table th, .parameter-evidence-table td { padding: 10px 6px; text-align: left; border-bottom: 1px solid var(--cq-line-strong); }
+.parameter-evidence-table caption { text-align: left; color: var(--cq-text-soft); }
+.parameter-explanation button { min-height: 44px; padding: 10px 14px; background: var(--cq-accent); color: var(--cq-bg-deep); border: 0; border-radius: 8px; font: inherit; }
+@media (max-width: 760px) { .parameter-workspace { grid-template-columns: minmax(0, 1fr); gap: 8px; } .parameter-map { max-height: 220px; } }
 .early-heading { display: flex; flex-wrap: wrap; align-items: start; justify-content: space-between; gap: 12px; }
 .early-heading h2 { margin: 5px 0 0; font-size: 1.25rem; }
 .early-heading span, .early-note, .early-storage, .early-map-caption { color: var(--cq-muted); font-size: .9rem; line-height: 1.65; }
@@ -146,4 +169,93 @@
   .early-difficulty-card { grid-template-columns: 1fr; }
   .early-data-flow { grid-template-columns: 1fr; }
   .early-data-flow li::after { display: none; }
+}
+
+/* Lesson 19: map on the left, student-authored programming on the right. */
+.student-page.is-parameter-lesson .workspace { min-height: 0; }
+.student-page.is-parameter-lesson .control-panel { max-height: calc(100dvh - 128px); }
+.student-page.is-parameter-lesson .play-panel { height: calc(100dvh - 128px); min-height: 520px; }
+.student-page.is-parameter-lesson .canvas-shell { --world-control-safe-area: 0px; flex: 1 1 auto; min-height: 480px; max-height: none; padding: 0; }
+.student-page.is-parameter-lesson .play-panel .world-heading,
+.student-page.is-parameter-lesson .play-panel .world-controls,
+.student-page.is-parameter-lesson .play-panel .world-hud,
+.student-page.is-parameter-lesson .play-panel .run-banner,
+.student-page.is-parameter-lesson .play-panel .world-failure-indicator,
+.student-page.is-parameter-lesson .play-panel #stateHud,
+.student-page.is-parameter-lesson #standardLogPanel { display: none; }
+.student-page.is-state-lesson .play-panel .world-controls,
+.student-page.is-state-lesson .play-panel .world-hud,
+.student-page.is-state-lesson .play-panel .run-banner,
+.student-page.is-state-lesson .play-panel .world-failure-indicator,
+.student-page.is-state-lesson .play-panel #stateHud,
+.student-page.is-state-lesson #standardLogPanel { display: none; }
+.student-page.is-state-lesson .early-heading { display: flex; gap: 10px; justify-content: space-between; align-items: center; }
+.student-page.is-state-lesson .early-heading h2 { margin: 0; font-size: 1.2rem; }
+.student-page.is-state-lesson .early-phases { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 12px; }
+.student-page.is-state-lesson .early-lesson-panel { padding: 16px; }
+.student-page.is-state-lesson .early-lesson-panel .early-goal { margin: 10px 0; line-height: 1.6; }
+.student-page.is-state-lesson .operation-panel { margin-top: 12px; }
+.student-page.is-state-lesson .operation-panel .code-panel { display: none; }
+.student-page.is-state-lesson .builder-grid[hidden] { display: none; }
+.student-page.is-state-lesson .program-list { align-content: start; }
+.student-page.is-state-lesson .program-chip.is-current { outline: 2px solid var(--cq-gold); outline-offset: -2px; background: #315999; }
+.student-page.is-state-lesson #structuredLessonSupport { margin-top: 12px; }
+.student-page.is-state-lesson .parameter-instruction { margin: 0; font-size: .8rem; line-height: 1.6; }
+.state-rule-grid { display: grid; gap: 8px; }
+.state-rule .parameter-field { margin: 0; }
+.state-counters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; }
+.state-counters span { padding: 8px 10px; border-radius: 6px; background: var(--cq-surface); color: var(--cq-text-soft); font-size: .78rem; }
+.state-counters strong { display: block; margin-top: 2px; color: var(--cq-accent); font-size: .92rem; }
+.student-page.is-parameter-lesson .early-heading { display: flex; gap: 10px; justify-content: space-between; align-items: center; }
+.student-page.is-parameter-lesson .early-heading h2 { margin: 0; font-size: 1.2rem; }
+.student-page.is-parameter-lesson .early-phases { margin-top: 12px; }
+.student-page.is-parameter-lesson .early-lesson-panel { padding: 16px; }
+.student-page.is-parameter-lesson .early-lesson-panel .early-goal { margin: 10px 0; line-height: 1.6; }
+.parameter-function { min-width: 0; padding: 10px 12px; margin: 12px 0; border: 1px solid var(--cq-line-strong); border-radius: 8px; }
+.parameter-function legend { font-size: .84rem; padding: 0 5px; color: var(--cq-accent); }
+.student-page .parameter-function p { margin: 0 0 8px; font-size: .85rem; }
+.parameter-binding { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .8rem; }
+.early-lesson-panel .parameter-binding button { min-height: 36px; padding: 5px 9px; font-size: .8rem; }
+.parameter-binding .parameter-field { flex-basis: 100%; margin: 3px 0; }
+.parameter-function-body { margin-top: 8px; padding: 7px 9px; background: var(--cq-surface); border-radius: 5px; font-size: .84rem; }
+.parameter-function-body b { color: var(--cq-gold); }
+.parameter-function-body.is-executing { outline: 2px solid var(--cq-gold); }
+/* Keep the original two-column card builder and its replace/remove controls. */
+.student-page.is-parameter-lesson .early-phases { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.student-page.is-parameter-lesson .operation-panel { margin-top: 12px; }
+.student-page.is-parameter-lesson .operation-panel .code-panel { display: none; }
+.student-page.is-parameter-lesson .builder-grid[hidden] { display: none; }
+.student-page.is-parameter-lesson .program-list { align-content: start; }
+.student-page.is-parameter-lesson .program-chip.is-current { outline: 2px solid var(--cq-gold); outline-offset: -2px; background: #315999; }
+.student-page.is-parameter-lesson .program-chip .parameter-field { grid-column: 1 / -1; margin: 0 4px 4px 30px; gap: 4px; font-size: .72rem; }
+.student-page.is-parameter-lesson .program-chip .parameter-field select { min-width: 62px; min-height: 30px; padding: 3px 5px; border-radius: 5px; font-size: .75rem; }
+.student-page.is-parameter-lesson .program-chip:has(select) .program-replace { top: 22px; }
+.student-page.is-parameter-lesson .parameter-function button { min-height: 36px; border: 1px solid var(--cq-line-strong); border-radius: 7px; background: var(--cq-surface); color: var(--cq-text); cursor: pointer; }
+.student-page.is-parameter-lesson .parameter-function button[aria-pressed="true"] { background: var(--cq-accent); color: var(--cq-bg-deep); }
+.student-page.is-parameter-lesson .parameter-function button:focus-visible { outline: 2px solid var(--cq-gold); outline-offset: 2px; }
+.student-page.is-state-lesson .parameter-function button { min-height: 36px; border: 1px solid var(--cq-line-strong); border-radius: 7px; background: var(--cq-surface); color: var(--cq-text); cursor: pointer; }
+.student-page.is-state-lesson .parameter-function button[aria-pressed="true"] { background: var(--cq-accent); color: var(--cq-bg-deep); }
+.student-page.is-state-lesson .parameter-function button:focus-visible { outline: 2px solid var(--cq-gold); outline-offset: 2px; }
+.student-page.is-parameter-lesson #structuredLessonSupport { margin-top: 12px; }
+.student-page.is-parameter-lesson .parameter-instruction { margin: 0; font-size: .8rem; line-height: 1.6; }
+.student-page.is-parameter-lesson #structuredRunFeedback .early-feedback { margin: 6px 0; font-size: .85rem; line-height: 1.6; }
+.parameter-state { display: block; flex-basis: 100%; font-size: .78rem; line-height: 1.5; color: var(--cq-text-soft); }
+.parameter-live-flow { padding: 8px 10px; margin: 4px 0; font-size: .86rem; line-height: 1.65; color: var(--cq-accent); background: var(--cq-surface); border-radius: 6px; }
+.parameter-meaning { display: grid; gap: 6px; margin: 8px 0; }
+.parameter-explanation .parameter-meaning button[aria-pressed="true"] { background: var(--cq-accent); color: var(--cq-bg-deep); }
+@media (max-width: 1080px) {
+  .student-page.is-parameter-lesson .control-panel { max-height: none; }
+  .student-page.is-parameter-lesson .play-panel { height: auto; min-height: 0; }
+  .student-page.is-parameter-lesson .canvas-shell { height: 430px; min-height: 430px; flex: 0 0 430px; }
+  .student-page.is-state-lesson .control-panel { max-height: none; }
+  .student-page.is-state-lesson .play-panel { height: auto; min-height: 0; }
+  .student-page.is-state-lesson .canvas-shell { height: 430px; min-height: 430px; flex: 0 0 430px; }
+}
+@media (max-width: 480px) {
+  .student-page.is-parameter-lesson .early-lesson-panel { padding: 12px; }
+  .student-page.is-parameter-lesson .canvas-shell { height: 340px; min-height: 340px; flex-basis: 340px; }
+  .student-page.is-state-lesson .early-lesson-panel { padding: 12px; }
+  .student-page.is-state-lesson .canvas-shell { height: 340px; min-height: 340px; flex-basis: 340px; }
+  .state-counters { grid-template-columns: 1fr; }
+
 }

@@ -614,10 +614,13 @@ window.addEventListener("unhandledrejection", (event) => {
   const early = window.CodeQuestEarlyLessons;
   const earlyPanel = document.querySelector("#earlyLessonPanel");
   const earlyEvidencePanel = document.querySelector("#earlyEvidencePanel");
+  const structuredProgramPanel = document.querySelector("#structuredProgramPanel");
   let earlyProfiles = new Map();
   let earlyNotice = "";
   let earlyStorage = "";
   let earlyRun = null;
+  let structuredPlayback = null;
+  let structuredEpoch = 0;
   let earlySyncTimer = null;
   let accountEpoch = 0;
   let earlyRevision = 0;
@@ -642,18 +645,18 @@ window.addEventListener("unhandledrejection", (event) => {
 
   function earlyStorageKey(lessonId) {
     const contentId = courseMissions.find((item) => item.id === lessonId)?.contentId || lessonId;
-    return `signalRunnerNode.early.v1.7.${authUser?.id || (isLocalPreview ? "preview" : "signed-out")}.${contentId}`;
+    return `signalRunnerNode.early.v1.8.${authUser?.id || (isLocalPreview ? "preview" : "signed-out")}.${contentId}`;
   }
 
   function legacyEarlyStorageKey(lessonId) {
     const contentId = courseMissions.find((item) => item.id === lessonId)?.contentId || lessonId;
-    return `signalRunnerNode.early.v1.6.${authUser?.id || (isLocalPreview ? "preview" : "signed-out")}.${contentId}`;
+    return `signalRunnerNode.early.v1.7.${authUser?.id || (isLocalPreview ? "preview" : "signed-out")}.${contentId}`;
   }
 
   function earlyProfile(lessonId) {
     if (!earlyProfiles.has(lessonId)) {
       let saved;
-      try { saved = JSON.parse(localStorage.getItem(earlyStorageKey(lessonId)) || localStorage.getItem(legacyEarlyStorageKey(lessonId)) || "null"); } catch (_) {}
+      try { saved = JSON.parse(localStorage.getItem(earlyStorageKey(lessonId)) || localStorage.getItem(legacyEarlyStorageKey(lessonId)) || localStorage.getItem(legacyEarlyStorageKey(lessonId).replace(".v1.7.", ".v1.6.")) || "null"); } catch (_) {}
       earlyProfiles.set(lessonId, early.profile(saved));
     }
     return earlyProfiles.get(lessonId);
@@ -662,7 +665,8 @@ window.addEventListener("unhandledrejection", (event) => {
   function saveEarlyProfile(lessonId, { sync = true, touch = true } = {}) {
     const p = earlyProfile(lessonId);
     if (touch) { p.updatedAt = new Date().toISOString(); earlyRevision += 1; }
-    p.exposures = { ...(p.exposures || {}), [`${p.phase}-${p.variant}`]: { assisted: p.assisted, hintLevel: p.hintLevel } };
+    const base = courseMissions.find(item => item.id === lessonId);
+    if (base) window.CodeQuestEvidence.expose(p, early.mission(base, p));
     try {
       localStorage.setItem(earlyStorageKey(lessonId), JSON.stringify(p));
       earlyStorage = authUser ? "已保存，等待同步" : "预览记录已保存";
@@ -711,7 +715,7 @@ window.addEventListener("unhandledrejection", (event) => {
   function finishEarlyRun() {
     if (!earlyRun) return;
     const m = mission(), p = earlyProfile(m.id);
-    const success = !sim.failed && sim.collected.size >= m.required && (!m.early.requiresUpload || sim.completed);
+    const success = !sim.failed && sim.collected.size >= m.required && (!m.early.requiresUpload || sim.uploaded);
     const attempt = early.result(m, p, { ...earlyRun, path: sim.path.slice(), success,
       tailCount: sim.firstCollectionStep ? Math.max(0, program.length - sim.firstCollectionStep) : 0,
       failure: sim.failureMessage || (success ? "" : "程序结束时还没有采集全部宝石") });
@@ -719,7 +723,10 @@ window.addEventListener("unhandledrejection", (event) => {
     early.record(p, attempt);
     p.explanation = ""; p.debug = ""; p.reflection = ""; p.reconciliation = "";
     saveEarlyProfile(m.id);
-    if (attempt.success) {
+    if (attempt.worldSuccess && !attempt.success) {
+      complete("练习完成；能力验证仍待完成。");
+      earlyNotice = attempt.failure;
+    } else if (attempt.success) {
       complete("运行完成。看看结果，再写一句说明。");
       earlyNotice = m.early.repairing ? (p.repairEvidence?.after.id === attempt.id
         ? "修好了！写一句说明，然后换图挑战。"
@@ -741,20 +748,53 @@ window.addEventListener("unhandledrejection", (event) => {
     earlyPanel.hidden = !visible;
     earlyEvidencePanel.hidden = true;
     dom.missionBrief.classList.toggle("is-early", visible);
+    const structuredLesson = Boolean(visible && m.early.v18 && window.CodeQuestStructuredLessons.get(m)?.builder);
+    document.body.classList.toggle("is-structured-lesson", structuredLesson);
+    document.body.classList.toggle("is-parameter-lesson", Boolean(structuredLesson && m.lessonNo === 19));
+    document.body.classList.toggle("is-state-lesson", Boolean(structuredLesson && m.lessonNo === 17));
+    document.body.classList.toggle("is-foundation-lesson", Boolean(structuredLesson && [1, 2].includes(m.lessonNo)));
+    document.body.classList.toggle("is-navigation-lesson", Boolean(structuredLesson && [3, 4, 5].includes(m.lessonNo)));
+    structuredProgramPanel.hidden = true;
+    for (const id of ["structuredFunctionPanel", "structuredLessonSupport", "structuredRunFeedback"])
+      document.getElementById(id).hidden = !structuredLesson;
+    dom.operationPanel.querySelector(".builder-grid").hidden = false;
+    if (!structuredLesson) {
+      dom.programTabs.querySelector('[data-board="route"]').hidden = false;
+      for (const button of [dom.runBtn, dom.stepBtn, dom.undoBtn, dom.clearBtn, dom.loadReference,
+        ...dom.programTabs.querySelectorAll("button")]) button.disabled = false;
+    }
     if (!visible) return;
     const active = document.activeElement;
     const focus = (earlyPanel.contains(active) || earlyEvidencePanel.contains(active)) && active.tagName === "BUTTON"
+      && (active.dataset.earlyField || active.dataset.earlyAction)
       ? { field: active.dataset.earlyField, value: active.dataset.value, action: active.dataset.earlyAction } : null;
     const reflectionFocus = active.id === "earlyReflection" ? [active.selectionStart, active.selectionEnd] : null;
-    const helpOpen = Boolean(earlyPanel.querySelector(".early-help-details[open]"));
+    const helpOpen = Boolean(document.querySelector(".early-help-details[open]"));
     const traceOpen = Boolean(earlyEvidencePanel.querySelector("details[open]"));
-    earlyPanel.innerHTML = window.CodeQuestEarlyLessonUI.render(m, earlyProfile(m.id), {
-      notice: earlyNotice, storage: earlyStorage, running: Boolean(runTimer || (earlyRun && sim.expanded)), prerequisiteNeeded: earlyPrerequisiteNeeded(m)
-    });
+    const codeOpen = Boolean(document.querySelector(".parameter-code[open]"));
+    const mapOpen = Boolean(document.querySelector(".parameter-overview[open]"));
+    const parameterFocus = active.dataset?.lessonField || active.dataset?.lessonAction;
+    const parameterFocusType = active.dataset?.lessonField ? "lesson-field" : "lesson-action";
+    const focusValue = active.dataset?.value;
+    const ui = m.early.v18 ? window.CodeQuestStructuredLessons.get(m) : window.CodeQuestEarlyLessonUI;
+    const context = {
+      notice: earlyNotice, storage: earlyStorage, running: Boolean(runTimer || (earlyRun && sim.expanded) || (structuredPlayback && !structuredPlayback.finished)),
+      playback: structuredPlayback, state: sim, prerequisiteNeeded: earlyPrerequisiteNeeded(m)
+    };
+    earlyPanel.innerHTML = ui.render(m, earlyProfile(m.id), context);
+    structuredProgramPanel.replaceChildren(...earlyPanel.querySelectorAll(".structured-program-overview"));
+    structuredProgramPanel.hidden = !structuredProgramPanel.children.length;
+    if (structuredLesson) {
+      document.getElementById("structuredLessonSupport").replaceChildren(...earlyPanel.querySelectorAll(".parameter-support"));
+      renderParameterOperation(m, earlyProfile(m.id), context);
+    }
     earlyEvidencePanel.replaceChildren(...earlyPanel.querySelectorAll(".early-result, .early-review, .early-mastery"));
     earlyEvidencePanel.hidden = !earlyEvidencePanel.children.length;
     if (traceOpen) earlyEvidencePanel.querySelector("details")?.setAttribute("open", "");
-    if (helpOpen) earlyPanel.querySelector(".early-help-details")?.setAttribute("open", "");
+    if (helpOpen) document.querySelector(".early-help-details")?.setAttribute("open", "");
+    if (codeOpen) document.querySelector(".parameter-code")?.setAttribute("open", "");
+    if (mapOpen) document.querySelector(".parameter-overview")?.setAttribute("open", "");
+    if (parameterFocus) [...document.querySelectorAll(`[data-${parameterFocusType}="${parameterFocus}"]`)].find(el => el.dataset.value === focusValue)?.focus({ preventScroll: true });
     if (reflectionFocus) {
       const textarea = earlyEvidencePanel.querySelector("#earlyReflection");
       textarea?.focus({ preventScroll: true });
@@ -765,6 +805,55 @@ window.addEventListener("unhandledrejection", (event) => {
         ? button.dataset.earlyField === focus.field && button.dataset.value === focus.value
         : button.dataset.earlyAction === focus.action);
       target?.focus({ preventScroll: true });
+    }
+  }
+
+
+  function renderParameterOperation(m, p, context) {
+    const active = document.activeElement;
+    const focus = dom.operationPanel.contains(active) ? { action: active.dataset.lessonAction, field: active.dataset.lessonField, value: active.dataset.value } : null;
+    const scroll = dom.programList.scrollTop;
+    const view = window.CodeQuestStructuredLessons.get(m).builder(m, p, context);
+    dom.operationPanel.hidden = false;
+    dom.commandLimit.textContent = `${view.count} / ${m.limit} 个指令`;
+    dom.loadReference.textContent = "查看参考程序（记为帮助）";
+    dom.loadReference.disabled = context.running;
+    dom.programTabs.classList.toggle("is-visible", !view.hideFunctionTab);
+    const routeTab = dom.programTabs.querySelector('[data-board="route"]');
+    routeTab.hidden = Boolean(view.hideFunctionTab);
+    routeTab.textContent = view.functionTabLabel || "前进工具";
+    if (view.hideFunctionTab && activeBoard === "route") activeBoard = "main";
+    for (const button of dom.programTabs.querySelectorAll("button")) {
+      button.classList.toggle("is-active", button.dataset.board === activeBoard);
+      button.disabled = context.running;
+    }
+    const definition = document.getElementById("structuredFunctionPanel");
+    definition.innerHTML = view.definition;
+    definition.hidden = Boolean(view.hideFunctionTab || activeBoard !== "route");
+    dom.operationPanel.querySelector(".builder-grid").hidden = activeBoard === "route";
+    dom.commandExplanation.hidden = true;
+    dom.paletteInstruction.textContent = view.replacing ? "请选择新指令" : "点击加入";
+    dom.paletteInstruction.classList.toggle("is-replacing", view.replacing);
+    dom.commandPalette.innerHTML = view.palette;
+    dom.programTitle.textContent = "我的程序";
+    dom.activeBoardHint.hidden = true;
+    dom.programList.className = `program-list${view.count ? "" : " is-empty"}`;
+    dom.programList.innerHTML = view.list || "从左侧选择第一条指令";
+    dom.programList.scrollTop = scroll;
+    const current = dom.programList.querySelector(".is-current") || dom.programList.querySelector(".is-replacing") || dom.programList.lastElementChild;
+    if (current) {
+      const row = current.getBoundingClientRect(), list = dom.programList.getBoundingClientRect();
+      if (row.top < list.top) dom.programList.scrollTop -= list.top - row.top;
+      else if (row.bottom > list.bottom) dom.programList.scrollTop += row.bottom - list.bottom;
+    }
+    dom.runBtn.disabled = Boolean(context.playback?.busy);
+    dom.stepBtn.disabled = Boolean(context.playback?.busy || context.playback?.playing);
+    dom.undoBtn.disabled = context.running || !view.undo;
+    dom.clearBtn.disabled = context.running || !view.count;
+    document.getElementById("structuredRunFeedback").innerHTML = view.feedback;
+    if (focus?.action || focus?.field) {
+      const type = focus.field ? "lesson-field" : "lesson-action", value = focus.field || focus.action;
+      [...dom.operationPanel.querySelectorAll(`[data-${type}="${value}"]`)].find(el => el.dataset.value === focus.value)?.focus({ preventScroll: true });
     }
   }
 
@@ -975,10 +1064,11 @@ window.addEventListener("unhandledrejection", (event) => {
         const id = row.lesson_id;
         const local = earlyProfile(id);
         const merged = early.merge(local, row.progress?.earlyEvidence);
-        if (earlyRun && currentMissions()[currentMissionIndex]?.id === id) {
-          for (const field of ["phase", "variant", "draft", "functionDraft", "functionName", "initializedKey", "prediction", "plan", "reason", "prerequisite", "diagnosis", "ruleDiagnosis", "failureReason", "conditionSensor", "logicConnector", "logicHazardMode", "systemChoice", "systemChoiceB"]) merged[field] = local[field];
-          merged.assisted = local.assisted || Boolean(merged.exposures?.[`${local.phase}-${local.variant}`]?.assisted);
-          if (merged.assisted) earlyRun.assisted = true;
+        if ((earlyRun || (structuredPlayback && !structuredPlayback.finished)) && currentMissions()[currentMissionIndex]?.id === id) {
+          for (const field of ["phase", "variant", "draft", "functionDraft", "functionName", "initializedKey", "prediction", "plan", "reason", "prerequisite", "diagnosis", "ruleDiagnosis", "failureReason", "conditionSensor", "logicConnector", "logicHazardMode", "systemChoice", "systemChoiceB", "parameterDrafts", "parameterStep", "stateDrafts", "savedCountRule", "currentFingerprint", "contentRevision"]) merged[field] = local[field];
+          merged.assisted = local.assisted || Boolean(merged.semanticExposures?.[local.currentFingerprint]?.assisted);
+          if (merged.assisted && earlyRun) earlyRun.assisted = true;
+          if (structuredPlayback) { structuredPlayback.p = merged; structuredPlayback.assisted ||= merged.assisted; }
         }
         earlyProfiles.set(id, merged);
         saveEarlyProfile(id, { sync: false, touch: false });
@@ -1266,6 +1356,8 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function resetSimulation(keepLog = false) {
+    structuredEpoch += 1;
+    structuredPlayback = null;
     earlyRun = null;
     stopAutoRun();
     if (animationFrame) {
@@ -1290,6 +1382,8 @@ window.addEventListener("unhandledrejection", (event) => {
       activeStepNumber: null,
       failed: false,
       completed: false,
+      uploaded: false,
+      gates: Object.fromEntries((activeMission.terrain?.gates || []).map(g => [g.id, false])),
       message: "准备编程",
       logs: keepLog && sim ? sim.logs.slice(0, 4) : ["系统上线：等待运行程序。"],
       path: [{ x: grid.start.x, y: grid.start.y }],
@@ -1651,10 +1745,8 @@ window.addEventListener("unhandledrejection", (event) => {
       } else if (sim.collected.size < mission().required) {
         fail(`上传失败：还需要 ${mission().required - sim.collected.size} 座宝石。`);
       } else if (early.isEarly(mission())) {
-        sim.completed = true;
-        sim.message = "任务完成";
-        log("上传成功，等待学习证据检查。", "success");
-        stopAutoRun();
+        sim.uploaded = true;
+        log("上传成功，继续执行剩余指令。", "success");
       } else {
         complete("上传成功：本关过关。");
       }
@@ -1759,7 +1851,76 @@ window.addEventListener("unhandledrejection", (event) => {
     }
   }
 
+  async function runStructuredProgram(automatic) {
+    if (structuredPlayback?.busy) return;
+    if (automatic && runTimer) { stopAutoRun(); render(); return; }
+    if (!structuredPlayback || structuredPlayback.finished) {
+      resetSimulation();
+      const token = structuredEpoch, m = mission(), p = earlyProfile(m.id);
+      const adapter = window.CodeQuestStructuredLessons.get(m);
+      const d = window.CodeQuestEvidence.clone(adapter.draft(p));
+      try { adapter.source(m, d); }
+      catch (error) { earlyNotice = error.message; render(); showRunBlocker(error.message); return; }
+      structuredPlayback = { busy: true, finished: false, playing: false, adapter, m, p, d, assisted: p.assisted, index: 0, event: null };
+      earlyNotice = "正在准备执行。";
+      render();
+      let execution;
+      try { execution = await adapter.compile(m, d); }
+      catch (error) {
+        if (token !== structuredEpoch) return;
+        structuredPlayback = null; earlyNotice = `暂时无法运行：${error.message}`; render(); return;
+      }
+      if (token !== structuredEpoch) return;
+      structuredPlayback.execution = execution;
+      structuredPlayback.busy = false;
+      sim.expanded = true;
+      earlyNotice = "";
+    }
+    if (automatic) {
+      structuredPlayback.playing = true;
+      runTimer = window.setInterval(advanceStructuredPlayback, 420);
+    }
+    advanceStructuredPlayback();
+  }
+
+  function advanceStructuredPlayback() {
+    const playback = structuredPlayback;
+    if (!playback || playback.busy || playback.finished) return;
+    const event = playback.execution.events[playback.index++];
+    if (event) {
+      const previous = { x: sim.x, y: sim.y, dir: sim.dir };
+      playback.event = event;
+      sim.x = event.state.x; sim.y = event.state.y;
+      sim.dir = event.state.directionName || directions[event.state.direction];
+      sim.energy = event.state.energy;
+      sim.collected = new Set(event.state.collectedKeys);
+      sim.uploaded = Boolean(event.state.uploaded);
+      sim.gates = { ...event.state.gates };
+      sim.queueIndex = playback.index;
+      if (["move", "teleport"].includes(event.type)) sim.path.push({ x: sim.x, y: sim.y });
+      if (["move", "turn", "collision-fail"].includes(event.type)) startMotion({
+        type: event.type, fromX: previous.x, fromY: previous.y, toX: sim.x, toY: sim.y,
+        fromDir: previous.dir, toDir: sim.dir, duration: 300
+      });
+      sim.message = event.message;
+      log(event.message, event.type.includes("fail") ? "error" : "normal");
+    }
+    if (playback.index >= playback.execution.events.length) {
+      playback.finished = true;
+      stopAutoRun();
+      const attempt = playback.adapter.assess(playback.m, playback.d, playback.execution, playback.assisted);
+      playback.adapter.record(playback.p, attempt);
+      saveEarlyProfile(playback.m.id);
+      if (attempt.worldSuccess && attempt.practiceOnly) { sim.completed = true; sim.message = "小实验完成"; }
+      else if (attempt.worldSuccess) complete(attempt.success ? "程序执行完成。" : "世界完成，核心能力还需要验证。");
+      else { sim.failed = true; sim.failureMessage = attempt.failure; sim.message = "检查调用记录"; }
+      earlyNotice = playback.adapter.feedback(playback.m, playback.p, attempt);
+    }
+    render();
+  }
+
   function stepProgram() {
+    if (mission().early?.v18) { runStructuredProgram(false); return; }
     if (!program.length) {
       sim.message = "程序为空";
       log("主程序还没有指令。", "error");
@@ -1811,6 +1972,7 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function runProgram() {
+    if (mission().early?.v18) { runStructuredProgram(true); return; }
     if (runTimer) {
       stopAutoRun();
       render();
@@ -1838,6 +2000,7 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function stopAutoRun() {
+    if (structuredPlayback) structuredPlayback.playing = false;
     if (runTimer) {
       window.clearInterval(runTimer);
       runTimer = null;
@@ -1977,6 +2140,11 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function loadReferenceProgram() {
+    if (mission().early?.v18) {
+      const m = mission(), p = earlyProfile(m.id);
+      window.CodeQuestStructuredLessons.get(m).reference(m, p);
+      p.assisted = true; saveEarlyProfile(m.id); resetSimulation(); render(); return;
+    }
     if (early.isEarly(mission())) {
       const p = earlyProfile(mission().id);
       p.assisted = true;
@@ -2387,6 +2555,7 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function renderPalette() {
+    if (mission().early?.v18 && window.CodeQuestStructuredLessons.get(mission())?.builder) return;
     const m = mission();
     const target = currentTargetProgram();
     const limit = activeBoard === "route" ? (m.functionLimit || 6) : m.limit;
@@ -2418,6 +2587,7 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function renderProgramTabs() {
+    if (mission().early?.v18 && window.CodeQuestStructuredLessons.get(mission())?.builder) return;
     const functionTab = dom.programTabs.querySelector('[data-board="route"]');
     if (functionTab) functionTab.textContent = early.isEarly(mission()) && [11, 12].includes(mission().lessonNo) ? "循环体" : `${activeFunctionName()}()`;
     [...dom.programTabs.querySelectorAll(".tab-button")].forEach((button) => {
@@ -2444,6 +2614,7 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function renderProgramList() {
+    if (mission().early?.v18 && window.CodeQuestStructuredLessons.get(mission())?.builder) return;
     const target = currentTargetProgram();
     if (!hasSelectedProgramStep()) selectedProgramIndex = null;
     dom.programTitle.textContent = activeBoard === "route"
@@ -4406,7 +4577,7 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function tileCenter(layout, x, y, z = 0) {
-    const p = isoPoint(layout, x, y, z);
+    const p = isoPoint(layout, x, y, z + terrainLevel(x, y) * layout.tileW * 0.3);
     return { x: p.x, y: p.y + layout.tileH / 2 };
   }
 
@@ -4486,7 +4657,7 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   function drawIsoTile(layout, grid, x, y) {
-    const top = isoPoint(layout, x, y);
+    const top = isoPoint(layout, x, y, terrainLevel(x, y) * layout.tileW * 0.3);
     const right = { x: top.x + layout.tileW / 2, y: top.y + layout.tileH / 2 };
     const bottom = { x: top.x, y: top.y + layout.tileH };
     const left = { x: top.x - layout.tileW / 2, y: top.y + layout.tileH / 2 };
@@ -4494,11 +4665,11 @@ window.addEventListener("unhandledrejection", (event) => {
     const downBottom = { x: bottom.x, y: bottom.y + layout.blockH };
     const downLeft = { x: left.x, y: left.y + layout.blockH };
 
-    if (!hasTile(grid, x, y + 1)) {
+    if (!hasTile(grid, x, y + 1) || terrainLevel(x, y) > terrainLevel(x, y + 1)) {
       drawPolygon([left, bottom, downBottom, downLeft], "#936034", "rgba(94, 61, 36, 0.24)");
       drawFaceDetails(left, bottom, downBottom, downLeft, layout, x, y);
     }
-    if (!hasTile(grid, x + 1, y)) {
+    if (!hasTile(grid, x + 1, y) || terrainLevel(x, y) > terrainLevel(x + 1, y)) {
       drawPolygon([right, bottom, downBottom, downRight], "#74482b", "rgba(72, 45, 28, 0.28)");
       drawFaceDetails(right, bottom, downBottom, downRight, layout, x + 3, y + 1);
     }
@@ -5048,6 +5219,14 @@ window.addEventListener("unhandledrejection", (event) => {
     return geometry;
   }
 
+  function terrainLevel(x, y) {
+    const heights = mission().terrain?.heights || {};
+    const x0 = Math.floor(x), y0 = Math.floor(y), dx = x - x0, dy = y - y0;
+    const at = (a, b) => Number(heights[`${a},${b}`] || 0);
+    return at(x0, y0) * (1 - dx) * (1 - dy) + at(x0 + 1, y0) * dx * (1 - dy)
+      + at(x0, y0 + 1) * (1 - dx) * dy + at(x0 + 1, y0 + 1) * dx * dy;
+  }
+
   function createThreeScene(targetCanvas) {
     if (!THREE.WebGLRenderer) return { ok: false, render() {} };
 
@@ -5195,6 +5374,7 @@ window.addEventListener("unhandledrejection", (event) => {
       compassArrow: makeNorthTriangleGeometry()
     };
     const waterBaseGeometries = new Map();
+    const worldLabelMaterials = new Map();
     const surfaceY = 0.087;
     const cliffBottomY = -0.62;
 
@@ -5224,9 +5404,11 @@ window.addEventListener("unhandledrejection", (event) => {
       addIslandShadow(root, tiles, worldX, worldZ, spacing);
       addWater(root, grid, worldX, worldZ, spacing);
       addContinuousIsland(root, grid, tiles, worldX, worldZ, spacing);
+      addTerrainDevices(root, activeMission.terrain, simState, worldX, worldZ);
       addWorldCompass(root, bounds, worldX, worldZ);
 
       tiles.forEach(({ x, y }) => {
+        const first = root.children.length;
         const material = materialFor(grid, x, y);
         addTileDressing(root, grid, x, y, worldX, worldZ, material);
         addCliffDressing(root, grid, x, y, worldX, worldZ);
@@ -5238,30 +5420,61 @@ window.addEventListener("unhandledrejection", (event) => {
           vine.castShadow = true;
           root.add(vine);
         }
+        root.children.slice(first).forEach(child => { child.position.y += terrainLevel(x, y) * 0.3; });
       });
 
       grid.walls.forEach((key) => {
         const [x, y] = key.split(",").map(Number);
+        const first = root.children.length;
         addRockCluster(root, worldX(x), worldZ(y));
+        root.children.slice(first).forEach(child => { child.position.y += terrainLevel(x, y) * 0.3; });
       });
 
       grid.hazards.forEach((key) => {
         const [x, y] = key.split(",").map(Number);
+        const first = root.children.length;
         addHazard(root, worldX(x), worldZ(y));
+        root.children.slice(first).forEach(child => { child.position.y += terrainLevel(x, y) * 0.3; });
       });
 
       grid.beacons.forEach((beacon, key) => {
+        const first = root.children.length;
         addGem(root, worldX(beacon.x), worldZ(beacon.y), simState.collected.has(key));
+        root.children.slice(first).forEach(child => { child.position.y += terrainLevel(beacon.x, beacon.y) * 0.3; });
       });
+      for (const label of activeMission.worldLabels || []) {
+        if (label.waypoint && (label.at.x !== grid.start.x || label.at.y !== grid.start.y)) {
+          const first = root.children.length;
+          addPad(root, worldX(label.at.x), worldZ(label.at.y), "blue");
+          root.children.slice(first).forEach(child => { child.position.y += terrainLevel(label.at.x, label.at.y) * 0.3; });
+        }
+        if (!worldLabelMaterials.has(label.text)) {
+          const surface = document.createElement("canvas"); surface.width = 256; surface.height = 72;
+          const paint = surface.getContext("2d");
+          paint.fillStyle = "#152455"; paint.fillRect(0, 0, 256, 72);
+          paint.fillStyle = "#fff"; paint.font = '600 34px system-ui, sans-serif';
+          paint.textAlign = "center"; paint.textBaseline = "middle"; paint.fillText(label.text, 128, 36, 232);
+          const texture = new THREE.CanvasTexture(surface); texture.colorSpace = THREE.SRGBColorSpace;
+          worldLabelMaterials.set(label.text, new THREE.SpriteMaterial({ map: texture, depthTest: false, depthWrite: false }));
+        }
+        const labelSprite = new THREE.Sprite(worldLabelMaterials.get(label.text));
+        labelSprite.scale.set(1.05, 0.3, 1);
+        labelSprite.position.set(worldX(label.at.x), surfaceY + 0.92 + terrainLevel(label.at.x, label.at.y) * 0.3, worldZ(label.at.y));
+        root.add(labelSprite);
+      }
 
+      const padStart = root.children.length;
       addPad(root, worldX(grid.start.x), worldZ(grid.start.y), "blue");
+      root.children.slice(padStart).forEach(child => { child.position.y += terrainLevel(grid.start.x, grid.start.y) * 0.3; });
       if (grid.relay) {
+        const first = root.children.length;
         addPad(root, worldX(grid.relay.x), worldZ(grid.relay.y), "violet");
+        root.children.slice(first).forEach(child => { child.position.y += terrainLevel(grid.relay.x, grid.relay.y) * 0.3; });
       }
 
       simState.path.forEach((point) => {
         const dot = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 0.014, 24), materials.padBlue);
-        dot.position.set(worldX(point.x), surfaceY + 0.012, worldZ(point.y));
+        dot.position.set(worldX(point.x), surfaceY + 0.012 + terrainLevel(point.x, point.y) * 0.3, worldZ(point.y));
         dot.material = dot.material.clone();
         dot.material.transparent = true;
         dot.material.opacity = 0.34;
@@ -5269,6 +5482,7 @@ window.addEventListener("unhandledrejection", (event) => {
       });
 
       const actor = actorPose(simState, worldX, worldZ, helpers.directionIndex);
+      actor.lift += terrainLevel(actor.x / spacing + centerX, actor.z / spacing + centerZ) * 0.3;
       addRobot(root, actor.x, actor.z, actor.rotation, simState.shield > 0, actor.lift);
 
       lastViewFrame = { bounds, spacing };
@@ -5610,16 +5824,49 @@ window.addEventListener("unhandledrejection", (event) => {
       tiles.forEach(({ x, y }) => {
         const seed = hash2(x, y);
         const base = new THREE.Mesh(geometry.tileBase, seed % 2 === 0 ? materials.dirtA : materials.dirtB);
-        base.position.set(worldX(x), -0.28, worldZ(y));
+        base.position.set(worldX(x), -0.28 + terrainLevel(x, y) * 0.3, worldZ(y));
         base.castShadow = true;
         base.receiveShadow = true;
         parent.add(base);
 
         const cap = new THREE.Mesh(geometry.tileCap, terrainCapMaterial(grid, x, y, seed));
-        cap.position.set(worldX(x), 0.045, worldZ(y));
+        cap.position.set(worldX(x), 0.045 + terrainLevel(x, y) * 0.3, worldZ(y));
         cap.receiveShadow = true;
         parent.add(cap);
       });
+    }
+
+    function addTerrainDevices(parent, terrain, state, worldX, worldZ) {
+      if (!terrain) return;
+      for (const stair of terrain.stairs || []) {
+        const low = terrainLevel(stair.from.x, stair.from.y) < terrainLevel(stair.to.x, stair.to.y) ? stair.from : stair.to;
+        const high = low === stair.from ? stair.to : stair.from;
+        for (let i = 1; i <= 3; i++) {
+          const tread = new THREE.Mesh(geometry.tileCap, materials.sandTop);
+          const t = 0.45 + i * 0.12;
+          tread.scale.set(high.x === low.x ? 0.72 : 0.17, 1, high.y === low.y ? 0.72 : 0.17);
+          tread.position.set(worldX(low.x + (high.x - low.x) * t), surfaceY + terrainLevel(low.x, low.y) * 0.3 + i * 0.075,
+            worldZ(low.y + (high.y - low.y) * t));
+          parent.add(tread);
+        }
+      }
+      for (const portal of terrain.portals || []) for (const point of [portal.from, portal.to]) {
+        const first = parent.children.length;
+        addPad(parent, worldX(point.x), worldZ(point.y), "violet");
+        parent.children.slice(first).forEach(child => { child.position.y += terrainLevel(point.x, point.y) * 0.3; });
+      }
+      for (const control of terrain.switches || []) {
+        const plate = new THREE.Mesh(geometry.tileCap, materials.padBlue);
+        plate.scale.set(0.55, 1, 0.55);
+        plate.position.set(worldX(control.at.x), surfaceY + 0.03 + terrainLevel(control.at.x, control.at.y) * 0.3, worldZ(control.at.y));
+        parent.add(plate);
+      }
+      for (const gate of terrain.gates || []) {
+        const bar = new THREE.Mesh(geometry.tileBase, state.gates?.[gate.id] ? materials.padBlue : materials.sandTop);
+        bar.scale.set(0.8, state.gates?.[gate.id] ? 0.1 : 1.7, 0.12);
+        bar.position.set(worldX(gate.at.x), surfaceY + (state.gates?.[gate.id] ? 0.03 : 0.5) + terrainLevel(gate.at.x, gate.at.y) * 0.3, worldZ(gate.at.y));
+        parent.add(bar);
+      }
     }
 
     function terrainCapMaterial(grid, x, y, seed) {
@@ -6852,6 +7099,7 @@ window.addEventListener("unhandledrejection", (event) => {
     render();
   });
   dom.undoBtn.addEventListener("click", () => {
+    if (mission().early?.v18 && window.CodeQuestStructuredLessons.get(mission())?.builder) { editParameterProgram("undo"); return; }
     const target = currentTargetProgram();
     setCurrentTargetProgram(target.slice(0, -1));
     selectedProgramIndex = null;
@@ -6859,6 +7107,7 @@ window.addEventListener("unhandledrejection", (event) => {
     render();
   });
   dom.clearBtn.addEventListener("click", () => {
+    if (mission().early?.v18 && window.CodeQuestStructuredLessons.get(mission())?.builder) { editParameterProgram("clear"); return; }
     setCurrentTargetProgram([]);
     selectedProgramIndex = null;
     resetSimulation(true);
@@ -6976,12 +7225,32 @@ window.addEventListener("unhandledrejection", (event) => {
     } else {
       setProgressSyncState("本机进度");
     }
+    if ((authUser || isLocalPreview) && courseView !== "lesson") {
+      const requested = new URLSearchParams(window.location.search).get("lesson");
+      if (/^course-(?:0[1-9]|[12][0-9]|3[0-2])$/.test(requested || "")) selectMission(missionIndexById(requested));
+    }
   });
+
+  function editParameterProgram(action) {
+    const m = mission(), p = earlyProfile(m.id);
+    const result = window.CodeQuestStructuredLessons.get(m).edit(m, p, { action });
+    if (result.reset) resetSimulation();
+    earlyNotice = result.notice; saveEarlyProfile(m.id); render();
+  }
 
   function handleEarlyClick(event) {
     const button = event.target.closest("button");
     if (!button || button.disabled || !early.isEarly(mission())) return;
     const m = mission(), p = earlyProfile(m.id);
+    if (button.dataset.lessonAction) {
+      const action = button.dataset.lessonAction;
+      if (action === "run" || action === "step") { runStructuredProgram(action === "run"); return; }
+      if (action === "reset") { resetSimulation(); earlyNotice = "世界已复位，程序和学习记录保留。"; render(); return; }
+      const result = window.CodeQuestStructuredLessons.get(m).edit(m, p, { action, value: button.dataset.value });
+      if (result.reset) resetSimulation();
+      earlyNotice = result.notice;
+      saveEarlyProfile(m.id); render(); return;
+    }
     const field = button.dataset.earlyField, action = button.dataset.earlyAction;
     hideRunBlocker();
     if (action === "build" || action === "show-review") {
@@ -7008,6 +7277,7 @@ window.addEventListener("unhandledrejection", (event) => {
       if (action === p.phase) return;
       stopAutoRun();
       early.switchChallenge(p, action === "next" ? p.phase : action, action === "next");
+      if (m.early.v18) activeBoard = "main";
       const updated = mission();
       program = (updated.early.mainStarter || (updated.early.repairing ? updated.early.faulty : [])).slice();
       routeProgram = (updated.early.functionStarter || []).slice();
@@ -7050,7 +7320,7 @@ window.addEventListener("unhandledrejection", (event) => {
         : last.assisted ? "已保存。换张图，自己再试一次。"
         : !last.predictionCorrect ? "已保存。重新预测，再试一次。"
         : !last.targetOrderCorrect ? "已保存。请按 A → B 采集。"
-        : "已保存。请选择改用这条路线的理由。";
+        : "说明已保存，等待教师核对；文字提交不代表已掌握。";
     }
     saveEarlyProfile(m.id);
     render();
@@ -7072,8 +7342,25 @@ window.addEventListener("unhandledrejection", (event) => {
     saveEarlyProfile(mission().id);
     renderProgramTabs(); renderProgramList(); renderPalette(); renderCodeView();
   });
+  dom.operationPanel.addEventListener("click", event => {
+    if (event.target.closest("[data-lesson-action]")) handleEarlyClick(event);
+  });
+  document.getElementById("structuredLessonSupport").addEventListener("click", handleEarlyClick);
   earlyPanel.addEventListener("click", handleEarlyClick);
   earlyEvidencePanel.addEventListener("click", handleEarlyClick);
+  structuredProgramPanel.addEventListener("click", handleEarlyClick);
+  function handleStructuredChange(event) {
+    const field = event.target.dataset.lessonField;
+    if (!field || !mission().early?.v18) return;
+    const m = mission(), p = earlyProfile(m.id);
+    const result = window.CodeQuestStructuredLessons.get(m).edit(m, p, { field, value: event.target.value });
+    if (result.reset) resetSimulation();
+    earlyNotice = result.notice; saveEarlyProfile(m.id); render();
+  }
+  dom.operationPanel.addEventListener("change", handleStructuredChange);
+  earlyPanel.addEventListener("change", handleStructuredChange);
+  earlyEvidencePanel.addEventListener("change", handleStructuredChange);
+  structuredProgramPanel.addEventListener("change", handleStructuredChange);
 
   window.addEventListener("online", () => {
     if (authUser) syncProgressFromCloud();

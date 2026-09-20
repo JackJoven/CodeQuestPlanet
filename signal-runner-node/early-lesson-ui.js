@@ -112,15 +112,15 @@
       <div class="early-system-layout"><div class="early-system-decisions">
         ${choiceGroup("systemChoice", lab.prompt, choices, selected, running)}${secondary}
         ${observed ? question("diagnosis", { prompt: "原始失败来自哪条规则？", options: unit.diagnosisOptions }, p.diagnosis, running) : ""}
-      </div><aside class="early-state-console" aria-label="本课状态台"><div><span>状态台</span><strong>${e(lab.flow.at(-1))}</strong></div><div class="early-state-grid">${lab.states.map(([label, value]) => `<div><small>${e(label)}</small><b>${e(value)}</b></div>`).join("")}</div></aside></div>
-      <ol class="early-data-flow" aria-label="规则执行顺序">${lab.flow.map((item, index) => `<li><span>${index + 1}</span><b>${e(item)}</b></li>`).join("")}</ol>
+      </div><aside class="early-state-console" aria-label="任务给定信息"><div><span>任务给定信息</span><strong>尚非运行状态</strong></div><div class="early-state-grid">${lab.states.map(([label, value]) => `<div><small>${e(label)}</small><b>${e(value)}</b></div>`).join("")}</div></aside></div>
+      <p class="early-note">当前可练习路线；本课核心操作正在升级，暂不认定已掌握。</p>
     </section>`;
   }
   function systemEvidence(m, attempt) {
     const lab = m.early.dataLab;
     const selected = lab.options.find((item) => item[0] === (attempt.systemChoice || lab.selectedChoice));
     const selectedB = lab.secondary?.options.find((item) => item[0] === (attempt.systemChoiceB || lab.selectedChoiceB));
-    return `<section class="early-system-evidence"><div><span>运行采用的规则</span><strong>${e(selected?.[1] || "未选择")}${selectedB ? ` · ${e(selectedB[1])}` : ""}</strong></div><ol>${lab.flow.map((item) => `<li>${e(item)}</li>`).join("")}</ol></section>${decisionEvidence(attempt)}${attempt.callSnapshots?.length ? callTable(attempt) : ""}`;
+    return `<section class="early-system-evidence"><p>以下仅为实际路线与条件记录，不能证明数据或对象知识已掌握。</p></section>${decisionEvidence(attempt)}${attempt.callSnapshots?.length ? callTable(attempt) : ""}`;
   }
   function renderV16(m, p, { notice = "", storage = "", running = false } = {}) {
     const unit = m.early;
@@ -174,7 +174,7 @@
       <p class="early-task">${e(taskHint)}</p>
       ${notice ? `<p class="early-feedback" role="status">${e(notice)}</p>` : ""}
       <div class="early-options"><button class="early-primary" type="button" data-early-action="build">${unit.repairing ? "检查程序" : "开始编程"}</button>${attempt ? '<button type="button" data-early-action="show-review">看运行结果</button>' : ""}</div>
-      <details class="early-help-details"><summary>需要帮助？</summary><p>${e(unit.intro)}</p><div class="early-help"><button type="button" data-early-action="hint" ${running || p.hintLevel >= 3 ? "disabled" : ""}>${p.hintLevel === 2 ? "看局部示例" : p.hintLevel >= 3 ? "已看完提示" : `提示 ${p.hintLevel + 1}`}</button><span>${p.assisted ? "请换一张图独立挑战。" : "需要时再打开。"}</span></div>${p.hintLevel ? `<p class="early-hint">${e(unit.hints[p.hintLevel - 1])}</p>` : ""}${p.legacyEvidence ? '<p class="early-note">旧版记录已保留。</p>' : ""}</details>
+      <details class="early-help-details"><summary>需要帮助？</summary><p>${e(unit.intro)}</p><div class="early-help"><button type="button" data-early-action="hint" ${running || p.hintLevel >= 3 ? "disabled" : ""}>${p.hintLevel === 2 ? "看局部示例" : p.hintLevel >= 3 ? "已看完提示" : `提示 ${p.hintLevel + 1}`}</button><span>${p.assisted ? "请换一张图独立挑战。" : "需要时再打开。"}</span></div>${p.hintLevel ? `<p class="early-hint">${e(unit.hints[p.hintLevel - 1])}</p>` : ""}</details>
       <p class="early-storage" role="status">${e(storage || "已自动保存")}</p>
       ${attempt ? `<details class="early-result early-evidence-disclosure" aria-label="运行结果"><summary><span>运行证据</span><strong>${attempt.success ? "运行成功" : "运行停止"}</strong></summary><div class="early-evidence-body"><h3>${attempt.success ? "运行成功" : "运行停止"}</h3><p>${attempt.trace.length} 步 · ${attempt.trace.filter((step) => step.command === "left" || step.command === "right").length} 次转向${attempt.tailCount ? ` · 采集后还有 ${attempt.tailCount} 步` : ""}</p>
         ${!unit.repairing ? `<p>预测：${e(attempt.prediction)} · ${attempt.predictionCorrect ? "正确" : "需要重试"}</p>` : ""}

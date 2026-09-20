@@ -5090,6 +5090,103 @@ body.student-page {
   margin-top: 12px;
 }
 
+.student-page.is-foundation-lesson .foundation-rule,
+.student-page.is-navigation-lesson .foundation-rule {
+  margin: 8px 0 0;
+  padding: 9px 11px;
+  border-left: 3px solid #62ceff;
+  background: rgba(20, 63, 131, 0.55);
+  color: #dce9ff;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.student-page.is-foundation-lesson .foundation-map {
+  max-height: 238px;
+}
+
+.student-page .navigation-choice {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid rgba(98, 206, 255, 0.34);
+  border-radius: 9px;
+  background: #123274;
+  color: #eef6ff;
+}
+
+.student-page .navigation-choice > strong,
+.student-page .navigation-choice > p {
+  display: block;
+  margin: 0;
+}
+
+.student-page .navigation-choice > p {
+  margin-top: 7px;
+  color: #c0d2f4;
+  font-size: 0.75rem;
+}
+
+.student-page .navigation-route-grid,
+.student-page .coordinate-choice,
+.student-page .debug-step-grid {
+  display: grid;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.student-page .navigation-route-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.student-page .coordinate-choice {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.student-page .debug-step-grid {
+  grid-template-columns: repeat(8, minmax(34px, 1fr));
+}
+
+.student-page .navigation-route-grid button,
+.student-page .coordinate-choice button,
+.student-page .debug-step-grid button {
+  min-height: 40px;
+  border: 1px solid rgba(118, 190, 255, 0.42);
+  border-radius: 7px;
+  background: #173b88;
+  color: #fff;
+}
+
+.student-page .navigation-route-grid button[aria-pressed="true"],
+.student-page .coordinate-choice button[aria-pressed="true"],
+.student-page .debug-step-grid button[aria-pressed="true"] {
+  border-color: #ffd267;
+  background: #2356ad;
+  color: #fff3c2;
+}
+
+.student-page .navigation-route-grid button {
+  display: grid;
+  gap: 2px;
+  padding: 8px;
+  text-align: left;
+}
+
+.student-page .navigation-route-grid span {
+  color: #c0d2f4;
+  font-size: 0.7rem;
+}
+
+@media (max-width: 720px) {
+  .student-page .navigation-route-grid,
+  .student-page .coordinate-choice {
+    grid-template-columns: 1fr;
+  }
+
+  .student-page .debug-step-grid {
+    grid-template-columns: repeat(4, minmax(34px, 1fr));
+  }
+}
+
 .student-page .palette-panel,
 .student-page .program-panel,
 .student-page .code-panel,

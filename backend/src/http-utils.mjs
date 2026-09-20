@@ -1,10 +1,10 @@
-export async function readJson(req) {
+export async function readJson(req, { maxBytes = 64 * 1024 } = {}) {
   const chunks = [];
   let size = 0;
 
   for await (const chunk of req) {
     size += chunk.length;
-    if (size > 64 * 1024) {
+    if (size > maxBytes) {
       const error = new Error("Request body is too large");
       error.statusCode = 413;
       throw error;
