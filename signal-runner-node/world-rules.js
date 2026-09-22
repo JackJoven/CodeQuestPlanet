@@ -16,6 +16,8 @@
   function movement(world, terrain, state, next) {
     const blocked = landing(world, terrain, state, next);
     if (blocked) return blocked;
+    const reverseOnly = terrain?.oneWays?.find(edge => same(edge.to, state) && same(edge.from, next));
+    if (reverseOnly) return "这是单向通道，只能沿箭头通过。";
     const delta = height(terrain, next) - height(terrain, state);
     if (!delta) return "";
     const stair = terrain?.stairs?.some(s => same(s.from, state) && same(s.to, next) || same(s.to, state) && same(s.from, next));
@@ -54,6 +56,23 @@
       const validControl = g.kind === "count" ? !g.switchId : switches.has(g.switchId);
       if (!floor(g.at) || !validControl || !g.id || gates.has(g.id)) throw new Error("门必须在地面上，并绑定有效控制规则。");
       gates.add(g.id);
+    }
+    for (const edge of terrain.oneWays || []) {
+      if (!floor(edge.from) || !floor(edge.to)
+        || Math.abs(edge.from.x - edge.to.x) + Math.abs(edge.from.y - edge.to.y) !== 1) {
+        throw new Error("单向通道必须连接相邻地面格。");
+      }
+    }
+    for (const device of [...(terrain.rotators || []), ...(terrain.conveyors || [])]) {
+      if (!floor(device.at)) throw new Error("转向盘和输送格必须放在地面上。");
+      if (device.direction && !["N", "E", "S", "W"].includes(device.direction)) throw new Error("输送方向无效。");
+    }
+    const supplies = new Set();
+    for (const supply of terrain.supplies || []) {
+      if (!floor(supply.at) || !supply.id || supplies.has(supply.id) || !Number.isFinite(Number(supply.amount)) || Number(supply.amount) < 0) {
+        throw new Error("补给站必须在地面上，且编号和补给量有效。");
+      }
+      supplies.add(supply.id);
     }
   }
   root.CodeQuestWorldRules = { key, height, same, tile, landing, movement, destination, validate };

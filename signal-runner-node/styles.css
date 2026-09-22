@@ -169,6 +169,30 @@ button {
   box-shadow: 0 8px 18px rgba(36, 49, 61, 0.18);
 }
 
+.test-pack-strip,
+.module-gate-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 10px 0;
+}
+
+.test-pack-strip span,
+.module-gate-strip span {
+  min-height: 32px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: #e8f2ef;
+  color: #244b43;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.module-gate-strip span {
+  background: #e9edf8;
+  color: #29385f;
+}
+
 .auth-modal {
   position: fixed;
   inset: 0;
@@ -1311,6 +1335,26 @@ canvas.is-dragging {
   cursor: grabbing;
 }
 
+canvas.is-rotating {
+  cursor: ew-resize;
+}
+
+.world-view-help {
+  display: inline;
+  margin-left: 8px;
+  color: #a9e8ff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.student-page .world-heading div span .world-view-help {
+  display: inline;
+  margin-top: 0;
+  color: #a9e8ff;
+  font-size: 0.7rem;
+}
+
 .run-banner {
   position: absolute;
   left: 50%;
@@ -1672,6 +1716,65 @@ canvas.is-dragging {
   font-weight: 800;
 }
 
+.program-panel .panel-title {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.program-panel #activeBoardHint {
+  margin-left: auto;
+}
+
+.program-edit-actions {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.program-edit-actions[hidden] {
+  display: none !important;
+}
+
+.program-edit-button {
+  min-height: 32px;
+  padding: 5px 11px;
+  border: 1px solid #aac0ca;
+  border-radius: 7px;
+  background: #f7fbfa;
+  color: var(--teal-dark);
+  font-size: 0.75rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.program-edit-button:hover:not(:disabled),
+.program-edit-button.is-active {
+  border-color: var(--teal);
+  background: #dff5ef;
+}
+
+.program-edit-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+#programReplaceBtn:not(:disabled) {
+  border-color: #138ba9;
+  background: #d9f4fa;
+  color: #07556a;
+}
+
+#programInsertBtn:not(:disabled) {
+  border-color: #b17900;
+  background: #fff0bd;
+  color: #6b4700;
+}
+
+#programCancelBtn:not(:disabled) {
+  border-color: #a4546a;
+  background: #fae5eb;
+  color: #7b3047;
+}
+
 .command-palette {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1824,6 +1927,12 @@ canvas.is-dragging {
   border-radius: 8px;
   background: #f7fbfa;
   cursor: pointer;
+}
+
+.program-chip.is-selected {
+  outline: 2px solid var(--teal);
+  outline-offset: -2px;
+  background: #e9f7f3;
 }
 
 .program-command-summary {
@@ -5209,6 +5318,43 @@ body.student-page {
   font-size: 0.72rem;
 }
 
+.student-page .program-edit-button {
+  min-height: 32px;
+  border-color: rgba(126, 211, 255, 0.52);
+  background: #173b88;
+  color: #dff7ff;
+}
+
+.student-page .program-edit-button:hover:not(:disabled),
+.student-page .program-edit-button.is-active {
+  border-color: #ffd267;
+  background: #2b62bd;
+  color: #fff3c2;
+}
+
+.student-page #programReplaceBtn:not(:disabled) {
+  border-color: #86ecff;
+  background: #207da0;
+  color: #ffffff;
+}
+
+.student-page #programInsertBtn:not(:disabled) {
+  border-color: #ffd267;
+  background: #8b6411;
+  color: #fff8df;
+}
+
+.student-page #programCancelBtn:not(:disabled) {
+  border-color: #ff9fb2;
+  background: #713653;
+  color: #fff2f6;
+}
+
+.student-page #programReplaceBtn.is-active,
+.student-page #programInsertBtn.is-active {
+  box-shadow: inset 0 0 0 2px #ffffff;
+}
+
 .student-page .step-label {
   display: inline-flex;
   align-items: center;
@@ -5325,7 +5471,17 @@ body.student-page {
   outline: 2px solid #73e1ff;
   outline-offset: -2px;
   background: #2459bd;
-  animation: program-replace-flash 700ms cubic-bezier(0.22, 1, 0.36, 1) 3;
+  animation: none;
+}
+
+.student-page .program-chip.is-selected {
+  outline: 2px solid #73e1ff;
+  outline-offset: -2px;
+  background: #2459bd;
+}
+
+.student-page .program-chip.is-edit-confirmed {
+  animation: program-edit-confirm 620ms cubic-bezier(0.22, 1, 0.36, 1) 1;
 }
 
 .student-page .program-command-summary {
@@ -5411,8 +5567,14 @@ body.student-page {
   50% { background: #3271df; box-shadow: inset 0 0 0 2px #9cedff; }
 }
 
+@keyframes program-edit-confirm {
+  0%, 100% { background: #1a469b; box-shadow: inset 0 0 0 0 rgba(255, 210, 103, 0); }
+  45% { background: #3271df; box-shadow: inset 0 0 0 3px #ffd267; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .student-page .program-chip.is-replacing {
+  .student-page .program-chip.is-replacing,
+  .student-page .program-chip.is-edit-confirmed {
     animation: none;
   }
 }
@@ -7299,4 +7461,38 @@ body.student-page {
   border: 0;
   background: #ffbf2f;
   color: #211600;
+}
+.role-deck {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.role-deck article {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(121, 210, 255, 0.24);
+  border-radius: 8px;
+  background: rgba(9, 24, 67, 0.42);
+}
+
+.role-deck span,
+.role-deck strong {
+  display: block;
+}
+
+.role-deck span {
+  color: #9cb4da;
+  font-size: 0.72rem;
+}
+
+.role-deck strong {
+  margin-top: 4px;
+  color: #f4f8ff;
+  font-size: 0.84rem;
+}
+
+.systems-map-wrap .data-map {
+  min-height: 248px;
 }

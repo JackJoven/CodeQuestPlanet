@@ -6,6 +6,8 @@
     "turn_left",
     "turn_right",
     "shield",
+    "activate_supply",
+    "track_energy",
     "collect",
     "try_collect",
     "check_count",
@@ -16,7 +18,13 @@
     "shield_is_active",
     "at_gem",
     "at_relay",
-    "energy_remaining"
+    "energy_remaining",
+    "visit_station",
+    "return_hub",
+    "teleport_to",
+    "deliver_task",
+    "mark_unfilled",
+    "finish_mission"
   ]);
 
   function createStudentError(message, line, category) {
@@ -246,6 +254,9 @@
       "        __object_select__(self.name)",
       "        __object_action__(self.name, self.kind, 'scan')",
       "        return is_path_clear()",
+      "    def recharge(self, amount):",
+      "        self.energy = self.energy + amount",
+      "        __object_charge__(self.name, self.kind, amount)",
       "    def wait(self):",
       "        __object_select__(self.name)",
       "        wait()",
@@ -429,13 +440,20 @@
           collected: false,
           collectedKeys: [],
           uploaded: false,
+          suppliesUsed: [],
           gates: Object.fromEntries((terrain?.gates || []).map(g => [g.id, false])),
+          triggeredDevices: [],
           variables: {},
           objects: {},
           functions: {},
           reports: [],
           rescues: [],
           transfers: [],
+          stationVisits: [],
+          routeLookups: [],
+          deliveries: [],
+          unfilled: [],
+          dataComplete: false,
           ticks: 0,
           environmentObjects: (courseRules.movingObjects || []).map((item) => ({ ...item, cleared: item.clearAt !== null && item.clearAt !== undefined && Number(item.clearAt) <= 0 })),
           worldBuild: { active: false, grid: null, placements: [], portals: [], schema: null, schemaValidated: false }
@@ -453,6 +471,11 @@
         reports: [],
         rescues: [],
         transfers: [],
+        stationVisits: [],
+        routeLookups: [],
+        deliveries: [],
+        unfilled: [],
+        dataComplete: false,
         ticks: 0,
         environmentObjects: (courseRules.movingObjects || []).map((item) => ({ ...item, cleared: item.clearAt !== null && item.clearAt !== undefined && Number(item.clearAt) <= 0 })),
         worldBuild: { active: false, grid: null, placements: [], portals: [], schema: null, schemaValidated: false }
@@ -478,6 +501,30 @@
       return { x: plannedState.x + vector.x, y: plannedState.y + vector.y };
     }
 
+    function applyEntryDevice() {
+      const here = { x: plannedState.x, y: plannedState.y };
+      const rotator = terrain?.rotators?.find(item => terrainRules.same(item.at, here));
+      if (rotator) {
+        plannedState.direction = (plannedState.direction + 1) % 4;
+        plannedState.directionName = directionNames[plannedState.direction];
+        plannedState.triggeredDevices = [...plannedState.triggeredDevices, `rotator:${here.x},${here.y}`];
+        pushEvent("rotator", `转向盘触发：Nova 原地顺时针转向，当前位置仍是 (${here.x}, ${here.y})。`, { device: { kind: "rotator", at: here } });
+      }
+      const conveyor = terrain?.conveyors?.find(item => terrainRules.same(item.at, here));
+      if (!conveyor) return;
+      const index = directionNames.indexOf(conveyor.direction || "E");
+      const vector = directionVectors[Math.max(0, index)];
+      const next = { x: here.x + vector.x, y: here.y + vector.y };
+      const problem = terrainRules.movement(world, terrain, plannedState, next);
+      if (problem || isWorldBlocked(next.x, next.y)) {
+        animatedFailure("conveyor-fail", `输送格前方不可通行：${problem || "没有可站立地面。"}`, { failureKind: "conveyor-blocked", device: { kind: "conveyor", at: here, direction: conveyor.direction } });
+      }
+      plannedState.x = next.x;
+      plannedState.y = next.y;
+      plannedState.triggeredDevices = [...plannedState.triggeredDevices, `conveyor:${here.x},${here.y}`];
+      pushEvent("conveyor", `输送格触发：(${here.x}, ${here.y}) → (${next.x}, ${next.y})；Nova 朝向保持不变。`, { device: { kind: "conveyor", at: here, direction: conveyor.direction } });
+    }
+
     function collectedCount() {
       return Array.isArray(plannedState.collectedKeys) ? plannedState.collectedKeys.length : plannedState.collected ? 1 : 0;
     }
@@ -499,6 +546,27 @@
       });
     }
 
+    function platformDocked() {
+      const schedule = courseRules.platformSchedule || {};
+      if (schedule.neverDocks) return false;
+      return Number(plannedState.ticks || 0) >= Math.max(0, Number(schedule.dockedAt || 0));
+    }
+
+    function platformOccupied() {
+      const schedule = courseRules.platformSchedule || {};
+      if (schedule.alwaysOccupied) return true;
+      return Number(plannedState.ticks || 0) < Math.max(0, Number(schedule.occupiedUntil || 0));
+    }
+
+    function updatePressureGates() {
+      for (const plate of courseRules.pressurePlates || []) {
+        const [x, y] = Array.isArray(plate.cell) ? plate.cell.map(Number) : [NaN, NaN];
+        if (!plate.gateId || !Number.isFinite(x) || !Number.isFinite(y)) continue;
+        const held = Object.values(plannedState.objects || {}).some(object => Number(object.x) === x && Number(object.y) === y);
+        plannedState.gates = { ...plannedState.gates, [plate.gateId]: held };
+      }
+    }
+
     function passageIsClear() {
       const configured = Array.isArray(courseRules.passageCell)
         ? { x: Number(courseRules.passageCell[0]), y: Number(courseRules.passageCell[1]) }
@@ -517,9 +585,10 @@
 
     function pushEvent(type, message, details = {}) {
       guardApiCall();
-      if (terrain && ["move", "turn", "collect", "collect-attempt", "upload", "shield", "teleport", "switch"].includes(type)) advanceEnvironment();
+      if (terrain && ["move", "turn", "collect", "collect-attempt", "upload", "shield", "supply", "teleport", "switch", "station-visit", "hub-return", "lookup-teleport", "delivery"].includes(type)) advanceEnvironment();
+      updatePressureGates();
       const position = state => ({ x: state.x, y: state.y, height: terrainRules.height(terrain, state), direction: state.directionName });
-      const transition = terrain && ["move", "turn", "teleport", "collision-fail", "hazard-fail"].includes(type)
+      const transition = terrain && ["move", "turn", "teleport", "station-visit", "hub-return", "lookup-teleport", "delivery", "collision-fail", "hazard-fail", "rotator", "conveyor", "conveyor-fail"].includes(type)
         ? { actor: activeObjectName || "Nova", from: position(lastEventState), to: position(plannedState), tick: plannedState.ticks, trigger: type } : undefined;
       plannedEvents.push({ type, message, line: currentStudentLine, callId: callStack?.at(-1)?.id || null,
         state: JSON.parse(JSON.stringify(plannedState)), ...(transition ? { transition } : {}), ...details });
@@ -720,9 +789,90 @@
         return Sk.builtin.none.none$;
       });
 
+      const inputPoint = (value) => {
+        const point = serializePythonValue(value);
+        if (!Array.isArray(point) || point.length !== 2 || !point.every(Number.isFinite)) return null;
+        return { x: Number(point[0]), y: Number(point[1]) };
+      };
+      const moveToCoursePoint = (point, type, message, details = {}) => {
+        if (!world || !point || isWorldBlocked(point.x, point.y)) return false;
+        plannedState.x = point.x;
+        plannedState.y = point.y;
+        pushEvent(type, message, details);
+        return true;
+      };
+
+      Sk.builtins.visit_station = new Sk.builtin.func(function (nameValue) {
+        const name = String(Sk.ffi.remapToJs(nameValue));
+        const raw = courseInputs.stations?.[name];
+        const point = Array.isArray(raw) ? { x: Number(raw[0]), y: Number(raw[1]) } : null;
+        if (!point || !moveToCoursePoint(point, "station-visit", `第 ${currentStudentLine} 行 visit_station(${JSON.stringify(name)})：到达 ${name} 站。`, { stationVisit: { name, point } }))
+          runtimeFailure(`任务清单中的 ${name} 没有可用投递站。`);
+        plannedState.stationVisits = [...plannedState.stationVisits, name];
+        plannedEvents[plannedEvents.length - 1].state = JSON.parse(JSON.stringify(plannedState));
+        return Sk.builtin.none.none$;
+      });
+
+      Sk.builtins.return_hub = new Sk.builtin.func(function () {
+        const raw = courseInputs.hub;
+        const point = Array.isArray(raw) ? { x: Number(raw[0]), y: Number(raw[1]) } : null;
+        if (!point || !moveToCoursePoint(point, "hub-return", `第 ${currentStudentLine} 行 return_hub()：返回调度中心。`, { hubReturn: { point } }))
+          runtimeFailure("当前任务没有可返回的调度中心。");
+        return Sk.builtin.none.none$;
+      });
+
+      Sk.builtins.teleport_to = new Sk.builtin.func(function (destinationValue, keyValue) {
+        const key = keyValue === undefined ? "" : String(Sk.ffi.remapToJs(keyValue));
+        const point = inputPoint(destinationValue);
+        const valid = Boolean(point && world && !isWorldBlocked(point.x, point.y));
+        plannedState.routeLookups = [...plannedState.routeLookups, { key, destination: point ? [point.x, point.y] : null, valid }];
+        if (valid) moveToCoursePoint(point, "lookup-teleport", `第 ${currentStudentLine} 行：按键 ${key} 查到 (${point.x}, ${point.y})，传送完成。`, { routeLookup: { key, destination: [point.x, point.y], valid: true } });
+        else pushEvent("lookup-miss", `第 ${currentStudentLine} 行：按键 ${key || "（空）"} 没有得到可用出口，Nova 保持原位。`, { routeLookup: { key, destination: point ? [point.x, point.y] : null, valid: false } });
+        return new Sk.builtin.bool(valid);
+      });
+
+      Sk.builtins.deliver_task = new Sk.builtin.func(function (taskValue, destinationValue) {
+        const task = String(Sk.ffi.remapToJs(taskValue));
+        const point = inputPoint(destinationValue);
+        if (!point || !world || isWorldBlocked(point.x, point.y)) runtimeFailure(`任务 ${task} 的目的地不可用。`);
+        plannedState.deliveries = [...plannedState.deliveries, { task, destination: [point.x, point.y] }];
+        moveToCoursePoint(point, "delivery", `第 ${currentStudentLine} 行 deliver_task(${JSON.stringify(task)})：派发到 (${point.x}, ${point.y})。`, { delivery: { task, destination: [point.x, point.y] } });
+        plannedEvents[plannedEvents.length - 1].state = JSON.parse(JSON.stringify(plannedState));
+        return Sk.builtin.none.none$;
+      });
+
+      Sk.builtins.mark_unfilled = new Sk.builtin.func(function (taskValue) {
+        const task = String(Sk.ffi.remapToJs(taskValue));
+        plannedState.unfilled = [...plannedState.unfilled, task];
+        pushEvent("unfilled", `第 ${currentStudentLine} 行：任务 ${task} 标记为缺货待处理。`, { unfilled: { task } });
+        return Sk.builtin.none.none$;
+      });
+
+      Sk.builtins.finish_mission = new Sk.builtin.func(function () {
+        plannedState.dataComplete = true;
+        pushEvent("data-complete", `第 ${currentStudentLine} 行 finish_mission()：本次数据任务已提交。`);
+        return Sk.builtin.none.none$;
+      });
+
       Sk.builtins.is_passage_clear = new Sk.builtin.func(function () {
-        const result = passageIsClear();
+        const result = platformDocked() && !platformOccupied() && passageIsClear();
         pushEvent("condition", `第 ${currentStudentLine} 行 is_passage_clear() → ${result ? "True" : "False"}。`);
+        return new Sk.builtin.bool(result);
+      });
+
+      Sk.builtins.is_platform_docked = new Sk.builtin.func(function () {
+        const result = platformDocked();
+        pushEvent("condition", `第 ${currentStudentLine} 行 is_platform_docked() → ${result ? "True" : "False"}。`, {
+          platform: { docked: result, occupied: platformOccupied(), tick: Number(plannedState.ticks || 0) }
+        });
+        return new Sk.builtin.bool(result);
+      });
+
+      Sk.builtins.is_platform_occupied = new Sk.builtin.func(function () {
+        const result = platformOccupied();
+        pushEvent("condition", `第 ${currentStudentLine} 行 is_platform_occupied() → ${result ? "True" : "False"}。`, {
+          platform: { docked: platformDocked(), occupied: result, tick: Number(plannedState.ticks || 0) }
+        });
         return new Sk.builtin.bool(result);
       });
 
@@ -1003,6 +1153,29 @@
         return Sk.builtin.none.none$;
       });
 
+      Sk.builtins.__object_charge__ = new Sk.builtin.func(function (name, type, amountValue) {
+        const objectName = String(Sk.ffi.remapToJs(name));
+        const objectType = String(Sk.ffi.remapToJs(type));
+        const amount = Number(Sk.ffi.remapToJs(amountValue));
+        const currentObject = plannedState.objects[objectName];
+        if (!currentObject) runtimeFailure(`找不到对象 ${objectName} 的运行状态。`);
+        if (!Number.isFinite(amount) || amount <= 0) runtimeFailure("充能量必须是正数。");
+        plannedState.objects = {
+          ...plannedState.objects,
+          [objectName]: {
+            ...currentObject,
+            energy: Number(currentObject.energy || 0) + amount,
+            actions: [...(currentObject.actions || []), "recharge"]
+          }
+        };
+        pushEvent(
+          "object-action",
+          `第 ${currentStudentLine} 行：${objectName}（${objectType}）补充 ${amount} 点能量。`,
+          { object: { name: objectName, type: objectType, action: "recharge", amount } }
+        );
+        return Sk.builtin.none.none$;
+      });
+
       Sk.builtins.__object_transfer__ = new Sk.builtin.func(function (fromValue, toValue, amountValue) {
         const from = String(Sk.ffi.remapToJs(fromValue));
         const to = String(Sk.ffi.remapToJs(toValue));
@@ -1013,8 +1186,9 @@
         if (!Number.isInteger(amount) || amount <= 0) runtimeFailure("交接数量必须是正整数。");
         if (Number(sender.cargo || 0) < amount) runtimeFailure(`${from} 没有足够货物可以交接。`);
         if (Number(receiver.cargo || 0) + amount > Number(receiver.capacity || 0)) runtimeFailure(`${to} 的容量不足，交接没有发生。`);
-        const adjacent = Math.abs(Number(sender.x) - Number(receiver.x)) + Math.abs(Number(sender.y) - Number(receiver.y)) === 1;
-        if (!adjacent) runtimeFailure("交接双方必须位于相邻格。");
+        const distance = Math.abs(Number(sender.x) - Number(receiver.x)) + Math.abs(Number(sender.y) - Number(receiver.y));
+        const correctDistance = courseRules.handoffMode === "same-cell" ? distance === 0 : distance === 1;
+        if (!correctDistance) runtimeFailure(courseRules.handoffMode === "same-cell" ? "交接双方必须同在会合格。" : "交接双方必须位于相邻格。");
         const handoffCells = Array.isArray(courseRules.handoffCells) ? courseRules.handoffCells : [];
         const inHandoff = !handoffCells.length || [sender, receiver].every((objectState) => handoffCells.some((cell) => Number(cell[0]) === Number(objectState.x) && Number(cell[1]) === Number(objectState.y)));
         if (!inHandoff) runtimeFailure("交接双方必须同时位于交接区。");
@@ -1087,6 +1261,7 @@
             pushEvent("move", `第 ${currentStudentLine} 行 move()：前进到 (${plannedState.x}, ${plannedState.y})。`);
           }
           if (hazard) plannedState.shieldActive = false;
+          if (terrain) applyEntryDevice();
           return Sk.builtin.none.none$;
         }
         if (plannedState.direction !== 0) {
@@ -1168,6 +1343,34 @@
         plannedState.shieldActive = true;
         pushEvent("shield", `第 ${currentStudentLine} 行 shield()：护盾已经开启。`);
         return Sk.builtin.none.none$;
+      });
+
+      Sk.builtins.track_energy = new Sk.builtin.func(function (actionValue, ledgerValue) {
+        const action = String(Sk.ffi.remapToJs(actionValue));
+        const ledger = String(Sk.ffi.remapToJs(ledgerValue));
+        pushEvent("energy-ledger", `第 ${currentStudentLine} 行：${action} 连接到 ${ledger} 账本。`, {
+          energyLedger: { action, ledger, balance: plannedState.energy }
+        });
+        return Sk.builtin.none.none$;
+      });
+
+      Sk.builtins.activate_supply = new Sk.builtin.func(function () {
+        if (!world || !terrain) runtimeFailure("当前任务没有补给站。");
+        const supply = (terrain.supplies || []).find(item => terrainRules.same(item.at, plannedState));
+        if (!supply) animatedFailure("action-fail", "当前位置没有补给站。", { failureKind: "supply-away" });
+        const used = plannedState.suppliesUsed.includes(supply.id);
+        const before = plannedState.energy;
+        const amount = used ? 0 : Math.max(0, Number(supply.amount || 0));
+        if (!used) {
+          plannedState.energy += amount;
+          plannedState.suppliesUsed = [...plannedState.suppliesUsed, supply.id];
+        }
+        pushEvent("supply", used
+          ? `第 ${currentStudentLine} 行 activate_supply()：补给站 ${supply.id} 已使用，能量保持 ${plannedState.energy}。`
+          : `第 ${currentStudentLine} 行 activate_supply()：能量 ${before} → ${plannedState.energy}。`, {
+          supply: { id: supply.id, amount, before, after: plannedState.energy, repeated: used }
+        });
+        return new Sk.builtin.bool(!used);
       });
 
       Sk.builtins.collect = new Sk.builtin.func(function () {
@@ -1274,7 +1477,8 @@
         if (worldTile(plannedState.x, plannedState.y) !== "R") {
           animatedFailure("action-fail", "上传失败：Nova 还没有到达中继站。", { failureKind: "upload-away-from-relay" });
         }
-        if (collectedCount() < Number(world.required || 1)) {
+        const activeCargo = activeObjectName ? Number(plannedState.objects?.[activeObjectName]?.cargo || 0) : 0;
+        if (!(courseRules.uploadFromCargo && activeCargo > 0) && collectedCount() < Number(world.required || 1)) {
           animatedFailure("action-fail", `上传失败：还需要 ${Number(world.required || 1) - collectedCount()} 座宝石。`, { failureKind: "missing-beacons" });
         }
         plannedState.uploaded = true;

@@ -163,6 +163,10 @@ window.addEventListener("unhandledrejection", (event) => {
     programTabs: document.querySelector("#programTabs"),
     programList: document.querySelector("#programList"),
     programTitle: document.querySelector("#programTitle"),
+    programEditActions: document.querySelector("#programEditActions"),
+    programReplace: document.querySelector("#programReplaceBtn"),
+    programInsert: document.querySelector("#programInsertBtn"),
+    programCancel: document.querySelector("#programCancelBtn"),
     activeBoardHint: document.querySelector("#activeBoardHint"),
     codeView: document.querySelector("#codeView"),
     evidenceKicker: document.querySelector("#evidenceKicker"),
@@ -575,6 +579,8 @@ window.addEventListener("unhandledrejection", (event) => {
   let program = [];
   let routeProgram = [];
   let selectedProgramIndex = null;
+  let programEditMode = null;
+  let programScrollAnchor = null;
   let explainedCommandId = null;
   let selectedRouteChoiceId = null;
   let detectiveGuideOpen = false;
@@ -754,6 +760,9 @@ window.addEventListener("unhandledrejection", (event) => {
     document.body.classList.toggle("is-state-lesson", Boolean(structuredLesson && m.lessonNo === 17));
     document.body.classList.toggle("is-foundation-lesson", Boolean(structuredLesson && [1, 2].includes(m.lessonNo)));
     document.body.classList.toggle("is-navigation-lesson", Boolean(structuredLesson && [3, 4, 5].includes(m.lessonNo)));
+    document.body.classList.toggle("is-progressive-lesson", Boolean(structuredLesson && m.lessonNo >= 6 && m.lessonNo <= 16));
+    document.body.classList.toggle("is-advanced-lesson", Boolean(structuredLesson && [16, 18, 20].includes(m.lessonNo)));
+    document.body.classList.toggle("is-data-lesson", Boolean(structuredLesson && m.lessonNo >= 21 && m.lessonNo <= 32));
     structuredProgramPanel.hidden = true;
     for (const id of ["structuredFunctionPanel", "structuredLessonSupport", "structuredRunFeedback"])
       document.getElementById(id).hidden = !structuredLesson;
@@ -832,20 +841,50 @@ window.addEventListener("unhandledrejection", (event) => {
     definition.hidden = Boolean(view.hideFunctionTab || activeBoard !== "route");
     dom.operationPanel.querySelector(".builder-grid").hidden = activeBoard === "route";
     dom.commandExplanation.hidden = true;
-    dom.paletteInstruction.textContent = view.replacing ? "请选择新指令" : "点击加入";
-    dom.paletteInstruction.classList.toggle("is-replacing", view.replacing);
+    const adapter = window.CodeQuestStructuredLessons.get(m);
+    const draft = adapter.draft(p);
+    const hasSelection = draft.selected !== null && draft.selected !== undefined;
+    if (!hasSelection) programEditMode = null;
+    dom.paletteInstruction.textContent = hasSelection && !programEditMode
+      ? "请选择替换或添加"
+      : programEditMode === "replace"
+        ? "请选择替换指令"
+        : programEditMode === "insert"
+          ? "请选择要添加的指令"
+          : "点击加入";
+    dom.paletteInstruction.classList.toggle("is-replacing", hasSelection && Boolean(programEditMode));
     dom.commandPalette.innerHTML = view.palette;
+    if (hasSelection && !programEditMode) {
+      for (const button of dom.commandPalette.querySelectorAll("button")) button.disabled = true;
+    }
+    if (programEditMode === "insert" && view.count >= m.limit) {
+      for (const button of dom.commandPalette.querySelectorAll("button")) button.disabled = true;
+    }
     dom.programTitle.textContent = "我的程序";
     dom.activeBoardHint.hidden = true;
     dom.programList.className = `program-list${view.count ? "" : " is-empty"}`;
     dom.programList.innerHTML = view.list || "从左侧选择第一条指令";
-    dom.programList.scrollTop = scroll;
-    const current = dom.programList.querySelector(".is-current") || dom.programList.querySelector(".is-replacing") || dom.programList.lastElementChild;
-    if (current) {
-      const row = current.getBoundingClientRect(), list = dom.programList.getBoundingClientRect();
-      if (row.top < list.top) dom.programList.scrollTop -= list.top - row.top;
-      else if (row.bottom > list.bottom) dom.programList.scrollTop += row.bottom - list.bottom;
+    for (const row of dom.programList.querySelectorAll(".program-chip")) {
+      const select = row.querySelector(".program-replace[data-lesson-action='select']");
+      if (!select) continue;
+      row.dataset.lessonAction = "select";
+      row.dataset.value = select.dataset.value;
+      row.tabIndex = 0;
+      row.setAttribute("aria-selected", String(String(draft.selected) === select.dataset.value));
+      row.classList.toggle("is-selected", String(draft.selected) === select.dataset.value);
+      row.classList.remove("is-replacing");
+      select.remove();
     }
+    updateProgramEditActions(hasSelection, view.count, m.limit);
+    dom.programList.scrollTop = scroll;
+    const anchored = programScrollAnchor?.kind === "structured"
+      ? dom.programList.querySelector(`.program-chip[data-value="${programScrollAnchor.id}"]`)
+      : null;
+    if (anchored && programScrollAnchor.flash) anchored.classList.add("is-edit-confirmed");
+    const current = anchored || dom.programList.querySelector(".is-current") || dom.programList.querySelector(".is-selected")
+      || (!programScrollAnchor ? dom.programList.lastElementChild : null);
+    keepProgramRowVisible(current);
+    if (programScrollAnchor?.kind === "structured") programScrollAnchor = null;
     dom.runBtn.disabled = Boolean(context.playback?.busy);
     dom.stepBtn.disabled = Boolean(context.playback?.busy || context.playback?.playing);
     dom.undoBtn.disabled = context.running || !view.undo;
@@ -1860,7 +1899,14 @@ window.addEventListener("unhandledrejection", (event) => {
       const adapter = window.CodeQuestStructuredLessons.get(m);
       const d = window.CodeQuestEvidence.clone(adapter.draft(p));
       try { adapter.source(m, d); }
-      catch (error) { earlyNotice = error.message; render(); showRunBlocker(error.message); return; }
+      catch (error) {
+        sim.failed = true;
+        sim.failureType = "action-fail";
+        sim.failureMessage = error.message;
+        sim.message = "程序无法运行";
+        earlyNotice = error.message;
+        render(); showRunBlocker(error.message); return;
+      }
       structuredPlayback = { busy: true, finished: false, playing: false, adapter, m, p, d, assisted: p.assisted, index: 0, event: null };
       earlyNotice = "正在准备执行。";
       render();
@@ -1868,7 +1914,13 @@ window.addEventListener("unhandledrejection", (event) => {
       try { execution = await adapter.compile(m, d); }
       catch (error) {
         if (token !== structuredEpoch) return;
-        structuredPlayback = null; earlyNotice = `暂时无法运行：${error.message}`; render(); return;
+        structuredPlayback = null;
+        sim.failed = true;
+        sim.failureType = "action-fail";
+        sim.failureMessage = error.message;
+        sim.message = "程序无法运行";
+        earlyNotice = `暂时无法运行：${error.message}`;
+        render(); return;
       }
       if (token !== structuredEpoch) return;
       structuredPlayback.execution = execution;
@@ -1897,8 +1949,8 @@ window.addEventListener("unhandledrejection", (event) => {
       sim.uploaded = Boolean(event.state.uploaded);
       sim.gates = { ...event.state.gates };
       sim.queueIndex = playback.index;
-      if (["move", "teleport"].includes(event.type)) sim.path.push({ x: sim.x, y: sim.y });
-      if (["move", "turn", "collision-fail"].includes(event.type)) startMotion({
+      if (["move", "teleport", "conveyor"].includes(event.type)) sim.path.push({ x: sim.x, y: sim.y });
+      if (["move", "turn", "collision-fail", "rotator", "conveyor", "conveyor-fail"].includes(event.type)) startMotion({
         type: event.type, fromX: previous.x, fromY: previous.y, toX: sim.x, toY: sim.y,
         fromDir: previous.dir, toDir: sim.dir, duration: 300
       });
@@ -1922,6 +1974,9 @@ window.addEventListener("unhandledrejection", (event) => {
   function stepProgram() {
     if (mission().early?.v18) { runStructuredProgram(false); return; }
     if (!program.length) {
+      sim.failed = true;
+      sim.failureType = "action-fail";
+      sim.failureMessage = "主程序还没有指令。请先添加至少一条指令。";
       sim.message = "程序为空";
       log("主程序还没有指令。", "error");
       render();
@@ -1981,6 +2036,9 @@ window.addEventListener("unhandledrejection", (event) => {
 
     resetSimulation();
     if (!program.length) {
+      sim.failed = true;
+      sim.failureType = "action-fail";
+      sim.failureMessage = "主程序还没有指令。请先添加至少一条指令。";
       sim.message = "先放入指令，再运行。";
       render();
       showRunBlocker("请先在程序区放入至少一条指令。");
@@ -2015,11 +2073,23 @@ window.addEventListener("unhandledrejection", (event) => {
     if (activeBoard === "route" && ["upload", "callRoute", ...(m.lessonNo >= 9 && m.lessonNo <= 11 ? [] : ["collect"])].includes(command)) return;
     hideRunBlocker();
 
-    if (hasSelectedProgramStep()) {
+    if (hasSelectedProgramStep() && !programEditMode) return;
+
+    if (hasSelectedProgramStep() && programEditMode === "replace") {
       const next = target.slice();
+      programScrollAnchor = { kind: "standard", index: selectedProgramIndex, flash: true };
       next[selectedProgramIndex] = command;
       setCurrentTargetProgram(next);
       selectedProgramIndex = null;
+      programEditMode = null;
+    } else if (hasSelectedProgramStep() && programEditMode === "insert") {
+      if (target.length >= limit) return;
+      const next = target.slice();
+      programScrollAnchor = { kind: "standard", index: selectedProgramIndex + 1, flash: true };
+      next.splice(selectedProgramIndex + 1, 0, command);
+      setCurrentTargetProgram(next);
+      selectedProgramIndex = null;
+      programEditMode = null;
     } else {
       if (target.length >= limit) return;
       setCurrentTargetProgram([...target, command]);
@@ -2032,6 +2102,7 @@ window.addEventListener("unhandledrejection", (event) => {
     const target = currentTargetProgram();
     setCurrentTargetProgram(target.filter((_, itemIndex) => itemIndex !== index));
     selectedProgramIndex = null;
+    programEditMode = null;
     resetSimulation(true);
     render();
   }
@@ -2066,6 +2137,7 @@ window.addEventListener("unhandledrejection", (event) => {
     courseView = "stages";
     activeBoard = "main";
     selectedProgramIndex = null;
+    programEditMode = null;
     selectedRouteChoiceId = null;
     detectiveGuideOpen = false;
     resetCreatorSettings();
@@ -2081,6 +2153,7 @@ window.addEventListener("unhandledrejection", (event) => {
     courseView = "stage";
     activeBoard = "main";
     selectedProgramIndex = null;
+    programEditMode = null;
     selectedRouteChoiceId = null;
     detectiveGuideOpen = false;
     resetCreatorSettings();
@@ -2109,6 +2182,7 @@ window.addEventListener("unhandledrejection", (event) => {
     earlyStorage = early.isEarly(mission()) ? "已自动保存" : "";
     routeProgram = initialFunctionForMission(mission());
     selectedProgramIndex = null;
+    programEditMode = null;
     selectedRouteChoiceId = null;
     detectiveGuideOpen = false;
     if (early.isEarly(mission())) selectedRouteChoiceId = earlyProfile(mission().id).plan || null;
@@ -2130,6 +2204,7 @@ window.addEventListener("unhandledrejection", (event) => {
     program = [];
     routeProgram = [];
     selectedProgramIndex = null;
+    programEditMode = null;
     selectedRouteChoiceId = null;
     detectiveGuideOpen = false;
     resetCreatorSettings();
@@ -2559,23 +2634,29 @@ window.addEventListener("unhandledrejection", (event) => {
     const m = mission();
     const target = currentTargetProgram();
     const limit = activeBoard === "route" ? (m.functionLimit || 6) : m.limit;
-    const canReplace = hasSelectedProgramStep();
+    const hasSelection = hasSelectedProgramStep();
+    const canReplace = hasSelection && programEditMode === "replace";
+    const canInsert = hasSelection && programEditMode === "insert";
     dom.commandLimit.textContent = `${target.length} / ${limit} 个指令`;
-    dom.paletteInstruction.textContent = canReplace
-      ? "请选择新指令"
+    dom.paletteInstruction.textContent = hasSelection && !programEditMode
+      ? "请选择替换或添加"
+      : canReplace
+        ? "请选择替换指令"
+        : canInsert
+          ? "请选择要添加的指令"
       : m.lessonMode === "debug-detective" && target.length >= limit
         ? "先选中要修改的步骤"
         : m.lessonMode && m.lessonMode !== "standard" && target.length >= limit
-          ? "点选步骤可以替换"
+          ? "选中步骤后选择替换"
         : "点击加入";
-    dom.paletteInstruction.classList.toggle("is-replacing", canReplace);
+    dom.paletteInstruction.classList.toggle("is-replacing", canReplace || canInsert);
     renderCommandExplanation(m);
     dom.commandPalette.innerHTML = m.allowed.map((id) => {
       const presentation = commandPresentation(id, m);
       if (!presentation) return "";
       const { command } = presentation;
       const blockedInRoute = activeBoard === "route" && ["upload", "callRoute", ...(m.lessonNo >= 9 && m.lessonNo <= 11 ? [] : ["collect"])].includes(id);
-      const disabled = (target.length >= limit && !canReplace) || blockedInRoute ? "disabled" : "";
+      const disabled = (hasSelection && !programEditMode) || (target.length >= limit && !canReplace) || blockedInRoute ? "disabled" : "";
       const style = command.kind === "logic" ? " is-logic" : command.kind === "system" ? " is-system" : "";
       return `
         <button class="command-button${style}" data-command="${id}" ${disabled} type="button"${presentation.breakdown ? ' aria-describedby="commandExplanation"' : ""}>
@@ -2616,7 +2697,10 @@ window.addEventListener("unhandledrejection", (event) => {
   function renderProgramList() {
     if (mission().early?.v18 && window.CodeQuestStructuredLessons.get(mission())?.builder) return;
     const target = currentTargetProgram();
-    if (!hasSelectedProgramStep()) selectedProgramIndex = null;
+    if (!hasSelectedProgramStep()) {
+      selectedProgramIndex = null;
+      programEditMode = null;
+    }
     dom.programTitle.textContent = activeBoard === "route"
       ? early.isEarly(mission()) && [11, 12].includes(mission().lessonNo) ? "循环体" : `函数 ${activeFunctionName()}()`
       : "我的程序";
@@ -2624,7 +2708,7 @@ window.addEventListener("unhandledrejection", (event) => {
     const standardHint = activeBoard === "route"
       ? "只放路线动作"
       : mission().lessonMode === "debug-detective"
-        ? "点选一步，再从左侧替换"
+        ? "选中一步，再选择替换或添加"
         : mission().lessonMode === "sequence-timeline"
           ? "第一步会最先发生"
           : mission().lessonMode === "direction-compass"
@@ -2646,6 +2730,7 @@ window.addEventListener("unhandledrejection", (event) => {
           : "按顺序执行";
     dom.activeBoardHint.hidden = earlyLesson;
     dom.activeBoardHint.textContent = standardHint;
+    updateProgramEditActions(hasSelectedProgramStep(), target.length, activeBoard === "route" ? (mission().functionLimit || 6) : mission().limit);
 
     if (!target.length) {
       dom.programList.className = "program-list is-empty";
@@ -2655,15 +2740,41 @@ window.addEventListener("unhandledrejection", (event) => {
 
     dom.programList.className = "program-list";
     dom.programList.innerHTML = target.map((id, index) => `
-      <li class="program-chip${selectedProgramIndex === index ? " is-replacing" : ""}">
+      <li class="program-chip${selectedProgramIndex === index ? " is-selected" : ""}" data-select-step="${index}" tabindex="0" aria-selected="${selectedProgramIndex === index}">
         <div class="program-command-summary">
           <span>${index + 1}</span>
           <strong>${formatCommand(id)}</strong>
         </div>
-        <button class="program-replace" data-replace-step="${index}" type="button" aria-label="替换 ${formatCommand(id)}">替换</button>
         <button class="program-remove" data-remove="${index}" type="button" aria-label="移除 ${formatCommand(id)}">×</button>
       </li>
     `).join("");
+    if (programScrollAnchor?.kind === "standard") {
+      const row = dom.programList.querySelector(`[data-select-step="${programScrollAnchor.index}"]`);
+      if (programScrollAnchor.flash) row?.classList.add("is-edit-confirmed");
+      keepProgramRowVisible(row);
+      programScrollAnchor = null;
+    }
+  }
+
+  function keepProgramRowVisible(row) {
+    if (!row) return;
+    const rowBounds = row.getBoundingClientRect();
+    const listBounds = dom.programList.getBoundingClientRect();
+    if (rowBounds.top < listBounds.top) dom.programList.scrollTop -= listBounds.top - rowBounds.top;
+    else if (rowBounds.bottom > listBounds.bottom) dom.programList.scrollTop += rowBounds.bottom - listBounds.bottom;
+  }
+
+  function updateProgramEditActions(hasSelection, count, limit) {
+    if (!dom.programEditActions) return;
+    if (!hasSelection) programEditMode = null;
+    dom.programEditActions.hidden = !hasSelection;
+    dom.programReplace.disabled = !hasSelection;
+    dom.programInsert.disabled = !hasSelection || count >= limit;
+    dom.programCancel.disabled = !hasSelection;
+    dom.programReplace.classList.toggle("is-active", hasSelection && programEditMode === "replace");
+    dom.programInsert.classList.toggle("is-active", hasSelection && programEditMode === "insert");
+    dom.programReplace.setAttribute("aria-pressed", String(hasSelection && programEditMode === "replace"));
+    dom.programInsert.setAttribute("aria-pressed", String(hasSelection && programEditMode === "insert"));
   }
 
   function renderSequenceTimeline() {
@@ -5257,6 +5368,10 @@ window.addEventListener("unhandledrejection", (event) => {
     const root = new THREE.Group();
     scene.add(root);
     let viewYaw = 0;
+    let viewPitch = THREE.MathUtils.degToRad(40);
+    let viewZoom = 1;
+    let viewPanX = 0;
+    let viewPanZ = 0;
     let lastEarlyView = "";
     let lastViewFrame = null;
     let viewRenderFrame = null;
@@ -5382,9 +5497,13 @@ window.addEventListener("unhandledrejection", (event) => {
 
     function render(simState, activeMission, helpers) {
       if (!simState || !simState.grid) return;
-      const earlyView = activeMission.early ? `${activeMission.id}:${activeMission.early.key}` : "";
+      const earlyView = `${activeMission.id}:${activeMission.early?.key || "standard"}`;
       if (earlyView !== lastEarlyView) {
         viewYaw = activeMission.lessonNo === 2 && activeMission.early?.independent ? Math.PI * 0.6 : 0;
+        viewPitch = THREE.MathUtils.degToRad(40);
+        viewZoom = 1;
+        viewPanX = 0;
+        viewPanZ = 0;
         lastEarlyView = earlyView;
       }
       resizeRenderer();
@@ -5491,21 +5610,61 @@ window.addEventListener("unhandledrejection", (event) => {
     }
 
     function setupViewDrag() {
+      targetCanvas.addEventListener("wheel", (event) => {
+        viewZoom = Math.min(2.5, Math.max(0.62, viewZoom * Math.exp(-event.deltaY * 0.0014)));
+        scheduleViewRender();
+        event.preventDefault();
+      }, { passive: false });
+
+      targetCanvas.addEventListener("contextmenu", (event) => event.preventDefault());
+      targetCanvas.addEventListener("dblclick", (event) => {
+        resetView();
+        scheduleViewRender();
+        event.preventDefault();
+      });
+
       targetCanvas.addEventListener("pointerdown", (event) => {
-        if (event.button !== 0 && event.pointerType === "mouse") return;
+        if (![0, 2].includes(event.button) && event.pointerType === "mouse") return;
+        const rotating = event.button === 2 || (event.button === 0 && event.shiftKey);
         dragState = {
           pointerId: event.pointerId,
+          mode: rotating ? "rotate" : "pan",
           startX: event.clientX,
-          startYaw: viewYaw
+          startY: event.clientY,
+          startPanX: viewPanX,
+          startPanZ: viewPanZ,
+          startYaw: viewYaw,
+          startPitch: viewPitch
         };
-        targetCanvas.classList.add("is-dragging");
+        targetCanvas.classList.add(rotating ? "is-rotating" : "is-dragging");
         targetCanvas.setPointerCapture?.(event.pointerId);
         event.preventDefault();
       });
 
       targetCanvas.addEventListener("pointermove", (event) => {
         if (!dragState || dragState.pointerId !== event.pointerId) return;
-        viewYaw = normalizeRadians(dragState.startYaw + (event.clientX - dragState.startX) * 0.008);
+        const dxPixels = event.clientX - dragState.startX;
+        const dyPixels = event.clientY - dragState.startY;
+        if (dragState.mode === "rotate") {
+          viewYaw = dragState.startYaw + dxPixels * 0.008;
+          viewPitch = Math.max(THREE.MathUtils.degToRad(25), Math.min(THREE.MathUtils.degToRad(65), dragState.startPitch - dyPixels * 0.006));
+          scheduleViewRender();
+          event.preventDefault();
+          return;
+        }
+        const span = lastViewFrame
+          ? Math.max(lastViewFrame.bounds.maxX - lastViewFrame.bounds.minX + 1, lastViewFrame.bounds.maxY - lastViewFrame.bounds.minY + 1) * lastViewFrame.spacing
+          : 6;
+        const unitsPerPixel = Math.max(0.004, span / Math.max(380, targetCanvas.clientWidth)) / viewZoom;
+        const dx = dxPixels * unitsPerPixel;
+        const dy = dyPixels * unitsPerPixel;
+        const rightX = Math.cos(viewYaw);
+        const rightZ = Math.sin(viewYaw);
+        const forwardX = -Math.sin(viewYaw);
+        const forwardZ = Math.cos(viewYaw);
+        const panLimit = Math.max(2.4, span * 0.8);
+        viewPanX = Math.max(-panLimit, Math.min(panLimit, dragState.startPanX - dx * rightX - dy * forwardX));
+        viewPanZ = Math.max(-panLimit, Math.min(panLimit, dragState.startPanZ - dx * rightZ - dy * forwardZ));
         scheduleViewRender();
         event.preventDefault();
       });
@@ -5514,9 +5673,18 @@ window.addEventListener("unhandledrejection", (event) => {
         targetCanvas.addEventListener(type, (event) => {
           if (!dragState || dragState.pointerId !== event.pointerId) return;
           dragState = null;
-          targetCanvas.classList.remove("is-dragging");
+          targetCanvas.classList.remove("is-dragging", "is-rotating");
         });
       });
+    }
+
+    function resetView() {
+      const activeMission = mission();
+      viewYaw = activeMission.lessonNo === 2 && activeMission.early?.independent ? Math.PI * 0.6 : 0;
+      viewPitch = THREE.MathUtils.degToRad(40);
+      viewZoom = 1;
+      viewPanX = 0;
+      viewPanZ = 0;
     }
 
     function scheduleViewRender() {
@@ -5527,11 +5695,6 @@ window.addEventListener("unhandledrejection", (event) => {
         frameCamera(lastViewFrame.bounds, lastViewFrame.spacing);
         renderer.render(scene, camera);
       });
-    }
-
-    function normalizeRadians(value) {
-      const fullTurn = Math.PI * 2;
-      return ((value % fullTurn) + fullTurn) % fullTurn;
     }
 
     function actorPose(simState, worldX, worldZ, directionIndex) {
@@ -5668,19 +5831,23 @@ window.addEventListener("unhandledrejection", (event) => {
         : aspect < 1.65
           ? 1.72
           : 1.56;
-      const distance = Math.max(6.25, span * (fitMultiplier + shortCanvasBoost));
-      const baseX = distance * 0.68;
-      const baseZ = distance * 0.78;
+      const distance = Math.max(6.25, span * (fitMultiplier + shortCanvasBoost)) / viewZoom;
+      const defaultPitch = THREE.MathUtils.degToRad(40);
+      const horizontalScale = Math.cos(viewPitch) / Math.cos(defaultPitch);
+      const verticalScale = Math.sin(viewPitch) / Math.sin(defaultPitch);
+      const baseX = distance * 0.68 * horizontalScale;
+      const baseZ = distance * 0.78 * horizontalScale;
       const yawCos = Math.cos(viewYaw);
       const yawSin = Math.sin(viewYaw);
       camera.position.set(
-        baseX * yawCos - baseZ * yawSin,
-        distance * 0.86,
-        baseX * yawSin + baseZ * yawCos
+        viewPanX + baseX * yawCos - baseZ * yawSin,
+        distance * 0.86 * verticalScale,
+        viewPanZ + baseX * yawSin + baseZ * yawCos
       );
-      camera.lookAt(0, aspect < 1.35 ? -0.34 : -0.26, 0);
+      const targetY = aspect < 1.35 ? -0.34 : -0.26;
+      camera.lookAt(viewPanX, targetY, viewPanZ);
 
-      const cameraRange = camera.position.length();
+      const cameraRange = camera.position.distanceTo(new THREE.Vector3(viewPanX, targetY, viewPanZ));
       scene.fog.near = Math.max(0, cameraRange - span * 0.15);
       scene.fog.far = cameraRange + Math.max(14, span * 1.8);
     }
@@ -5866,6 +6033,26 @@ window.addEventListener("unhandledrejection", (event) => {
         bar.scale.set(0.8, state.gates?.[gate.id] ? 0.1 : 1.7, 0.12);
         bar.position.set(worldX(gate.at.x), surfaceY + (state.gates?.[gate.id] ? 0.03 : 0.5) + terrainLevel(gate.at.x, gate.at.y) * 0.3, worldZ(gate.at.y));
         parent.add(bar);
+      }
+      for (const edge of terrain.oneWays || []) {
+        const dx = edge.to.x - edge.from.x, dy = edge.to.y - edge.from.y;
+        const marker = new THREE.Mesh(geometry.tileBase, materials.padBlue);
+        marker.scale.set(dx ? 0.55 : 0.16, 0.06, dy ? 0.55 : 0.16);
+        marker.position.set(worldX((edge.from.x + edge.to.x) / 2), surfaceY + 0.08, worldZ((edge.from.y + edge.to.y) / 2));
+        parent.add(marker);
+      }
+      for (const item of terrain.rotators || []) {
+        const marker = new THREE.Mesh(geometry.padRing, materials.padViolet);
+        marker.rotation.x = -Math.PI / 2;
+        marker.scale.setScalar(0.5);
+        marker.position.set(worldX(item.at.x), surfaceY + 0.08 + terrainLevel(item.at.x, item.at.y) * 0.3, worldZ(item.at.y));
+        parent.add(marker);
+      }
+      for (const item of terrain.conveyors || []) {
+        const marker = new THREE.Mesh(geometry.tileBase, materials.padBlue);
+        marker.scale.set(item.direction === "E" || item.direction === "W" ? 0.7 : 0.22, 0.08, item.direction === "N" || item.direction === "S" ? 0.7 : 0.22);
+        marker.position.set(worldX(item.at.x), surfaceY + 0.07 + terrainLevel(item.at.x, item.at.y) * 0.3, worldZ(item.at.y));
+        parent.add(marker);
       }
     }
 
@@ -6906,7 +7093,7 @@ window.addEventListener("unhandledrejection", (event) => {
       dom.runBtn.innerHTML = `<span class="${iconClass}" aria-hidden="true"></span>${runTimer ? "暂停" : "运行"}`;
     }
     const activePlayback = isPythonStudioLesson() ? pythonPlaying : Boolean(runTimer);
-    dom.worldRun.lastChild.textContent = activePlayback ? " 停止运行" : " 运行代码";
+    dom.worldRun.lastChild.textContent = activePlayback ? " 停止" : " 运行";
   }
 
   dom.missionList?.addEventListener("click", (event) => {
@@ -7053,6 +7240,7 @@ window.addEventListener("unhandledrejection", (event) => {
     if (!button) return;
     activeBoard = button.dataset.board;
     selectedProgramIndex = null;
+    programEditMode = null;
     render();
   });
 
@@ -7063,11 +7251,57 @@ window.addEventListener("unhandledrejection", (event) => {
       return;
     }
 
-    const replaceButton = event.target.closest("[data-replace-step]");
-    if (!replaceButton) return;
-    selectedProgramIndex = Number(replaceButton.dataset.replaceStep);
+    if (mission().early?.v18 && window.CodeQuestStructuredLessons.get(mission())?.builder) return;
+    const row = event.target.closest("[data-select-step]");
+    if (!row) return;
+    const index = Number(row.dataset.selectStep);
+    selectedProgramIndex = selectedProgramIndex === index ? null : index;
+    programEditMode = null;
     render();
   });
+
+  dom.programList.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !dom.programEditActions.hidden) {
+      event.preventDefault();
+      cancelProgramSelection();
+      return;
+    }
+    if (!event.target.matches(".program-chip") || !["Enter", " "].includes(event.key)) return;
+    event.preventDefault();
+    event.target.click();
+  });
+
+  dom.programReplace?.addEventListener("click", () => {
+    if (dom.programReplace.disabled) return;
+    programEditMode = programEditMode === "replace" ? null : "replace";
+    render();
+  });
+
+  dom.programInsert?.addEventListener("click", () => {
+    if (dom.programInsert.disabled) return;
+    programEditMode = programEditMode === "insert" ? null : "insert";
+    render();
+  });
+
+  dom.programCancel?.addEventListener("click", cancelProgramSelection);
+
+  function cancelProgramSelection() {
+    programEditMode = null;
+    const m = mission();
+    const adapter = m.early?.v18 ? window.CodeQuestStructuredLessons.get(m) : null;
+    if (adapter?.builder) {
+      const p = earlyProfile(m.id);
+      const draft = adapter.draft(p);
+      if (draft.selected !== null && draft.selected !== undefined) {
+        adapter.edit(m, p, { action: "select", value: draft.selected });
+        earlyNotice = "";
+        saveEarlyProfile(m.id);
+      }
+    } else {
+      selectedProgramIndex = null;
+    }
+    render();
+  }
 
   dom.runBtn?.addEventListener("click", () => {
     if (isPythonStudioLesson()) runPythonProgram();
@@ -7103,6 +7337,7 @@ window.addEventListener("unhandledrejection", (event) => {
     const target = currentTargetProgram();
     setCurrentTargetProgram(target.slice(0, -1));
     selectedProgramIndex = null;
+    programEditMode = null;
     resetSimulation(true);
     render();
   });
@@ -7110,6 +7345,7 @@ window.addEventListener("unhandledrejection", (event) => {
     if (mission().early?.v18 && window.CodeQuestStructuredLessons.get(mission())?.builder) { editParameterProgram("clear"); return; }
     setCurrentTargetProgram([]);
     selectedProgramIndex = null;
+    programEditMode = null;
     resetSimulation(true);
     render();
   });
@@ -7234,19 +7470,52 @@ window.addEventListener("unhandledrejection", (event) => {
   function editParameterProgram(action) {
     const m = mission(), p = earlyProfile(m.id);
     const result = window.CodeQuestStructuredLessons.get(m).edit(m, p, { action });
+    programEditMode = null;
     if (result.reset) resetSimulation();
     earlyNotice = result.notice; saveEarlyProfile(m.id); render();
   }
 
   function handleEarlyClick(event) {
-    const button = event.target.closest("button");
+    const button = event.target.closest("button, [data-lesson-action]");
     if (!button || button.disabled || !early.isEarly(mission())) return;
     const m = mission(), p = earlyProfile(m.id);
     if (button.dataset.lessonAction) {
       const action = button.dataset.lessonAction;
       if (action === "run" || action === "step") { runStructuredProgram(action === "run"); return; }
       if (action === "reset") { resetSimulation(); earlyNotice = "世界已复位，程序和学习记录保留。"; render(); return; }
-      const result = window.CodeQuestStructuredLessons.get(m).edit(m, p, { action, value: button.dataset.value });
+      const adapter = window.CodeQuestStructuredLessons.get(m);
+      const draft = adapter.draft(p);
+      if (action === "select") programEditMode = null;
+      if (action === "add" && draft.selected !== null && draft.selected !== undefined && !programEditMode) {
+        earlyNotice = "先在“我的程序”旁选择替换或添加。";
+        render();
+        return;
+      }
+      if (action === "add" && programEditMode === "insert") {
+        if (draft.commands.length >= m.limit) {
+          earlyNotice = `最多放 ${m.limit} 张指令卡。`;
+          render();
+          return;
+        }
+        const selectedIndex = draft.commands.findIndex(item => item.id === draft.selected);
+        adapter.edit(m, p, { action: "select", value: draft.selected });
+        const result = adapter.edit(m, p, { action, value: button.dataset.value });
+        const updated = adapter.draft(p);
+        const inserted = updated.commands.pop();
+        if (inserted && selectedIndex >= 0) {
+          updated.commands.splice(selectedIndex + 1, 0, inserted);
+          programScrollAnchor = { kind: "structured", id: inserted.id, flash: true };
+        }
+        updated.selected = null;
+        programEditMode = null;
+        if (result.reset) resetSimulation();
+        earlyNotice = result.notice;
+        saveEarlyProfile(m.id); render(); return;
+      }
+      const selectedId = action === "add" && programEditMode === "replace" ? draft.selected : null;
+      const result = adapter.edit(m, p, { action, value: button.dataset.value });
+      if (selectedId !== null && selectedId !== undefined) programScrollAnchor = { kind: "structured", id: selectedId, flash: true };
+      if (["add", "remove", "clear"].includes(action)) programEditMode = null;
       if (result.reset) resetSimulation();
       earlyNotice = result.notice;
       saveEarlyProfile(m.id); render(); return;

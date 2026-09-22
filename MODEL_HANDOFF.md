@@ -1,6 +1,6 @@
 # CodeQuestPlanet 模型交接文件
 
-更新：2026-09-20。项目目录：`/Users/jack/Documents/Codex/CodeQuestPlanet`。
+更新：2026-09-22。项目目录：`/Users/jack/Documents/Codex/CodeQuestPlanet`。
 
 本文件供接手模型快速定位现状和下一单任务。用户最新要求优先于旧工单；不要根据旧版本截图或旧验收报告恢复已经取消的交互。
 
@@ -14,12 +14,12 @@
 
 ## 现在做到哪里
 
-- 32 课已有 v1.8 规划和逐课工单；**第 1–5、17、19 课已按新方案完成技术验收，其余 25 课尚未逐课升级**。这不代表旧课程不存在。
+- **第 1–32 课已按 v1.8 新方案完成本地技术验收**；课堂效果、完整课时和云端多设备仍待验证。
 - 第 19 课当前版本是 `1.8-19.5`，不是历史的 19.1–19.4。已恢复原编程卡片、原双码头地图、左图右操作，以及两阶段流程。
-- 已有结构化课程接入、真实 Python 执行、版本化学习证据和部分地形基础。第 17 课接入可恢复采集尝试、真实变量事件和计数门；台阶用于第 17、19 课；传送和开关已有基础规则，但相应课程仍待实施验收。
-- 第 1、2 课当前版本为 `1.8-01.1`、`1.8-02.1`；第 3 课 `1.8-03.1` 已完成双路线成本与台阶教学；第 4 课 `1.8-04.1` 已完成两处不同首次偏离的运行—定位—替换流程；第 5 课 `1.8-05.1` 已完成坐标选格、断岛显式传送与朝向保持。
-- 当前记录：Python 65 个场景、旧课程 345 个场景、v1.8 101 组测试，以及生产构建的 66 个内容哈希资源通过。浏览器完成第 3–5 课全部两阶段、典型错误、刷新恢复和窄屏检查，并回归第 1、2、17、19 课。详见逐课验收记录。
-- 用户尚未确认第 1–5、17、19 课的教学效果。真实学生试教、整课时长、云端多设备联调尚未验证。不要宣称“32 课已完成”或“已证明学生掌握”。
+- 已有结构化课程接入、真实 Python 执行、版本化学习证据和地形基础。第 6–15 课新增依赖交付、单向通道、阶段综合、函数、转向盘、输送格、循环、条件与布尔、`while` 停止等真实运行机制；第 17 课接入可恢复采集尝试、真实变量事件和计数门；第 21–28 课接入列表、动态长度/索引、字典查询、库存调度、二维世界重建、数据建桥、对象职责与实例独立状态。
+- 第 1、2 课当前版本为 `1.8-01.1`、`1.8-02.1`；第 3 课 `1.8-03.1` 已完成双路线成本与台阶教学；第 4 课 `1.8-04.2` 重设计为两级折返维修道，保留两处不同首次偏离的运行—定位—替换流程；第 5 课 `1.8-05.1` 已完成坐标选格、断岛显式传送与朝向保持。
+- 当前记录：Python 65 个场景、旧课程 345 个场景、既有 v1.8 101 组、第 6–15 课 48 组、第 16/18/20 课 11 组、第 21–25 课 24 组、第 26–28 课 16 组及第 29–32 课 21 组场景通过；生产构建验证 76 个内容哈希资源。浏览器实际加载第 29 课并确认无横向溢出；其余三课的完整视觉截图受本地 `file://` 策略阻断，已在验收记录标明。自动夹具覆盖独立阶段、典型误解反例及地图轮廓去重。
+- 第 16、18、20 课版本为 `1.8-16.2`、`1.8-18.2`、`1.8-20.2`。第 21–28 课版本为 `1.8-21.3` 至 `1.8-28.2`；第 29–32 课版本为 `1.8-29.1` 至 `1.8-32.1`。后四课分别使用压力钥匙院落、叠层沙漏升降塔、三湾测试工坊和斜向中继校园；第 17、19 课原成果和操作均保留。用户尚未确认第 1–32 课的教学效果。真实学生试教、整课时长、云端多设备联调尚未验证；只能称“本地技术验收完成”，不能声称已证明学生掌握。
 - 当前工作区有大量未提交修改。先看 `git status --short`，保留它们；不要 reset、覆盖或清理。也不要顺手处理其他目录和无关页面。
 
 ## 用户已经明确的产品要求
@@ -48,6 +48,7 @@
 | 7 | [第 19 课当前验收](.scratch/core-32-learning-mechanics-v18/lesson-19-acceptance.md) | 保留哪些已验证行为、回归哪些场景 |
 | 8 | [第 1 课验收](.scratch/core-32-learning-mechanics-v18/lesson-01-acceptance.md)、[第 2 课验收](.scratch/core-32-learning-mechanics-v18/lesson-02-acceptance.md) | 前两课当前实现、固定反例与浏览器记录 |
 | 9 | [第 3 课验收](.scratch/core-32-learning-mechanics-v18/lesson-03-acceptance.md)、[第 4 课验收](.scratch/core-32-learning-mechanics-v18/lesson-04-acceptance.md)、[第 5 课验收](.scratch/core-32-learning-mechanics-v18/lesson-05-acceptance.md) | 路线成本、首次偏离与坐标传送的当前实现 |
+| 10 | [第 6–15 课验收](.scratch/core-32-learning-mechanics-v18/lesson-06-acceptance.md) | 从依赖任务到 `while` 的当前实现；每课单独记录在对应 `lesson-XX-acceptance.md` |
 
 历史审查和 `lesson-19-acceptance-v1.8-19.*.md` 可在追查问题时阅读，不作为当前产品规格。旧工单与最新要求冲突时，先修订当前工单再实现，不能直接照旧做。
 
@@ -55,19 +56,24 @@
 
 | 文件 | 职责 / 注意事项 |
 |---|---|
-| `signal-runner-node/structured-lessons.js` | 课程注册及统一接口，当前接入第 1、2、17、19 课 |
+| `signal-runner-node/structured-lessons.js` | 课程注册及统一接口，当前接入第 1–32 课 |
 | `signal-runner-node/foundation-lessons.js`、`foundation-lessons-ui.js` | 第 1、2 课程序模型、关卡、评估与原卡片界面 |
 | `signal-runner-node/navigation-lessons.js`、`navigation-lessons-ui.js` | 第 3–5 课路线、调试、坐标传送模型与界面 |
+| `signal-runner-node/progressive-lessons.js`、`progressive-lessons-ui.js` | 第 6–15 课程序模型、地图、评估与原卡片界面 |
+| `signal-runner-node/advanced-lessons.js`、`advanced-lessons-ui.js` | 第 16、18、20 课程序模型、大地图、评估与原卡片界面 |
+| `signal-runner-node/data-lessons.js`、`data-lessons-ui.js` | 第 21–25 课数据模型、宽幅地图、真实 Python、评估与原卡片界面 |
+| `signal-runner-node/systems-lessons.js`、`systems-lessons-ui.js` | 第 26–28 课数据建桥、对象职责、实例状态及三种宽幅地图 |
+| `signal-runner-node/collaboration-lessons.js`、`collaboration-lessons-ui.js` | 第 29–32 课交接、离散时间、作品测试、阶段综合及四种独立大地图 |
 | `signal-runner-node/parameter-lesson.js`、`parameter-lesson-ui.js` | 第 19 课程序模型、地图、评估与原卡片界面样板 |
 | `signal-runner-node/app.js`、`index.html`、`styles.css`、`early-lessons.css` | 共用 3D 舞台、原操作区和布局；避免整套重写 |
 | `signal-runner-node/learning-evidence.js`、`early-lessons.js` | 掌握证据、提示隔离、保存和版本迁移；不要照抄第 19 课专用判定 |
 | `signal-runner-node/python-runtime-core.js`、`world-rules.js` | 真实执行事件、地形与碰撞；修改后必须回归旧行为 |
 | `signal-runner-node/course-data.js`、`v16-course-overrides.js` | 原有课程配置，需要时对照原地图和命名 |
-| `scripts/test-python-runtime-core.mjs`、`test-early-lessons.mjs`、`test-learning-v18.mjs` | 已有执行、旧课程和新版课程回归 |
+| `scripts/test-python-runtime-core.mjs`、`test-early-lessons.mjs`、`test-learning-v18.mjs`、`test-progressive-lessons-v18.mjs`、`test-advanced-lessons-v18.mjs`、`test-data-lessons-v18.mjs`、`test-systems-lessons-v18.mjs`、`test-collaboration-lessons-v18.mjs` | 执行、旧课程及第 1–32 课回归 |
 
-## 第 1–5、17、19 课已完成；下一课等待老师指定
+## 第 1–32 课已完成本地技术验收
 
-第 1–5 课已按学习顺序完成，其中第 4 课保留调试必做修复，第 5 课接通固定传送教学；第 17、19 课原成果保留。后续可按学习顺序继续第 6 课，或按工程依赖处理第 18 课，但**不自动推进**，等待老师指定。
+第 1–32 课已按学习顺序完成，其中第 4、8 课保留调试所需的问题式起始方案。第 29–32 课完成同格守恒交接、时间条件重查、三类作者测试与五模块阶段综合；第 17、19 课原成果保留。四课版本为 `1.8-29.1` 至 `1.8-32.1`，验收记录见对应 `lesson-XX-acceptance.md`。
 
 第 17 课实施前的旧工单曾标有 `ready-for-agent`，以下冲突现已在工单和 `1.8-17.1` 实现中修正：
 
@@ -153,4 +159,4 @@ export PATH="/Users/jack/.cache/codex-runtimes/codex-primary-runtime/dependencie
 
 这是当前电脑的运行时路径，其他电脑使用自己的 Node 环境。已有预览服务时复用，不重复启动。服务端口以终端输出为准。
 
-当前可直接打开本地文件 `signal-runner-node/index.html?preview=1&track=course&lesson=course-XX`，将 `XX` 改为 `01`–`05`、`17` 或 `19`；也可复用本地预览服务的同路径。本地保存验证不代表线上账户和多设备同步已验收。
+当前可直接打开本地文件 `signal-runner-node/index.html?preview=1&track=course&lesson=course-XX`，将 `XX` 改为 `01`–`15`、`17` 或 `19`；也可复用本地预览服务的同路径。本地保存验证不代表线上账户和多设备同步已验收。

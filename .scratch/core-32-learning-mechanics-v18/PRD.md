@@ -1,14 +1,16 @@
 # CodeQuestPlanet PRD v1.8：知识点驱动的 32 课游戏机制
 
-**Status:** implementation in progress / lesson 19 technical sample verified / classroom validation pending  
+**Status:** lessons 1–32 technically accepted / classroom validation pending
 **日期：**2026-09-19  
 **对象：**10–14 岁学生；教师可以检查证据，学生能独立开始操作。  
 **依据：**[v1.7 实现审查](/Users/jack/Documents/Codex/CodeQuestPlanet/.scratch/core-32-v17-audit-2026-09-16/REVIEW.md)；实现基线为 5a518ec。  
 **配套：**[实施顺序与逐课完成表](/Users/jack/Documents/Codex/CodeQuestPlanet/.scratch/core-32-learning-mechanics-v18/IMPLEMENTATION_PLAN.md)。
 
+**当前实施状态（2026-09-22）：**第 1–32 课已通过本地技术验收；课堂学习效果仍待试教。
+
 **新增要求：**[地形、机关与 32 课关卡设计规范](/Users/jack/Documents/Codex/CodeQuestPlanet/.scratch/core-32-learning-mechanics-v18/LEVEL_DESIGN.md)。台阶、传送门、输送格、开关、压力板、升降台等按课引入，与知识点及验收证据一起设计。
 
-**当前交付：**证据基础、部分地形基础和第 19 课参数技术样板已实现；其余 31 课待逐课改造。第 19 课恢复原指令卡操作，按构造与独立迁移两阶段完成真实执行和能力门技术验收，但真实学生学习效果及约 60 分钟课时完整性尚未验证。试玩与后续操作见 [NEXT_STEPS.md](NEXT_STEPS.md)，实现接口见 [ENGINEERING_HANDOFF.md](ENGINEERING_HANDOFF.md)。
+**当前交付：**证据基础、地形基础与第 1–32 课结构化课程已实现。已完成课程保留原指令卡操作，默认按构造与独立迁移两阶段完成真实执行和能力门技术验收，但真实学生学习效果及约 60 分钟课时完整性尚未验证。试玩与后续操作见 [MODEL_HANDOFF.md](/Users/jack/Documents/Codex/CodeQuestPlanet/MODEL_HANDOFF.md)，实现接口见 [ENGINEERING_HANDOFF.md](ENGINEERING_HANDOFF.md)。
 
 ## 1. 本版要解决的问题
 

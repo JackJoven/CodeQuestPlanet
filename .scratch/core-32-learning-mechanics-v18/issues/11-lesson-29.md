@@ -1,6 +1,6 @@
 # 11 · 第 29 课：协作交接
 
-Status: needs-triage
+Status: technical-acceptance-passed
 
 开发依赖：第 28 课。范围：仅本课及必需的最小共用扩展。
 
@@ -40,3 +40,4 @@ Status: needs-triage
 ## Comments
 
 - 2026-09-17：已拆分逐课规格。先完成依赖并复核固定夹具，再改为 ready-for-agent；工单存在不表示已实现。
+- 2026-09-22：`1.8-29.1` 完成同格交接、压力板留守、归属守恒与两阶段技术验收；课堂效果待试教。

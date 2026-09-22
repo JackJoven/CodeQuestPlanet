@@ -1,6 +1,6 @@
 # v1.8 工程交接：在第 19 课样板上逐课扩展
 
-日期：2026-09-19。产品约束以 [PRD.md](PRD.md) 和 [LEVEL_DESIGN.md](LEVEL_DESIGN.md) 为准；这里记录当前实际代码和接入方式。
+日期：2026-09-22。产品约束以 [PRD.md](PRD.md) 和 [LEVEL_DESIGN.md](LEVEL_DESIGN.md) 为准；这里记录当前实际代码和接入方式。
 
 ## 1. 当前完成边界
 
@@ -10,7 +10,10 @@
 | W 地形基础 | 高度 0/1/2、相邻台阶、缺口、显式配对传送、闩锁开关/门的规则与测试已接入；样板有 3D 高度、台阶和俯视图。传送/开关的通用俯视图、首次教学交互留给第 5/6 课，不算完整课程已交付 |
 | B 第 19 课 | 参数模型→可检查 Python→既有 Skulpt→事件播放→能力门；浏览器完成构造→一次独立迁移闭环，无必做修复或说明，详见验收文件 |
 | C 第 17 课 | 原指令卡路线→计数规则→`try_collect()`/变量事件→`check_count()`/计数门→构造与独立迁移能力门；详见验收文件 |
-| 其他课程 | 仍保留旧练习入口；尚未完成新能力门的课程不会自动重新授予“已掌握”。不能把这个保守状态误当成所有课程都已升级 |
+| I/C 第 16、18、20 课 | 分区自动工坊综合证据、单一真值能量账本与有限补给、真实 return/调用结果分岔均完成构造和独立迁移；详见各课验收文件 |
+| D/E/I 第 21–25 课 | 列表遍历、动态长度与索引、字典查询传送、库存调度和二维表重建均完成；地图依次为 S 形岛链、四指梳形港、八角水院环、H 形仓库和阶梯楔形蓝图 |
+| E/F 第 26–28 课 | 数据批量建桥、对象职责和实例独立状态均完成；地图依次为对向峡湾、塔楼/月牙港和双 C 仓库 |
+| F/H/I 第 29–32 课 | 同格守恒交接、压力板留守、停靠/占用条件重查、三类作品测试与五模块综合均完成；详见逐课验收文件 |
 | 云端 | 进度接口上限为 512 KiB；其他 JSON 接口保持 64 KiB。合并函数和请求体边界有测试，真实登录、多设备和线上数据库联调尚待做 |
 | 教学效果 | 未做真实学生试教，未验收整课时长 |
 
@@ -20,18 +23,24 @@
 
 | 文件（相对项目根目录） | 职责 |
 |---|---|
-| `signal-runner-node/structured-lessons.js` | 1–32 课的适配器注册表；当前注册 17、19；重复课号或缺方法会报错 |
+| `signal-runner-node/structured-lessons.js` | 1–32 课的适配器注册表；当前注册 1–32；重复课号或缺方法会报错 |
 | `state-lesson.js`、`state-lesson-ui.js` | 第 17 课地图、学生规则/卡片模型、Python、评估、证据、计数状态与原卡片界面；内容版本 `1.8-17.1` |
 | `parameter-lesson.js` | 第 19 课地图、学生模型、Python 生成、真实运行、评估、证据和注册；内容版本 `1.8-19.5` |
 | `parameter-lesson-ui.js` | 右侧短文案、原指令卡渲染、参数页签/调用卡片、运行状态、折叠俯视图/代码/证据 |
+| `advanced-lessons.js`、`advanced-lessons-ui.js` | 第 16、18、20 课地图、程序模型、真实 Python、评估、版本化证据与原卡片界面 |
+| `data-lessons.js`、`data-lessons-ui.js` | 第 21–25 课清单/字典/库存/二维表模型、宽幅地图、真实 Python、评估与原卡片界面 |
+| `systems-lessons.js`、`systems-lessons-ui.js` | 第 26–28 课数据建桥、对象职责、实例状态模型，三种宽幅地图、真实 Python、评估与原卡片界面 |
+| `collaboration-lessons.js`、`collaboration-lessons-ui.js` | 第 29–32 课同格交接、平台时间、作品测试包、阶段综合、四种宽幅地图与原卡片界面 |
 | `learning-evidence.js` | 语义指纹、提示记录及合并；第 17、19 课分别使用 `stateGate`、`parameterGate`，不能跨课套用 |
 | `world-rules.js` | v1.8 地形校验、连通和落点规则；不负责 UI，也不替学生选择动作 |
-| `python-runtime-core.js` | 既有教学 Python 子集、世界动作、变量/函数/条件/循环事件；v1.8 增加 range 输入、正常函数结束，以及第 17 课限定使用的 `try_collect()` / `check_count()` |
+| `python-runtime-core.js` | 既有教学 Python 子集、世界动作、变量/函数/条件/循环事件；v1.8 增加 range 输入、正常函数结束、第 17 课计数动作、第 21–25 课数据事件，以及第 28 课对象充能事件 |
 | `early-lessons.js` | 旧课程兼容、profile v7、课程分流、迁移和云端证据合并 |
 | `app.js` | 共用事件播放、暂停、单步、复位、保存、3D；新课应经适配器接入，避免继续堆课号分支 |
 | `early-lesson-ui.js` | 旧课界面；静态计划不再冒充实际运行证据 |
 | `early-lessons.css` | 共用课程与第 17、19 课样式；沿用项目主题 |
 | `scripts/test-learning-v18.mjs` | 真实 Skulpt、证据门、地形、请求体及生产播放函数的回归场景 |
+| `scripts/test-data-lessons-v18.mjs` | 第 21–25 课构造/迁移、典型误解、边界、宽幅地图与原卡片 UI 回归 |
+| `scripts/test-systems-lessons-v18.mjs` | 第 26–28 课构造/迁移、桥长/偏移、能力错误、别名状态与三种地图轮廓回归 |
 
 注册脚本顺序：`world-rules`、`learning-evidence`、`structured-lessons` 在课程模块之前；课程模块及其 UI 在 `early-lessons`/`app` 使用之前。新课通常增加 `state-lesson.js`、`state-lesson-ui.js` 这类清晰命名文件，并在 `index.html` 接入。
 

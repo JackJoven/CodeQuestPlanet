@@ -1,6 +1,6 @@
 # 27 · 第 31 课：作品与测试
 
-Status: needs-triage
+Status: technical-acceptance-passed
 
 开发依赖：第 7 课、第 23 课、第 26 课、第 30 课。范围：仅本课及必需的最小共用扩展。
 
@@ -40,3 +40,4 @@ Status: needs-triage
 ## Comments
 
 - 2026-09-17：已拆分逐课规格。先完成依赖并复核固定夹具，再改为 ready-for-agent；工单存在不表示已实现。
+- 2026-09-22：`1.8-31.1` 完成受限作品版本与正常/指定反例/边界三类真实测试；课堂效果待试教。

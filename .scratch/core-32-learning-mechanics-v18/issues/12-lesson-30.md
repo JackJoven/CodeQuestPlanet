@@ -1,6 +1,6 @@
 # 12 · 第 30 课：时间与条件重查
 
-Status: needs-triage
+Status: technical-acceptance-passed
 
 开发依赖：第 29 课。范围：仅本课及必需的最小共用扩展。
 
@@ -40,3 +40,4 @@ Status: needs-triage
 ## Comments
 
 - 2026-09-17：已拆分逐课规格。先完成依赖并复核固定夹具，再改为 ready-for-agent；工单存在不表示已实现。
+- 2026-09-22：`1.8-30.1` 完成停靠/占用分离、逐拍重查、固定等待反例与长期不可用安全停止；课堂效果待试教。

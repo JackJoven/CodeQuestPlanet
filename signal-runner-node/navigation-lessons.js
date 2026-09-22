@@ -1,12 +1,27 @@
 (function (root) {
   "use strict";
-  const revisions = { 3: "1.8-03.1", 4: "1.8-04.1", 5: "1.8-05.1" };
+  const revisions = { 3: "1.8-03.1", 4: "1.8-04.2", 5: "1.8-05.1" };
   const actions = { move: "前进", left: "左转", right: "右转", collect: "采集", teleport: "传送" };
-  const limits = { 3: 20, 4: 12, 5: 8 };
+  const limits = { 3: 20, 4: 28, 5: 8 };
   const copy = value => root.CodeQuestEvidence.clone(value);
   const canonical = value => root.CodeQuestEvidence.canonical(value);
   const actionCode = { move: "move()", left: "turn_left()", right: "turn_right()", collect: "collect()", teleport: "teleport()" };
   const allowedFor = lessonNo => lessonNo === 5 ? ["move", "left", "right", "teleport", "collect"] : ["move", "left", "right", "collect"];
+  const directionNames = ["N", "E", "S", "W"];
+  function commandsForPath(path, startDir, collect = true) {
+    let direction = directionNames.indexOf(startDir), commands = [];
+    for (let index = 1; index < path.length; index += 1) {
+      const [x0,y0] = path[index - 1], [x1,y1] = path[index];
+      const next = x1 > x0 ? 1 : x1 < x0 ? 3 : y1 > y0 ? 2 : 0;
+      const turn = (next - direction + 4) % 4;
+      if (turn === 1) commands.push("right");
+      if (turn === 2) commands.push("right", "right");
+      if (turn === 3) commands.push("left");
+      commands.push("move"); direction = next;
+    }
+    if (collect) commands.push("collect");
+    return commands;
+  }
 
   function routeWorld(equalCost = false) {
     const width = 10, height = 7, cells = Array.from({ length: height }, () => Array(width).fill("_"));
@@ -35,14 +50,29 @@
   }
 
   function debugWorld(phase) {
-    const grid = ["________", "_gggg___", "_Sggg___", "___gg___", "___gB___", "________"];
-    const correct = ["move","move","right","move","move","left","move","collect"];
-    const faultStep = phase === "challenge" ? 5 : 3;
-    const faulty = correct.slice(); faulty[faultStep - 1] = phase === "challenge" ? "right" : "left";
-    return { grid, start: { x: 1, y: 2 }, startDir: "E", target: { x: 4, y: 4 }, correct, faulty, faultStep,
-      faultKind: phase === "challenge" ? "漏走一步，提前右转" : "在岔口向反方向早转",
-      terrain: { version: "1.8", heights: { "3,3": 1, "3,4": 1, "4,4": 1 },
-        stairs: [{ from: { x: 3, y: 2 }, to: { x: 3, y: 3 } }], portals: [], switches: [], gates: [] } };
+    const challenge = phase === "challenge", width = 13, height = 11;
+    const path = challenge
+      ? [[11,8],[10,8],[9,8],[8,8],[7,8],[7,7],[7,6],[6,6],[5,6],[4,6],[3,6],[3,5],[3,4],[3,3],[3,2],[4,2],[5,2]]
+      : [[1,8],[2,8],[3,8],[4,8],[5,8],[5,7],[5,6],[5,5],[6,5],[7,5],[8,5],[9,5],[9,4],[9,3],[9,2],[10,2],[11,2]];
+    const rows = Array.from({ length: height }, () => Array(width).fill("_"));
+    path.forEach(([x,y]) => { rows[y][x] = "g"; });
+    const turnPoints = challenge ? [[11,8],[7,8],[7,6],[3,6],[3,2],[5,2]] : [[1,8],[5,8],[5,5],[9,5],[9,2],[11,2]];
+    for (const [cx,cy] of turnPoints) for (let y = cy - 1; y <= cy + 1; y += 1) for (let x = cx - 1; x <= cx + 1; x += 1)
+      if (x > 0 && x < width - 1 && y > 0 && y < height - 1) rows[y][x] = "g";
+    const start = { x: path[0][0], y: path[0][1] }, target = { x: path.at(-1)[0], y: path.at(-1)[1] }, startDir = challenge ? "W" : "E";
+    rows[start.y][start.x] = "S"; rows[target.y][target.x] = "B";
+    const correct = commandsForPath(path, startDir), faultStep = challenge ? 8 : 5, faulty = correct.slice();
+    faulty[faultStep - 1] = "right";
+    const heights = {};
+    const levelOneStart = challenge ? 5 : 5, levelTwoStart = challenge ? 11 : 12;
+    path.slice(levelOneStart).forEach(([x,y]) => { heights[`${x},${y}`] = 1; });
+    path.slice(levelTwoStart).forEach(([x,y]) => { heights[`${x},${y}`] = 2; });
+    const stairs = challenge
+      ? [{ from: { x: 7, y: 8 }, to: { x: 7, y: 7 } }, { from: { x: 3, y: 6 }, to: { x: 3, y: 5 } }]
+      : [{ from: { x: 5, y: 8 }, to: { x: 5, y: 7 } }, { from: { x: 9, y: 5 }, to: { x: 9, y: 4 } }];
+    return { grid: rows.map(row => row.join("")), start, startDir, target, correct, faulty, faultStep, path,
+      faultKind: challenge ? "在第二个折返点向右误转" : "在第一个折返点向右误转",
+      terrain: { version: "1.8", heights, stairs, portals: [], switches: [], gates: [], oneWays: [], rotators: [], conveyors: [] } };
   }
 
   function coordinateWorld(phase, choice) {
@@ -107,7 +137,8 @@
       phases = ["定位并修复首次偏离", "故障位置迁移"];
       hints = ["先运行原始坏程序，不要一开始就改。", "从第 1 步起比较位置和朝向，停在第一次不同处。", `本案例应重点检查第 ${world.faultStep} 步。`];
       semanticConstraints = { capability: "first-divergence", faultStep: world.faultStep, faultKind: world.faultKind };
-      labels = [{ at: world.start, text: "维修道起点" }, { at: { x: 3, y: 2 }, text: "岔口" }, { at: world.target, text: "维修宝石" }];
+      labels = [{ at: world.start, text: "维修道起点" }, { at: independent ? { x: 7, y: 8 } : { x: 5, y: 8 }, text: "第一折返点" },
+        { at: independent ? { x: 3, y: 6 } : { x: 9, y: 5 }, text: "第二折返点" }, { at: world.target, text: "维修宝石" }];
     } else {
       world = coordinateWorld(p.phase, d.portalChoice);
       goal = `把入口配对到出口 (${world.correctExit.x}, ${world.correctExit.y})，再显式传送并采集宝石。`;

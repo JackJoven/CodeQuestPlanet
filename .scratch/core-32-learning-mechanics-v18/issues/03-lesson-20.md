@@ -1,6 +1,6 @@
 # 03 · 第 20 课：返回值
 
-Status: needs-triage
+Status: technical-acceptance-passed
 
 开发依赖：第 18 课。范围：仅本课及必需的最小共用扩展。
 
@@ -40,3 +40,4 @@ Status: needs-triage
 ## Comments
 
 - 2026-09-17：已拆分逐课规格。先完成依赖并复核固定夹具，再改为 ready-for-agent；工单存在不表示已实现。
+- 2026-09-21：完成 `1.8-20.2`。交付 13×11 环形双出口检测站、真实 `return` 与调用结果连接、真假迁移及固定条件反例；课堂效果仍待试教。

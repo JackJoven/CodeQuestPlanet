@@ -94,13 +94,16 @@
           <div class="world-heading">
             <div>
               <strong>3D 任务</strong>
-              <span>观察旋转地图，再运行你的程序</span>
+              <span>
+                观察旋转地图，再运行你的程序
+                <span class="world-view-help" aria-label="地图视角操作">左键平移 · 右键旋转 · 滚轮缩放 · 双击恢复视角</span>
+              </span>
             </div>
             <span class="world-state" id="worldState">等待运行</span>
           </div>
           <div id="structuredProgramPanel" hidden></div>
           <div class="canvas-shell">
-            <canvas id="gameCanvas" width="960" height="640" aria-label="Nova 的任务地图，地图左上方外侧包含随视角旋转的三维 N 向三角箭头"></canvas>
+            <canvas id="gameCanvas" width="960" height="640" aria-label="Nova 的任务地图。左键拖动平移，右键或按住 Shift 加左键拖动旋转，滚轮缩放，双击恢复默认视角"></canvas>
             <div class="world-hud">
               <div class="gem-counter">
                 <span class="gem-mark" aria-hidden="true"></span>
@@ -118,7 +121,7 @@
             <div class="world-controls">
               <button class="world-run-button" id="worldRunBtn" type="button">
                 <span aria-hidden="true"></span>
-                运行代码
+                运行
               </button>
               <button class="world-reset-button" id="worldResetBtn" type="button"><span aria-hidden="true">↻</span>复位</button>
             </div>
@@ -404,6 +407,11 @@
               <section class="program-panel">
                 <div class="panel-title">
                   <span class="step-label"><b>2</b><span id="programTitle">我的程序</span></span>
+                  <div class="program-edit-actions" id="programEditActions" aria-label="编辑选中的指令" hidden>
+                    <button class="program-edit-button" id="programReplaceBtn" type="button" disabled>替换</button>
+                    <button class="program-edit-button" id="programInsertBtn" type="button" disabled>添加</button>
+                    <button class="program-edit-button" id="programCancelBtn" type="button" disabled>取消</button>
+                  </div>
                   <small id="activeBoardHint">按顺序执行</small>
                 </div>
                 <ol class="program-list" id="programList"></ol>
@@ -590,6 +598,16 @@
     <script src="./foundation-lessons-ui.js"></script>
     <script src="./navigation-lessons.js"></script>
     <script src="./navigation-lessons-ui.js"></script>
+    <script src="./progressive-lessons.js"></script>
+    <script src="./progressive-lessons-ui.js"></script>
+    <script src="./advanced-lessons.js"></script>
+    <script src="./advanced-lessons-ui.js"></script>
+    <script src="./data-lessons.js"></script>
+    <script src="./data-lessons-ui.js"></script>
+    <script src="./systems-lessons.js"></script>
+    <script src="./systems-lessons-ui.js"></script>
+    <script src="./collaboration-lessons.js"></script>
+    <script src="./collaboration-lessons-ui.js"></script>
     <script src="./state-lesson.js"></script>
     <script src="./state-lesson-ui.js"></script>
     <script src="./parameter-lesson.js"></script>

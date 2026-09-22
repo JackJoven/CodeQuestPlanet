@@ -175,24 +175,58 @@
 .student-page.is-parameter-lesson .workspace { min-height: 0; }
 .student-page.is-parameter-lesson .control-panel { max-height: calc(100dvh - 128px); }
 .student-page.is-parameter-lesson .play-panel { height: calc(100dvh - 128px); min-height: 520px; }
-.student-page.is-parameter-lesson .canvas-shell { --world-control-safe-area: 0px; flex: 1 1 auto; min-height: 480px; max-height: none; padding: 0; }
-.student-page.is-parameter-lesson .play-panel .world-heading,
-.student-page.is-parameter-lesson .play-panel .world-controls,
+.student-page.is-parameter-lesson .canvas-shell { --world-control-safe-area: 82px; flex: 1 1 auto; min-height: 480px; max-height: none; padding: 0 0 var(--world-control-safe-area); }
 .student-page.is-parameter-lesson .play-panel .world-hud,
 .student-page.is-parameter-lesson .play-panel .run-banner,
-.student-page.is-parameter-lesson .play-panel .world-failure-indicator,
 .student-page.is-parameter-lesson .play-panel #stateHud,
 .student-page.is-parameter-lesson #standardLogPanel { display: none; }
-.student-page.is-state-lesson .play-panel .world-controls,
 .student-page.is-state-lesson .play-panel .world-hud,
 .student-page.is-state-lesson .play-panel .run-banner,
-.student-page.is-state-lesson .play-panel .world-failure-indicator,
 .student-page.is-state-lesson .play-panel #stateHud,
-.student-page.is-state-lesson #standardLogPanel { display: none; }
+.student-page.is-state-lesson #standardLogPanel,
+.student-page.is-advanced-lesson .play-panel .world-hud,
+.student-page.is-advanced-lesson .play-panel .run-banner,
+.student-page.is-advanced-lesson .play-panel #stateHud,
+.student-page.is-advanced-lesson #standardLogPanel,
+.student-page.is-data-lesson .play-panel .world-hud,
+.student-page.is-data-lesson .play-panel .run-banner,
+.student-page.is-data-lesson .play-panel #stateHud,
+.student-page.is-data-lesson #standardLogPanel { display: none; }
 .student-page.is-state-lesson .early-heading { display: flex; gap: 10px; justify-content: space-between; align-items: center; }
 .student-page.is-state-lesson .early-heading h2 { margin: 0; font-size: 1.2rem; }
 .student-page.is-state-lesson .early-phases { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 12px; }
 .student-page.is-state-lesson .early-lesson-panel { padding: 16px; }
+.student-page.is-advanced-lesson .early-phases { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 12px; }
+.student-page.is-advanced-lesson .early-lesson-panel { padding: 16px; }
+.student-page.is-advanced-lesson .operation-panel { margin-top: 12px; }
+.student-page.is-advanced-lesson .operation-panel .code-panel { display: none; }
+.student-page.is-advanced-lesson .program-chip.is-current { outline: 2px solid var(--cq-gold); outline-offset: -2px; background: #315999; }
+.student-page.is-data-lesson .early-phases { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 12px; }
+.student-page.is-data-lesson .early-lesson-panel { padding: 16px; }
+.student-page.is-data-lesson .operation-panel { margin-top: 12px; }
+.student-page.is-data-lesson .operation-panel .code-panel { display: none; }
+.student-page.is-data-lesson .program-chip.is-current { outline: 2px solid var(--cq-gold); outline-offset: -2px; background: #315999; }
+.advanced-control-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; margin: 12px 0; }
+.advanced-control-grid .parameter-field { margin: 0; }
+.data-instruction { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 5px 12px; margin: 12px 0; padding: 11px 12px; border-left: 3px solid var(--cq-accent); background: var(--cq-surface); border-radius: 7px; font-size: .82rem; }
+.data-instruction span { color: var(--cq-muted); }
+.data-instruction strong { color: var(--cq-text); overflow-wrap: anywhere; }
+.data-editor { display: grid; gap: 8px; margin: 12px 0; }
+.data-chip-list { display: flex; flex-wrap: wrap; gap: 7px; margin: 0; padding: 0; list-style: none; }
+.data-chip { display: flex; align-items: center; gap: 7px; min-height: 38px; padding: 5px 6px 5px 10px; border: 1px solid var(--cq-line-strong); border-radius: 8px; background: var(--cq-surface); }
+.data-chip span { display: flex; gap: 3px; }
+.early-lesson-panel .data-chip button { min-width: 32px; min-height: 32px; padding: 3px 8px; text-align: center; }
+.data-empty { padding: 10px 12px; border: 1px dashed var(--cq-line-strong); border-radius: 8px; color: var(--cq-muted); font-size: .82rem; }
+.data-add-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.early-lesson-panel .data-add-list button { min-height: 38px; padding: 6px 10px; }
+.data-route-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px 14px; }
+.data-route-grid .parameter-field { margin: 0; }
+.data-axis-note { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin: 12px 0; padding: 10px 12px; background: var(--cq-surface); border-radius: 7px; color: var(--cq-muted); font-size: .82rem; }
+.data-axis-note code { color: var(--cq-accent); }
+.data-map-wrap { margin: 4px 0 12px; }
+.early-map.data-map { width: min(100%, 720px); max-height: 430px; filter: drop-shadow(0 12px 18px rgba(0,0,0,.15)); }
+.data-map-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.data-map-legend span { padding: 4px 8px; border-radius: 999px; background: var(--cq-surface); color: var(--cq-text-soft); font-size: .76rem; }
 .student-page.is-state-lesson .early-lesson-panel .early-goal { margin: 10px 0; line-height: 1.6; }
 .student-page.is-state-lesson .operation-panel { margin-top: 12px; }
 .student-page.is-state-lesson .operation-panel .code-panel { display: none; }
@@ -250,12 +284,60 @@
   .student-page.is-state-lesson .control-panel { max-height: none; }
   .student-page.is-state-lesson .play-panel { height: auto; min-height: 0; }
   .student-page.is-state-lesson .canvas-shell { height: 430px; min-height: 430px; flex: 0 0 430px; }
+  .student-page.is-advanced-lesson .control-panel { max-height: none; }
+  .student-page.is-advanced-lesson .play-panel { height: auto; min-height: 0; }
+  .student-page.is-advanced-lesson .canvas-shell { height: 430px; min-height: 430px; flex: 0 0 430px; }
+  .student-page.is-data-lesson .control-panel { max-height: none; }
+  .student-page.is-data-lesson .play-panel { height: auto; min-height: 0; }
+  .student-page.is-data-lesson .canvas-shell { height: 430px; min-height: 430px; flex: 0 0 430px; }
 }
 @media (max-width: 480px) {
   .student-page.is-parameter-lesson .early-lesson-panel { padding: 12px; }
   .student-page.is-parameter-lesson .canvas-shell { height: 340px; min-height: 340px; flex-basis: 340px; }
   .student-page.is-state-lesson .early-lesson-panel { padding: 12px; }
   .student-page.is-state-lesson .canvas-shell { height: 340px; min-height: 340px; flex-basis: 340px; }
+  .student-page.is-advanced-lesson .early-lesson-panel { padding: 12px; }
+  .student-page.is-advanced-lesson .canvas-shell { height: 340px; min-height: 340px; flex-basis: 340px; }
+  .student-page.is-data-lesson .early-lesson-panel { padding: 12px; }
+  .student-page.is-data-lesson .canvas-shell { height: 340px; min-height: 340px; flex-basis: 340px; }
+  .advanced-control-grid { grid-template-columns: 1fr; }
   .state-counters { grid-template-columns: 1fr; }
 
+}
+
+/* Lessons 6–15 keep the original command/program workspace and add only the
+   structure controls that change the generated Python. */
+.student-page.is-progressive-lesson .play-panel .world-hud,
+.student-page.is-progressive-lesson .play-panel .run-banner,
+.student-page.is-progressive-lesson .play-panel #stateHud,
+.student-page.is-progressive-lesson #standardLogPanel { display: none; }
+.student-page.is-progressive-lesson .early-phases { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 12px; }
+.student-page.is-progressive-lesson .early-lesson-panel { padding: 16px; }
+.student-page.is-progressive-lesson .operation-panel { margin-top: 12px; }
+.student-page.is-progressive-lesson .operation-panel .code-panel { display: none; }
+.student-page.is-progressive-lesson .program-chip.is-current,
+.progressive-function-chip.is-current { outline: 2px solid var(--cq-gold); outline-offset: -2px; background: #315999; }
+.progressive-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 9px; margin: 12px 0; }
+.progressive-field { display: grid; gap: 6px; color: var(--cq-text-soft); font-size: .8rem; }
+.progressive-field select { width: 100%; min-height: 44px; padding: 8px 10px; border: 1px solid var(--cq-line-strong); border-radius: 8px; background: var(--cq-surface); color: var(--cq-text); font: inherit; }
+.progressive-field select:focus-visible { outline: 3px solid var(--cq-gold); outline-offset: 2px; }
+.progressive-function-palette { display: flex; flex-wrap: wrap; gap: 7px; }
+.progressive-function-palette button { display: grid; flex: 1 1 110px; gap: 2px; min-height: 44px; padding: 8px 10px; }
+.progressive-function-palette small { color: var(--cq-muted); }
+.progressive-function-list { display: grid; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; }
+.progressive-function-chip { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto auto; gap: 6px; align-items: center; min-width: 0; padding: 7px; border: 1px solid var(--cq-line); border-radius: 8px; background: var(--cq-surface); }
+.progressive-function-chip code { overflow-wrap: anywhere; color: var(--cq-accent); }
+.progressive-function-chip button { min-height: 34px !important; padding: 4px 7px !important; }
+.progressive-function-list .is-empty { padding: 12px; color: var(--cq-muted); text-align: center; }
+.progressive-map { width: min(100%, 560px); }
+@media (max-width: 1080px) {
+  .student-page.is-progressive-lesson .control-panel { max-height: none; }
+  .student-page.is-progressive-lesson .play-panel { height: auto; min-height: 0; }
+  .student-page.is-progressive-lesson .canvas-shell { height: 430px; min-height: 430px; flex: 0 0 430px; }
+}
+@media (max-width: 480px) {
+  .student-page.is-progressive-lesson .early-lesson-panel { padding: 12px; }
+  .student-page.is-progressive-lesson .canvas-shell { height: 340px; min-height: 340px; flex-basis: 340px; }
+  .progressive-function-chip { grid-template-columns: 22px minmax(0, 1fr) auto; }
+  .progressive-function-chip button:last-child { grid-column: 3; }
 }

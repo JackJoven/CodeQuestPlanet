@@ -62,16 +62,17 @@ async function runNavigation(number, phase, setup, learner = null, variant = 0) 
   check("lesson 4 starts with a runnable faulty program and records the failure before editing", () => {
     assert.equal(first.attempt.isFaulty, true); assert.equal(first.attempt.success, false); assert.equal(first.p.debugRuns[first.m.early.key], true);
   });
-  let m = E.mission(first.baseMission, first.p), d = first.adapter.draft(first.p); d.diagnosis = 3; d.commands[2].action = "right";
+  let m = E.mission(first.baseMission, first.p), d = first.adapter.draft(first.p); d.diagnosis = 5; d.commands[4].action = "left";
   const execution = await first.adapter.compile(m, clone(d), c.Sk), fixed = first.adapter.assess(m, clone(d), execution, false); first.adapter.record(first.p, fixed);
   check("lesson 4 requires the correct first-divergence step and one local repair", () => {
-    assert.equal(fixed.success, true); assert.equal(fixed.diagnosis, 3); assert.equal(first.p.guidedEvidence.id, fixed.id);
+    assert.equal(fixed.success, true); assert.equal(fixed.diagnosis, 5); assert.equal(first.p.guidedEvidence.id, fixed.id);
+    assert.equal(first.m.grid.length, 11); assert.equal(first.m.grid[0].length, 13); assert.equal(first.m.terrain.stairs.length, 2);
   });
   const challengeFail = await runNavigation(4, "challenge", null, first.p);
-  m = E.mission(challengeFail.baseMission, challengeFail.p); d = challengeFail.adapter.draft(challengeFail.p); d.diagnosis = 5; d.commands[4].action = "move";
+  m = E.mission(challengeFail.baseMission, challengeFail.p); d = challengeFail.adapter.draft(challengeFail.p); d.diagnosis = 8; d.commands[7].action = "left";
   const x = await challengeFail.adapter.compile(m, clone(d), c.Sk), transferred = challengeFail.adapter.assess(m, clone(d), x, false); challengeFail.adapter.record(challengeFail.p, transferred);
-  check("lesson 4 moves the fault from step 3 to step 5 for independent transfer", () => {
-    assert.equal(challengeFail.m.navigation.faultStep, 5); assert.equal(transferred.success, true); assert.equal(challengeFail.p.mastered, true);
+  check("lesson 4 moves the fault between two switchback turns for independent transfer", () => {
+    assert.equal(challengeFail.m.navigation.faultStep, 8); assert.equal(transferred.success, true); assert.equal(challengeFail.p.mastered, true);
   });
 }
 {
