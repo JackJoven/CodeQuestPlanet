@@ -791,6 +791,22 @@ window.addEventListener("unhandledrejection", (event) => {
       playback: structuredPlayback, state: sim, prerequisiteNeeded: earlyPrerequisiteNeeded(m)
     };
     earlyPanel.innerHTML = ui.render(m, earlyProfile(m.id), context);
+    const lessonTopic = {
+      1: "顺序", 2: "方向", 3: "路线规划", 4: "调试", 5: "坐标",
+      6: "任务分段", 7: "可解设计", 8: "综合调试", 9: "函数", 10: "调用约定",
+      11: "for 循环", 12: "循环作用域", 13: "if 条件", 14: "布尔逻辑", 15: "while 循环",
+      16: "综合控制", 17: "变量", 18: "多变量状态", 19: "参数", 20: "返回值",
+      21: "列表遍历", 22: "列表更新", 23: "字典查找", 24: "数据调度", 25: "二维数组",
+      26: "数据建造", 27: "对象职责", 28: "实例状态", 29: "对象交接", 30: "等待与同步",
+      31: "测试与发布", 32: "综合协作"
+    }[m.lessonNo] || m.concept;
+    const lessonHeading = earlyPanel.querySelector(".early-heading");
+    const lessonBadge = lessonHeading?.querySelector(".early-badge") || lessonHeading?.querySelector(":scope > span");
+    if (lessonBadge) {
+      lessonBadge.classList.add("early-badge");
+      lessonBadge.textContent = `第 ${m.lessonNo} 课 · ${lessonTopic}`;
+      lessonBadge.setAttribute("aria-label", `本课学习：${lessonTopic}`);
+    }
     structuredProgramPanel.replaceChildren(...earlyPanel.querySelectorAll(".structured-program-overview"));
     structuredProgramPanel.hidden = !structuredProgramPanel.children.length;
     if (structuredLesson) {
@@ -2100,6 +2116,9 @@ window.addEventListener("unhandledrejection", (event) => {
 
   function removeCommand(index) {
     const target = currentTargetProgram();
+    programScrollAnchor = target.length > 1
+      ? { kind: "standard", index: Math.min(index, target.length - 2), flash: false }
+      : null;
     setCurrentTargetProgram(target.filter((_, itemIndex) => itemIndex !== index));
     selectedProgramIndex = null;
     programEditMode = null;
@@ -2697,6 +2716,7 @@ window.addEventListener("unhandledrejection", (event) => {
   function renderProgramList() {
     if (mission().early?.v18 && window.CodeQuestStructuredLessons.get(mission())?.builder) return;
     const target = currentTargetProgram();
+    const scroll = dom.programList.scrollTop;
     if (!hasSelectedProgramStep()) {
       selectedProgramIndex = null;
       programEditMode = null;
@@ -2748,6 +2768,7 @@ window.addEventListener("unhandledrejection", (event) => {
         <button class="program-remove" data-remove="${index}" type="button" aria-label="移除 ${formatCommand(id)}">×</button>
       </li>
     `).join("");
+    dom.programList.scrollTop = scroll;
     if (programScrollAnchor?.kind === "standard") {
       const row = dom.programList.querySelector(`[data-select-step="${programScrollAnchor.index}"]`);
       if (programScrollAnchor.flash) row?.classList.add("is-edit-confirmed");
@@ -5438,7 +5459,6 @@ window.addEventListener("unhandledrejection", (event) => {
       plant: new THREE.MeshStandardMaterial({ color: 0x3f8d2e, roughness: 0.8, flatShading: true }),
       plantLight: new THREE.MeshStandardMaterial({ color: 0x6faf3c, roughness: 0.78, flatShading: true }),
       trunk: new THREE.MeshStandardMaterial({ color: 0x9a642d, roughness: 0.78 }),
-      shadow: new THREE.MeshBasicMaterial({ color: 0x47606b, transparent: true, opacity: 0.14, depthWrite: false }),
       backdropDirt: new THREE.MeshStandardMaterial({ color: 0x8a5128, roughness: 0.9, transparent: true, opacity: 0.28 }),
       backdropGrass: new THREE.MeshStandardMaterial({ color: 0x8cc957, roughness: 0.9, transparent: true, opacity: 0.28 }),
       backdropRock: new THREE.MeshStandardMaterial({ color: 0x9ba9b3, roughness: 0.84, flatShading: true, transparent: true, opacity: 0.28 }),
@@ -5520,7 +5540,6 @@ window.addEventListener("unhandledrejection", (event) => {
 
       addBackdropIslands(root, bounds, spacing);
       addWaterBase(root, bounds, spacing);
-      addIslandShadow(root, tiles, worldX, worldZ, spacing);
       addWater(root, grid, worldX, worldZ, spacing);
       addContinuousIsland(root, grid, tiles, worldX, worldZ, spacing);
       addTerrainDevices(root, activeMission.terrain, simState, worldX, worldZ);
@@ -5611,7 +5630,7 @@ window.addEventListener("unhandledrejection", (event) => {
 
     function setupViewDrag() {
       targetCanvas.addEventListener("wheel", (event) => {
-        viewZoom = Math.min(2.5, Math.max(0.62, viewZoom * Math.exp(-event.deltaY * 0.0014)));
+        viewZoom = Math.min(maxViewZoom(), Math.max(0.62, viewZoom * Math.exp(-event.deltaY * 0.0014)));
         scheduleViewRender();
         event.preventDefault();
       }, { passive: false });
@@ -5626,6 +5645,9 @@ window.addEventListener("unhandledrejection", (event) => {
       targetCanvas.addEventListener("pointerdown", (event) => {
         if (![0, 2].includes(event.button) && event.pointerType === "mouse") return;
         const rotating = event.button === 2 || (event.button === 0 && event.shiftKey);
+        camera.updateMatrixWorld(true);
+        const screenRight = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0).setY(0).normalize();
+        const screenUp = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1).setY(0).normalize();
         dragState = {
           pointerId: event.pointerId,
           mode: rotating ? "rotate" : "pan",
@@ -5634,7 +5656,11 @@ window.addEventListener("unhandledrejection", (event) => {
           startPanX: viewPanX,
           startPanZ: viewPanZ,
           startYaw: viewYaw,
-          startPitch: viewPitch
+          startPitch: viewPitch,
+          screenRightX: screenRight.x,
+          screenRightZ: screenRight.z,
+          screenUpX: screenUp.x,
+          screenUpZ: screenUp.z
         };
         targetCanvas.classList.add(rotating ? "is-rotating" : "is-dragging");
         targetCanvas.setPointerCapture?.(event.pointerId);
@@ -5658,13 +5684,11 @@ window.addEventListener("unhandledrejection", (event) => {
         const unitsPerPixel = Math.max(0.004, span / Math.max(380, targetCanvas.clientWidth)) / viewZoom;
         const dx = dxPixels * unitsPerPixel;
         const dy = dyPixels * unitsPerPixel;
-        const rightX = Math.cos(viewYaw);
-        const rightZ = Math.sin(viewYaw);
-        const forwardX = -Math.sin(viewYaw);
-        const forwardZ = Math.cos(viewYaw);
         const panLimit = Math.max(2.4, span * 0.8);
-        viewPanX = Math.max(-panLimit, Math.min(panLimit, dragState.startPanX - dx * rightX - dy * forwardX));
-        viewPanZ = Math.max(-panLimit, Math.min(panLimit, dragState.startPanZ - dx * rightZ - dy * forwardZ));
+        viewPanX = Math.max(-panLimit, Math.min(panLimit,
+          dragState.startPanX - dx * dragState.screenRightX + dy * dragState.screenUpX));
+        viewPanZ = Math.max(-panLimit, Math.min(panLimit,
+          dragState.startPanZ - dx * dragState.screenRightZ + dy * dragState.screenUpZ));
         scheduleViewRender();
         event.preventDefault();
       });
@@ -5676,6 +5700,13 @@ window.addEventListener("unhandledrejection", (event) => {
           targetCanvas.classList.remove("is-dragging", "is-rotating");
         });
       });
+    }
+
+    function maxViewZoom() {
+      if (!lastViewFrame) return 4;
+      const { bounds, spacing } = lastViewFrame;
+      const span = Math.max(bounds.maxX - bounds.minX + 1, bounds.maxY - bounds.minY + 1) * spacing;
+      return Math.min(5.5, Math.max(4, 3.25 + span * 0.18));
     }
 
     function resetView() {
@@ -5972,19 +6003,6 @@ window.addEventListener("unhandledrejection", (event) => {
         ripple.scale.set(1.25 + (i % 3) * 0.24, 1, 1);
         parent.add(ripple);
       }
-    }
-
-    function addIslandShadow(parent, tiles, worldX, worldZ, spacing) {
-      const shape = new THREE.Mesh(
-        new THREE.CircleGeometry(Math.max(2.8, tiles.length * 0.13), 56),
-        materials.shadow
-      );
-      const xs = tiles.map((tile) => worldX(tile.x));
-      const zs = tiles.map((tile) => worldZ(tile.y));
-      shape.position.set((Math.min(...xs) + Math.max(...xs)) / 2, -0.72, (Math.min(...zs) + Math.max(...zs)) / 2 + spacing * 0.28);
-      shape.rotation.x = -Math.PI / 2;
-      shape.scale.set(1.2, 0.48, 1);
-      parent.add(shape);
     }
 
     function addContinuousIsland(parent, grid, tiles, worldX, worldZ, spacing) {
@@ -7513,6 +7531,13 @@ window.addEventListener("unhandledrejection", (event) => {
         saveEarlyProfile(m.id); render(); return;
       }
       const selectedId = action === "add" && programEditMode === "replace" ? draft.selected : null;
+      if (action === "remove") {
+        const removedIndex = draft.commands.findIndex((item) => String(item.id) === button.dataset.value);
+        const neighbor = draft.commands[removedIndex + 1] || draft.commands[removedIndex - 1];
+        programScrollAnchor = removedIndex >= 0 && neighbor
+          ? { kind: "structured", id: neighbor.id, flash: false }
+          : null;
+      }
       const result = adapter.edit(m, p, { action, value: button.dataset.value });
       if (selectedId !== null && selectedId !== undefined) programScrollAnchor = { kind: "structured", id: selectedId, flash: true };
       if (["add", "remove", "clear"].includes(action)) programEditMode = null;

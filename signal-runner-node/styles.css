@@ -1312,7 +1312,7 @@ button {
   position: relative;
   overflow: hidden;
   min-height: clamp(420px, 62vh, 640px);
-  padding-bottom: var(--world-control-safe-area);
+  padding-bottom: 0;
   border: 0;
   border-radius: 18px;
   background:
@@ -1324,7 +1324,7 @@ button {
 canvas {
   display: block;
   width: 100%;
-  height: clamp(320px, calc(62vh - var(--world-control-safe-area)), 540px);
+  height: clamp(420px, 62vh, 640px);
   min-height: 320px;
   cursor: grab;
   touch-action: none;
@@ -1449,13 +1449,15 @@ canvas.is-rotating {
 .world-controls {
   position: absolute;
   left: 50%;
-  bottom: 20px;
+  bottom: 8px;
   z-index: 2;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 18px;
   max-width: calc(100% - 32px);
+  padding: 0;
+  background: transparent;
 }
 
 .world-run-button,
@@ -2614,6 +2616,10 @@ body.student-page {
   margin-top: 34px;
 }
 
+.student-page .stage-lessons {
+  margin-top: 20px;
+}
+
 .student-page .course-map-heading,
 .student-page .stage-lessons-heading {
   display: flex;
@@ -2621,6 +2627,10 @@ body.student-page {
   justify-content: space-between;
   gap: 20px;
   margin-bottom: 16px;
+}
+
+.student-page .stage-lessons-heading {
+  margin-bottom: 12px;
 }
 
 .student-page .course-map-heading h2,
@@ -2791,12 +2801,12 @@ body.student-page {
 }
 
 .student-page .stage-browser-head {
-  min-height: 48px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 20px;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 
 .student-page .stage-back-button {
@@ -2840,7 +2850,7 @@ body.student-page {
 
 .student-page .stage-spotlight {
   position: relative;
-  min-height: clamp(220px, 22vw, 240px);
+  min-height: 208px;
   overflow: hidden;
   border: 1px solid var(--cq-line-strong);
   border-radius: 8px;
@@ -2848,7 +2858,7 @@ body.student-page {
 }
 
 .student-page .stage-spotlight-overlay {
-  bottom: 68px;
+  bottom: 60px;
   background: linear-gradient(90deg, rgba(5, 13, 37, 0.93) 0%, rgba(5, 13, 37, 0.62) 38%, rgba(5, 13, 37, 0.04) 68%);
 }
 
@@ -2856,7 +2866,7 @@ body.student-page {
   position: relative;
   z-index: 1;
   width: min(580px, 66%);
-  padding: 24px;
+  padding: 16px 20px;
 }
 
 .student-page .stage-spotlight-copy > span {
@@ -2896,11 +2906,11 @@ body.student-page {
 }
 
 .student-page .stage-mission-summary > div {
-  min-height: 68px;
+  min-height: 60px;
   display: grid;
   align-content: center;
-  gap: 5px;
-  padding: 12px 16px;
+  gap: 4px;
+  padding: 8px 16px;
   background: color-mix(in srgb, var(--cq-surface-soft) 94%, transparent);
 }
 
@@ -2917,19 +2927,22 @@ body.student-page {
 }
 
 .student-page .lesson-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
 }
 
 .student-page .lesson-card {
-  min-height: 196px;
-  padding: 15px;
+  min-height: 76px;
+  padding: 10px 14px;
   border: 1px solid var(--cq-line);
   border-radius: 8px;
   background: var(--cq-surface);
   box-shadow: none;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(160px, 0.75fr) minmax(170px, 0.9fr) minmax(260px, 1.45fr) minmax(180px, 0.9fr);
+  grid-template-areas: "meta title detail footer";
+  align-items: center;
+  gap: 12px;
   cursor: pointer;
   text-align: left;
   transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), border-color 180ms ease-out, background-color 180ms ease-out;
@@ -2937,7 +2950,7 @@ body.student-page {
 
 .student-page .lesson-card:hover,
 .student-page .lesson-card:focus-visible {
-  transform: translateY(-3px);
+  transform: translateX(3px);
   border-color: var(--cq-accent-strong);
   background: var(--cq-surface-hover);
   box-shadow: none;
@@ -2972,6 +2985,12 @@ body.student-page {
   gap: 10px;
 }
 
+.student-page .lesson-card-meta {
+  grid-area: meta;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
 .student-page .lesson-card-meta > span:first-child {
   color: var(--cq-accent);
   font-size: 0.72rem;
@@ -2998,37 +3017,36 @@ body.student-page {
 }
 
 .student-page .lesson-card > strong {
-  margin-top: 16px;
+  grid-area: title;
+  margin: 0;
   color: #ffffff;
   font-size: 1.05rem;
   line-height: 1.3;
 }
 
 .student-page .lesson-card > small {
-  display: -webkit-box;
-  overflow: hidden;
-  margin-top: 9px;
+  grid-area: detail;
+  display: block;
+  margin: 0;
   color: var(--cq-muted);
   font-size: 0.78rem;
   line-height: 1.48;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
 }
 
 .student-page .lesson-card-footer {
+  grid-area: footer;
   width: 100%;
-  margin-top: auto;
-  padding-top: 14px;
+  margin: 0;
+  padding: 0;
 }
 
 .student-page .lesson-card-footer em {
-  overflow: hidden;
   color: var(--cq-text-soft);
   font-size: 0.75rem;
   font-style: normal;
   font-weight: 800;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.4;
+  white-space: normal;
 }
 
 .student-page .lesson-card-footer b {
@@ -3036,8 +3054,20 @@ body.student-page {
   font-size: 1.12rem;
 }
 
+@media (max-width: 880px) {
+  .student-page .lesson-card {
+    min-height: 96px;
+    grid-template-columns: minmax(120px, 0.7fr) minmax(0, 1.3fr);
+    grid-template-areas:
+      "meta title"
+      "detail detail"
+      "footer footer";
+    gap: 6px 12px;
+  }
+}
+
 .student-page .workspace {
-  min-height: calc(100vh - 68px);
+  min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(390px, 0.85fr);
   gap: 0;
@@ -3055,7 +3085,7 @@ body.student-page {
 .student-page .play-panel {
   grid-column: 1;
   grid-row: 1;
-  height: calc(100vh - 68px);
+  height: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -3122,16 +3152,16 @@ body.student-page {
 
 .student-page canvas {
   position: absolute;
-  inset: 0 0 var(--world-control-safe-area);
+  inset: 0;
   width: 100%;
-  height: calc(100% - var(--world-control-safe-area));
+  height: 100%;
   min-height: 0;
 }
 
 .student-page .world-failure-indicator {
   position: absolute;
   left: 18px;
-  bottom: calc(var(--world-control-safe-area) + 16px);
+  bottom: 76px;
   z-index: 4;
   display: flex;
   align-items: center;
@@ -3200,7 +3230,7 @@ body.student-page {
 
 .student-page .canvas-shell[data-failure]::after {
   position: absolute;
-  inset: 0 0 var(--world-control-safe-area);
+  inset: 0;
   z-index: 2;
   border: 2px solid rgba(255, 112, 143, 0.72);
   content: "";
@@ -3252,7 +3282,7 @@ body.student-page {
 }
 
 .student-page .world-controls {
-  bottom: 18px;
+  bottom: 8px;
 }
 
 .student-page .world-run-button,
@@ -3292,12 +3322,37 @@ body.student-page {
 .student-page .control-panel {
   grid-column: 2;
   grid-row: 1;
-  max-height: calc(100vh - 68px);
+  height: 100%;
+  max-height: none;
   display: block;
   overflow-y: auto;
   padding: 22px;
   border-left: 1px solid var(--cq-line);
   background: var(--cq-surface-soft);
+}
+
+body.student-page.is-lesson-playing {
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.student-page.is-lesson-playing .app-shell {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.student-page.is-lesson-playing .topbar {
+  flex: 0 0 auto;
+}
+
+.student-page.is-lesson-playing .workspace {
+  flex: 1 1 0;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .student-page .pill {
@@ -6421,6 +6476,22 @@ body.student-page {
 }
 
 @media (max-width: 980px) {
+  body.student-page.is-lesson-playing {
+    height: auto;
+    overflow: auto;
+  }
+
+  .student-page.is-lesson-playing .app-shell {
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+
+  .student-page.is-lesson-playing .workspace {
+    height: auto;
+    overflow: visible;
+  }
+
   .student-page .topbar {
     grid-template-columns: minmax(120px, 1fr) minmax(180px, 2fr) minmax(160px, 1fr);
     padding-inline: 14px;
@@ -6431,9 +6502,12 @@ body.student-page {
     width: 68%;
   }
 
-  .student-page .stage-grid,
-  .student-page .lesson-grid {
+  .student-page .stage-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .student-page .lesson-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .student-page .workspace {
@@ -6453,6 +6527,7 @@ body.student-page {
   }
 
   .student-page .control-panel {
+    height: auto;
     max-height: none;
     overflow: visible;
     border-top: 1px solid var(--cq-line);
@@ -6573,7 +6648,7 @@ body.student-page {
   .student-page .stage-browser-head {
     align-items: stretch;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
   }
 
   .student-page .stage-back-button {
@@ -6586,7 +6661,7 @@ body.student-page {
   }
 
   .student-page .stage-spotlight {
-    min-height: 260px;
+    min-height: 232px;
   }
 
   .student-page .stage-spotlight > img {
@@ -6594,7 +6669,7 @@ body.student-page {
   }
 
   .student-page .stage-spotlight-overlay {
-    bottom: 72px;
+    bottom: 64px;
   }
 
   .student-page .stage-spotlight-copy h2 {
@@ -6608,7 +6683,7 @@ body.student-page {
   }
 
   .student-page .stage-mission-summary > div {
-    min-height: 72px;
+    min-height: 64px;
     padding: 8px 12px;
   }
 
@@ -6617,7 +6692,13 @@ body.student-page {
   }
 
   .student-page .lesson-card {
-    min-height: 178px;
+    min-height: 108px;
+    grid-template-columns: minmax(120px, 0.7fr) minmax(0, 1.3fr);
+    grid-template-areas:
+      "meta title"
+      "detail detail"
+      "footer footer";
+    gap: 6px 12px;
   }
 
   .student-page .play-panel {
@@ -7085,6 +7166,10 @@ body.student-page {
   padding: 24px 0 64px;
 }
 
+.student-page .learning-dashboard:has(.stage-browser-head) {
+  padding-top: 12px;
+}
+
 .student-page.is-lesson-playing .learning-dashboard {
   display: none;
 }
@@ -7382,6 +7467,12 @@ body.student-page {
     padding-inline: 9px;
   }
 
+}
+
+@media (max-width: 360px) {
+  .student-page .stage-spotlight {
+    min-height: 260px;
+  }
 }
 
 .student-page .auth-modal {

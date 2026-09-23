@@ -175,7 +175,13 @@
 .student-page.is-parameter-lesson .workspace { min-height: 0; }
 .student-page.is-parameter-lesson .control-panel { max-height: calc(100dvh - 128px); }
 .student-page.is-parameter-lesson .play-panel { height: calc(100dvh - 128px); min-height: 520px; }
-.student-page.is-parameter-lesson .canvas-shell { --world-control-safe-area: 82px; flex: 1 1 auto; min-height: 480px; max-height: none; padding: 0 0 var(--world-control-safe-area); }
+.student-page.is-parameter-lesson .canvas-shell { flex: 1 1 auto; min-height: 480px; max-height: none; padding: 0; }
+.student-page.is-foundation-lesson .play-panel .world-hud,
+.student-page.is-foundation-lesson .play-panel .run-banner,
+.student-page.is-foundation-lesson .play-panel #stateHud,
+.student-page.is-navigation-lesson .play-panel .world-hud,
+.student-page.is-navigation-lesson .play-panel .run-banner,
+.student-page.is-navigation-lesson .play-panel #stateHud,
 .student-page.is-parameter-lesson .play-panel .world-hud,
 .student-page.is-parameter-lesson .play-panel .run-banner,
 .student-page.is-parameter-lesson .play-panel #stateHud,
@@ -277,7 +283,7 @@
 .parameter-live-flow { padding: 8px 10px; margin: 4px 0; font-size: .86rem; line-height: 1.65; color: var(--cq-accent); background: var(--cq-surface); border-radius: 6px; }
 .parameter-meaning { display: grid; gap: 6px; margin: 8px 0; }
 .parameter-explanation .parameter-meaning button[aria-pressed="true"] { background: var(--cq-accent); color: var(--cq-bg-deep); }
-@media (max-width: 1080px) {
+@media (max-width: 980px) {
   .student-page.is-parameter-lesson .control-panel { max-height: none; }
   .student-page.is-parameter-lesson .play-panel { height: auto; min-height: 0; }
   .student-page.is-parameter-lesson .canvas-shell { height: 430px; min-height: 430px; flex: 0 0 430px; }
@@ -330,7 +336,7 @@
 .progressive-function-chip button { min-height: 34px !important; padding: 4px 7px !important; }
 .progressive-function-list .is-empty { padding: 12px; color: var(--cq-muted); text-align: center; }
 .progressive-map { width: min(100%, 560px); }
-@media (max-width: 1080px) {
+@media (max-width: 980px) {
   .student-page.is-progressive-lesson .control-panel { max-height: none; }
   .student-page.is-progressive-lesson .play-panel { height: auto; min-height: 0; }
   .student-page.is-progressive-lesson .canvas-shell { height: 430px; min-height: 430px; flex: 0 0 430px; }
