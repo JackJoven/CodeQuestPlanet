@@ -866,7 +866,7 @@ window.addEventListener("unhandledrejection", (event) => {
       : programEditMode === "replace"
         ? "请选择替换指令"
         : programEditMode === "insert"
-          ? "请选择要添加的指令"
+          ? "选择要添加的指令"
           : "点击加入";
     dom.paletteInstruction.classList.toggle("is-replacing", hasSelection && Boolean(programEditMode));
     dom.commandPalette.innerHTML = view.palette;
@@ -2662,7 +2662,7 @@ window.addEventListener("unhandledrejection", (event) => {
       : canReplace
         ? "请选择替换指令"
         : canInsert
-          ? "请选择要添加的指令"
+          ? "选择要添加的指令"
       : m.lessonMode === "debug-detective" && target.length >= limit
         ? "先选中要修改的步骤"
         : m.lessonMode && m.lessonMode !== "standard" && target.length >= limit

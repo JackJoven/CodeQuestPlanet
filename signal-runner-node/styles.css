@@ -1729,7 +1729,7 @@ canvas.is-rotating {
 
 .program-edit-actions {
   display: inline-flex;
-  gap: 6px;
+  gap: 4px;
 }
 
 .program-edit-actions[hidden] {
@@ -1737,13 +1737,13 @@ canvas.is-rotating {
 }
 
 .program-edit-button {
-  min-height: 32px;
-  padding: 5px 11px;
+  min-height: 30px;
+  padding: 4px 7px;
   border: 1px solid #aac0ca;
   border-radius: 7px;
   background: #f7fbfa;
   color: var(--teal-dark);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 900;
   cursor: pointer;
 }
@@ -5374,7 +5374,7 @@ body.student-page.is-lesson-playing {
 }
 
 .student-page .program-edit-button {
-  min-height: 32px;
+  min-height: 30px;
   border-color: rgba(126, 211, 255, 0.52);
   background: #173b88;
   color: #dff7ff;
@@ -5385,6 +5385,29 @@ body.student-page.is-lesson-playing {
   border-color: #ffd267;
   background: #2b62bd;
   color: #fff3c2;
+}
+
+.student-page .program-panel .panel-title {
+  gap: 6px;
+}
+
+.student-page .palette-panel #paletteInstruction {
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+@media (min-width: 981px) and (max-width: 1279px) {
+  .student-page .builder-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (pointer: coarse) {
+  .student-page .program-edit-button {
+    min-width: 44px;
+    min-height: 44px;
+    padding-inline: 8px;
+  }
 }
 
 .student-page #programReplaceBtn:not(:disabled) {
@@ -7467,6 +7490,19 @@ body.student-page.is-lesson-playing {
     padding-inline: 9px;
   }
 
+}
+
+@media (max-width: 540px) {
+  .student-page .stage-spotlight-copy {
+    width: 100%;
+  }
+
+  .student-page .stage-spotlight-copy h2 {
+    max-width: none;
+    font-size: clamp(1.25rem, 5.4vw, 1.65rem);
+    text-wrap: nowrap;
+    white-space: nowrap;
+  }
 }
 
 @media (max-width: 360px) {
