@@ -918,6 +918,9 @@ main,
   color: #78899f;
   font-size: 9px;
 }
+.path-status[href] { color: var(--cq-accent); text-decoration: none; border-color: var(--cq-accent); }
+.path-status[href]:hover { background: var(--cq-accent); color: var(--cq-bg-deep); }
+.path-status[href]:focus-visible { outline: 2px solid var(--cq-accent); outline-offset: 3px; }
 
 .region-grid {
   display: grid;

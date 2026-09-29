@@ -854,6 +854,49 @@
         return Sk.builtin.none.none$;
       });
 
+      Sk.builtins.algorithm_neighbors = new Sk.builtin.func(function (nodeValue, orderValue) {
+        const rows = courseInputs.algorithmGrid;
+        const node = Number(Sk.ffi.remapToJs(nodeValue));
+        const order = String(Sk.ffi.remapToJs(orderValue));
+        if (!Array.isArray(rows) || !rows.length || !Number.isInteger(node) || !/^[NESW]{4}$/.test(order)
+          || new Set(order).size !== 4) runtimeFailure("邻居扫描参数无效。");
+        const width = rows[0].length, x = node % width, y = Math.floor(node / width);
+        const offsets = { N: [0, -1], E: [1, 0], S: [0, 1], W: [-1, 0] };
+        const result = [...order].map(direction => {
+          const [dx, dy] = offsets[direction], nextX = x + dx, nextY = y + dy;
+          return rows[nextY]?.[nextX] && rows[nextY][nextX] !== "#" && rows[nextY][nextX] !== "_"
+            ? nextY * width + nextX : null;
+        }).filter(Number.isInteger);
+        pushEvent("algorithm-neighbors", `第 ${currentStudentLine} 行：节点 (${x}, ${y}) 的邻居为 ${result.join("、") || "无"}。`,
+          { algorithm: { kind: "neighbors", node, order, result } });
+        return Sk.ffi.remapToPy(result);
+      });
+
+      Sk.builtins.walk_path = new Sk.builtin.func(function (pathValue) {
+        const rows = courseInputs.algorithmGrid;
+        const path = serializePythonValue(pathValue);
+        if (!world || !Array.isArray(rows) || !Array.isArray(path) || !path.length || path.length > 100
+          || !path.every(Number.isInteger)) runtimeFailure("还原路径不是有效的格子序列。");
+        const width = rows[0].length;
+        if (path[0] !== plannedState.y * width + plannedState.x) runtimeFailure("路径必须从 Nova 当前格开始。");
+        for (let index = 1; index < path.length; index += 1) {
+          const node = path[index], x = node % width, y = Math.floor(node / width);
+          if (!rows[y]?.[x] || rows[y][x] === "#" || rows[y][x] === "_"
+            || Math.abs(x - plannedState.x) + Math.abs(y - plannedState.y) !== 1) runtimeFailure("还原路径有跳步或穿墙。");
+          const dx = x - plannedState.x, dy = y - plannedState.y;
+          plannedState.directionName = dx === 1 ? "E" : dx === -1 ? "W" : dy === 1 ? "S" : "N";
+          plannedState.direction = directionNames.indexOf(plannedState.directionName);
+          plannedState.x = x; plannedState.y = y;
+          const stepCost = courseInputs.algorithmCostMode ? Number(courseInputs.costs?.[String(node)]) : 1;
+          if (!Number.isFinite(stepCost) || stepCost < 0) runtimeFailure("路径的进入能耗无效。");
+          plannedState.energy -= stepCost; plannedState.ticks += 1;
+          if (plannedState.energy < 0) runtimeFailure("Nova 沿路径行走时能量耗尽。");
+          pushEvent("move", `第 ${currentStudentLine} 行：Nova 沿还原路径走到 (${x}, ${y})。`,
+            { algorithm: { kind: "walk", node, index } });
+        }
+        return Sk.builtin.none.none$;
+      });
+
       Sk.builtins.is_passage_clear = new Sk.builtin.func(function () {
         const result = platformDocked() && !platformOccupied() && passageIsClear();
         pushEvent("condition", `第 ${currentStudentLine} 行 is_passage_clear() → ${result ? "True" : "False"}。`);

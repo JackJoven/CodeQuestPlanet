@@ -150,7 +150,7 @@ await assert.rejects(() => safetyRuntime.compile("while not at_gem():\n    turn_
 const traced = context.CodeQuestPythonRuntime.instrumentSource("count = 0\ncount += 1").code;
 assert.ok((traced.match(/__trace_variable__/g) || []).length >= 2, "+= should emit variable evidence");
 
-assert.match(appSource, /const visibleCourseLessonLimit = 32;/);
+assert.match(appSource, /const visibleCourseLessonLimit = 48;/);
 assert.match(appSource, /verifyPythonTransferCases/);
 assert.match(appSource, /signalRunnerNode\.python\.core-v1\.6/);
 assert.match(pageSource, /id="pythonCaseGrid"/);

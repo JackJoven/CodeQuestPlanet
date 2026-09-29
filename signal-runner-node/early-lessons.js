@@ -5,7 +5,7 @@
   const vectors = { N: [0, -1], E: [1, 0], S: [0, 1], W: [-1, 0] };
   const labels = { N: "北", E: "东", S: "南", W: "西" };
   const reasons = ["指令更少", "转弯更少", "我想练习转向"];
-  const isEarly = (mission) => /^course-(?:0[1-9]|[12][0-9]|3[0-2])$/.test(mission?.id || "");
+  const isEarly = (mission) => /^course-(?:0[1-9]|[12][0-9]|3[0-9]|4[0-8])$/.test(mission?.id || "");
   const copy = (value) => JSON.parse(JSON.stringify(value));
   const commands = (items) => Array.isArray(items) ? items.filter((x) => [
     "move", "left", "right", "back", "wait", "collect", "upload", "shield",

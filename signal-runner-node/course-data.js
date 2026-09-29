@@ -41,18 +41,18 @@
       number: 5,
       range: "33-40",
       title: "搜索、排序与路径规划",
-      chapter: "第 5 章：迷宫与寻路",
-      ability: "搜索、排序、visited、DFS、BFS、路径还原",
+      chapter: "第 5 章：算法工坊",
+      ability: "线性搜索、安全筛选、排序、二分搜索、图、visited、DFS",
       work: "自动寻路任务包"
     },
     {
       id: "stage-6",
       number: 6,
       range: "41-48",
-      title: "综合算法与原创作品",
-      chapter: "第 6 章：策略发布会",
-      ability: "贪心、反例、枚举、剪枝、动态规划入门、测试",
-      work: "毕业原创关卡"
+      title: "广度搜索与策略规划",
+      chapter: "第 6 章：搜索与策略",
+      ability: "BFS、带权最短路、贪心反例、枚举、记忆化、迁移测试",
+      work: "路线规划器"
     }
   ];
 
@@ -2086,6 +2086,25 @@
     };
   }
 
+  const algorithmCurriculum = {
+    33: ["逐项寻找宝石", "逐个检查货舱，找到目标索引，也能说明找不到。"],
+    34: ["筛选安全目标", "先排除危险货舱，再从安全候选中选最低能量。"],
+    35: ["稳定货舱排序", "相邻比较并排序，相等时保留原顺序。"],
+    36: ["折半锁定频段", "在有序数据中检查中点，逐次排除不可能的一半。"],
+    37: ["地图变成图", "把可走格当作节点，列出合法邻居。"],
+    38: ["访问标记", "首次发现格子就标记，避免重复加入前沿。"],
+    39: ["深度优先与回溯", "沿分支深入，遇到死路回到最近岔口。"],
+    40: ["阶段任务：未知区", "组合前沿、访问标记和前驱，还原可走路线。"],
+    41: ["广度优先搜索", "用队列逐层扩张，寻找最少步数。"],
+    42: ["前驱与路径还原", "从前驱表倒推并实际走通连续路线。"],
+    43: ["带权最短路", "比较最少步数和最低能耗，选择最低累计代价。"],
+    44: ["搜索调试", "修复重复访问，前沿耗尽时正确报告不可达。"],
+    45: ["贪心多目标", "从当前位置选择最近站点，记录完整路线。"],
+    46: ["反例与枚举", "枚举小规模路线，找出比贪心更短的方案。"],
+    47: ["爬楼梯与记忆化", "每次走 1 或 2 阶，逐阶数走法并缓存重复子问题。"],
+    48: ["终极项目：路线规划器", "根据最少步数或最低能耗目标选择策略并验优。"]
+  };
+
   function buildMission(values, index) {
     const row = {
       no: index + 1,
@@ -2100,6 +2119,12 @@
       learned: values[8],
       mistakes: values[9]
     };
+    if (algorithmCurriculum[row.no]) {
+      [row.title, row.task] = algorithmCurriculum[row.no];
+      row.explanation = row.task;
+      row.interaction = row.task;
+      row.learned = row.task;
+    }
     const stage = stageForLesson(row.no);
     const plan = routePlans.find((item) => item.id === row.planId) || planForLesson(row);
     const isSequenceLaunch = row.no === 1;

@@ -1,7 +1,7 @@
 (function () {
   const isLocalPreview = window.location.protocol === "file:";
   const courseUrl = "./signal-runner-node/index.html";
-  const visibleLessonLimit = 32;
+  const visibleLessonLimit = 48;
   const allMissions = window.SignalRunnerCourseData?.missions || [];
   const missions = allMissions.filter((mission) => Number(mission.lessonNo) <= visibleLessonLimit);
   const missionIds = new Set(missions.map((mission) => mission.id));
@@ -135,9 +135,9 @@
     dom.heroPercent.textContent = `${percent}%`;
     dom.nextMissionNumber.textContent = String(lessonNumber).padStart(2, "0");
     dom.nextMissionStage.textContent = stageName(nextMission);
-    dom.nextMissionTitle.textContent = isComplete ? "共同核心已完成" : nextMission?.title || "启动任务";
+    dom.nextMissionTitle.textContent = isComplete ? "当前课程已完成" : nextMission?.title || "启动任务";
     dom.nextMissionDescription.textContent = isComplete
-      ? "你已经完成当前开放的共同核心课程，可以回到学习世界重访任务或继续打磨作品。"
+      ? "你已经完成当前开放的编程与算法课程，可以回到学习世界重访任务或继续打磨作品。"
       : missionDescription(nextMission);
     dom.progressRing.style.setProperty("--progress", `${percent}%`);
     dom.progressPercent.textContent = `${percent}%`;

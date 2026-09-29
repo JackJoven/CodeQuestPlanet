@@ -526,11 +526,16 @@ window.addEventListener("unhandledrejection", (event) => {
       }
     ]
   };
-  // Keep later course data intact while only exposing the classroom-ready range.
-  // Raise this single limit when the next course segment is ready to reopen.
-  const visibleCourseLessonLimit = 32;
+  const visibleCourseLessonLimit = 48;
   const courseMissions = (courseCatalog.missions || [])
-    .filter((item) => Number(item.lessonNo) <= visibleCourseLessonLimit);
+    .filter((item) => Number(item.lessonNo) <= visibleCourseLessonLimit)
+    .map((item) => {
+      const algorithm = window.CodeQuestAlgorithmLessons?.definitions[item.lessonNo];
+      return algorithm ? { ...item, title: algorithm.title, concept: algorithm.title,
+        story: algorithm.goal, target: algorithm.goal, focus: algorithm.rule,
+        checkpoint: algorithm.rule, objective: algorithm.goal,
+        learned: algorithm.rule, deepExplanation: algorithm.rule } : item;
+    });
   const visibleCourseStageIds = new Set(courseMissions.map((item) => item.stage));
   const courseStages = (courseCatalog.stages || [])
     .filter((stage) => visibleCourseStageIds.has(stage.id));
@@ -763,6 +768,7 @@ window.addEventListener("unhandledrejection", (event) => {
     document.body.classList.toggle("is-progressive-lesson", Boolean(structuredLesson && m.lessonNo >= 6 && m.lessonNo <= 16));
     document.body.classList.toggle("is-advanced-lesson", Boolean(structuredLesson && [16, 18, 20].includes(m.lessonNo)));
     document.body.classList.toggle("is-data-lesson", Boolean(structuredLesson && m.lessonNo >= 21 && m.lessonNo <= 32));
+    document.body.classList.toggle("is-algorithm-lesson", Boolean(structuredLesson && m.lessonNo >= 33));
     structuredProgramPanel.hidden = true;
     for (const id of ["structuredFunctionPanel", "structuredLessonSupport", "structuredRunFeedback"])
       document.getElementById(id).hidden = !structuredLesson;
@@ -798,7 +804,11 @@ window.addEventListener("unhandledrejection", (event) => {
       16: "综合控制", 17: "变量", 18: "多变量状态", 19: "参数", 20: "返回值",
       21: "列表遍历", 22: "列表更新", 23: "字典查找", 24: "数据调度", 25: "二维数组",
       26: "数据建造", 27: "对象职责", 28: "实例状态", 29: "对象交接", 30: "等待与同步",
-      31: "测试与发布", 32: "综合协作"
+      31: "测试与发布", 32: "综合协作",
+      33: "线性搜索", 34: "安全筛选", 35: "稳定排序", 36: "二分搜索",
+      37: "地图变成图", 38: "访问标记", 39: "DFS 与回溯", 40: "搜索综合",
+      41: "广度优先", 42: "路径还原", 43: "带权最短路", 44: "搜索调试",
+      45: "贪心策略", 46: "反例与枚举", 47: "爬楼梯与记忆化", 48: "路线规划器"
     }[m.lessonNo] || m.concept;
     const lessonHeading = earlyPanel.querySelector(".early-heading");
     const lessonBadge = lessonHeading?.querySelector(".early-badge") || lessonHeading?.querySelector(":scope > span");
@@ -840,7 +850,7 @@ window.addEventListener("unhandledrejection", (event) => {
     const scroll = dom.programList.scrollTop;
     const view = window.CodeQuestStructuredLessons.get(m).builder(m, p, context);
     dom.operationPanel.hidden = false;
-    dom.commandLimit.textContent = `${view.count} / ${m.limit} 个指令`;
+    dom.commandLimit.textContent = m.algorithm ? "规则驱动" : `${view.count} / ${m.limit} 个指令`;
     dom.loadReference.textContent = "查看参考程序（记为帮助）";
     dom.loadReference.disabled = context.running;
     dom.programTabs.classList.toggle("is-visible", !view.hideFunctionTab);
@@ -861,7 +871,7 @@ window.addEventListener("unhandledrejection", (event) => {
     const draft = adapter.draft(p);
     const hasSelection = draft.selected !== null && draft.selected !== undefined;
     if (!hasSelection) programEditMode = null;
-    dom.paletteInstruction.textContent = hasSelection && !programEditMode
+    dom.paletteInstruction.textContent = m.algorithm ? "选好规则后直接运行" : hasSelection && !programEditMode
       ? "请选择替换或添加"
       : programEditMode === "replace"
         ? "请选择替换指令"
@@ -876,7 +886,7 @@ window.addEventListener("unhandledrejection", (event) => {
     if (programEditMode === "insert" && view.count >= m.limit) {
       for (const button of dom.commandPalette.querySelectorAll("button")) button.disabled = true;
     }
-    dom.programTitle.textContent = "我的程序";
+    dom.programTitle.textContent = m.algorithm ? "运行程序" : "我的程序";
     dom.activeBoardHint.hidden = true;
     dom.programList.className = `program-list${view.count ? "" : " is-empty"}`;
     dom.programList.innerHTML = view.list || "从左侧选择第一条指令";
@@ -904,7 +914,7 @@ window.addEventListener("unhandledrejection", (event) => {
     dom.runBtn.disabled = Boolean(context.playback?.busy);
     dom.stepBtn.disabled = Boolean(context.playback?.busy || context.playback?.playing);
     dom.undoBtn.disabled = context.running || !view.undo;
-    dom.clearBtn.disabled = context.running || !view.count;
+    dom.clearBtn.disabled = context.running || !view.count || Boolean(m.algorithm);
     document.getElementById("structuredRunFeedback").innerHTML = view.feedback;
     if (focus?.action || focus?.field) {
       const type = focus.field ? "lesson-field" : "lesson-action", value = focus.field || focus.action;
@@ -1448,7 +1458,8 @@ window.addEventListener("unhandledrejection", (event) => {
       failureMessage: "",
       lastCondition: null,
       loopRepetitions: {},
-      waitCount: 0
+      waitCount: 0,
+      algorithmVisual: null
     };
   }
 
@@ -1923,7 +1934,7 @@ window.addEventListener("unhandledrejection", (event) => {
         earlyNotice = error.message;
         render(); showRunBlocker(error.message); return;
       }
-      structuredPlayback = { busy: true, finished: false, playing: false, adapter, m, p, d, assisted: p.assisted, index: 0, event: null };
+      structuredPlayback = { busy: true, finished: false, playing: false, speed: 1, adapter, m, p, d, assisted: p.assisted, index: 0, event: null };
       earlyNotice = "正在准备执行。";
       render();
       let execution;
@@ -1946,18 +1957,53 @@ window.addEventListener("unhandledrejection", (event) => {
     }
     if (automatic) {
       structuredPlayback.playing = true;
-      runTimer = window.setInterval(advanceStructuredPlayback, 420);
+      runTimer = window.setInterval(structuredPlayback.m.algorithm ? advanceStructuredPlaybackFrame : advanceStructuredPlayback, 420 / structuredPlayback.speed);
     }
-    advanceStructuredPlayback();
+    structuredPlayback.reviewIndex = null;
+    (structuredPlayback.m.algorithm ? advanceStructuredPlaybackFrame : advanceStructuredPlayback)();
   }
 
-  function advanceStructuredPlayback() {
+  function advanceStructuredPlaybackFrame() {
+    const playback = structuredPlayback;
+    if (!playback?.m.algorithm || playback.busy || playback.finished) return;
+    let skipped = 0;
+    while (!playback.finished && skipped < 5000) {
+      const type = playback.execution.events[playback.index]?.type;
+      advanceStructuredPlayback(true);
+      skipped += 1;
+      if (type === "report" || ["move", "turn", "collect", "teleport", "collision-fail"].includes(type)) break;
+    }
+    render();
+  }
+
+  function advanceStructuredPlayback(quiet = false) {
     const playback = structuredPlayback;
     if (!playback || playback.busy || playback.finished) return;
     const event = playback.execution.events[playback.index++];
     if (event) {
       const previous = { x: sim.x, y: sim.y, dir: sim.dir };
       playback.event = event;
+      if (playback.m.algorithm && event.type === "report" && Array.isArray(event.report)) {
+        const report = event.report;
+        const kind = report[0];
+        if (["expand", "discover", "path", "neighbors"].includes(kind)) {
+          sim.algorithmVisual = kind === "expand" ? { current: report[1], frontier: report[2], visited: report[3] }
+            : kind === "discover" ? { current: report[2], frontier: report[3], visited: report[4] }
+              : kind === "path" ? { current: playback.m.algorithm.goal, path: report[1] }
+                : { current: report[1], frontier: report[2] };
+        } else if (playback.m.algorithm.mode === "route" && ["choose", "candidate", "result"].includes(kind) && Array.isArray(report[1])) {
+          sim.algorithmVisual = { route: report[1], focus: report[1].at(-1) };
+        } else if (["check", "candidate", "compare", "swap", "middle", "choose", "call", "cache-hit", "store"].includes(kind)) {
+          const focus = kind === "middle" ? report[2] : kind === "choose" ? report[1]?.at(-1)
+            : report[1];
+          sim.algorithmVisual = { focus: Number.isInteger(focus) ? focus : null,
+            ...(playback.m.lessonNo === 34 && kind === "candidate" ? { chosen: report[2] } : {}),
+            ...(playback.m.lessonNo === 35 && ["compare", "swap"].includes(kind) ? { values: report[3] } : {}),
+            ...(playback.m.lessonNo === 36 && kind === "middle" ? { range: [report[1], report[3]] } : {}) };
+        } else if (kind === "result" && playback.m.algorithm.mode === "array" && Number.isInteger(report[1])) {
+          sim.algorithmVisual = { focus: report[1] };
+        }
+      }
       sim.x = event.state.x; sim.y = event.state.y;
       sim.dir = event.state.directionName || directions[event.state.direction];
       sim.energy = event.state.energy;
@@ -1984,7 +2030,7 @@ window.addEventListener("unhandledrejection", (event) => {
       else { sim.failed = true; sim.failureMessage = attempt.failure; sim.message = "检查调用记录"; }
       earlyNotice = playback.adapter.feedback(playback.m, playback.p, attempt);
     }
-    render();
+    if (!quiet) render();
   }
 
   function stepProgram() {
@@ -2568,7 +2614,9 @@ window.addEventListener("unhandledrejection", (event) => {
     const isRunning = isPythonStudio ? pythonPlaying : Boolean(runTimer);
     dom.worldState.textContent = sim.completed ? "已完成" : sim.failed ? "需要调试" : isRunning ? "运行中" : "等待运行";
     dom.worldState.dataset.state = sim.completed ? "success" : sim.failed ? "error" : isRunning ? "running" : "idle";
-    dom.worldBeaconCounter.textContent = `${sim.collected.size}/${m.required}`;
+    dom.worldBeaconCounter.textContent = m.algorithm && m.algorithm.mode !== "graph"
+      ? `${Math.min(sim.queueIndex, structuredPlayback?.execution?.events?.length || 0)} 步`
+      : `${sim.collected.size}/${m.required}`;
     dom.runState.textContent = sim.completed ? "已过关" : sim.failed ? "需调试" : runTimer ? "运行中" : "待运行";
     dom.programTabs.classList.toggle("is-visible", Boolean(m.functionEnabled));
     if (!m.functionEnabled && activeBoard === "route") activeBoard = "main";
@@ -2579,7 +2627,9 @@ window.addEventListener("unhandledrejection", (event) => {
       ["Nova 位置", `(${sim.x}, ${sim.y})`],
       ["朝向", directionLabels[sim.dir]],
       ["能量", sim.energy],
-      ["宝石", `${sim.collected.size} / ${mission().required}`]
+      mission().algorithm && mission().algorithm.mode !== "graph"
+        ? ["算法步骤", sim.queueIndex]
+        : ["宝石", `${sim.collected.size} / ${mission().required}`]
     ];
 
     dom.stateHud.innerHTML = rows.map(([label, value]) => `
@@ -5448,6 +5498,8 @@ window.addEventListener("unhandledrejection", (event) => {
       padDark: new THREE.MeshStandardMaterial({ color: 0x4f5d67, roughness: 0.45, metalness: 0.18 }),
       padBlueSoft: new THREE.MeshStandardMaterial({ color: 0xb9f5ff, roughness: 0.34, metalness: 0.08, emissive: 0x0d789e, emissiveIntensity: 0.12 }),
       padVioletSoft: new THREE.MeshStandardMaterial({ color: 0xf1b2ff, roughness: 0.34, metalness: 0.08, emissive: 0x77159c, emissiveIntensity: 0.18 }),
+      algorithmCurrent: new THREE.MeshBasicMaterial({ color: 0xffbf6b, depthTest: false }),
+      algorithmVisited: new THREE.MeshBasicMaterial({ color: 0x83e6b7, depthTest: false }),
       robot: new THREE.MeshStandardMaterial({ color: 0xffc85f, roughness: 0.5, metalness: 0.02 }),
       robotDark: new THREE.MeshStandardMaterial({ color: 0x8a5a34, roughness: 0.72 }),
       robotTrim: new THREE.MeshStandardMaterial({ color: 0x55d5c8, roughness: 0.36, metalness: 0.05, flatShading: true }),
@@ -5580,25 +5632,65 @@ window.addEventListener("unhandledrejection", (event) => {
         addGem(root, worldX(beacon.x), worldZ(beacon.y), simState.collected.has(key));
         root.children.slice(first).forEach(child => { child.position.y += terrainLevel(beacon.x, beacon.y) * 0.3; });
       });
-      for (const label of activeMission.worldLabels || []) {
+      for (const [labelIndex, label] of (activeMission.worldLabels || []).entries()) {
         if (label.waypoint && (label.at.x !== grid.start.x || label.at.y !== grid.start.y)) {
           const first = root.children.length;
           addPad(root, worldX(label.at.x), worldZ(label.at.y), "blue");
           root.children.slice(first).forEach(child => { child.position.y += terrainLevel(label.at.x, label.at.y) * 0.3; });
         }
-        if (!worldLabelMaterials.has(label.text)) {
+        const sortedItem = activeMission.lessonNo === 35 ? simState.algorithmVisual?.values?.[labelIndex] : null;
+        const displayText = sortedItem ? `${labelIndex}·${sortedItem[0]}${sortedItem[1]}` : label.text;
+        if (!worldLabelMaterials.has(displayText)) {
           const surface = document.createElement("canvas"); surface.width = 256; surface.height = 72;
           const paint = surface.getContext("2d");
           paint.fillStyle = "#152455"; paint.fillRect(0, 0, 256, 72);
           paint.fillStyle = "#fff"; paint.font = '600 34px system-ui, sans-serif';
-          paint.textAlign = "center"; paint.textBaseline = "middle"; paint.fillText(label.text, 128, 36, 232);
+          paint.textAlign = "center"; paint.textBaseline = "middle"; paint.fillText(displayText, 128, 36, 232);
           const texture = new THREE.CanvasTexture(surface); texture.colorSpace = THREE.SRGBColorSpace;
-          worldLabelMaterials.set(label.text, new THREE.SpriteMaterial({ map: texture, depthTest: false, depthWrite: false }));
+          worldLabelMaterials.set(displayText, new THREE.SpriteMaterial({ map: texture, depthTest: false, depthWrite: false }));
         }
-        const labelSprite = new THREE.Sprite(worldLabelMaterials.get(label.text));
+        const labelSprite = new THREE.Sprite(worldLabelMaterials.get(displayText));
         labelSprite.scale.set(1.05, 0.3, 1);
         labelSprite.position.set(worldX(label.at.x), surfaceY + 0.92 + terrainLevel(label.at.x, label.at.y) * 0.3, worldZ(label.at.y));
         root.add(labelSprite);
+      }
+      if (activeMission.algorithm) {
+        const visual = simState.algorithmVisual || {};
+        const mark = (x, y, material, scale = 0.55) => {
+          if (!helpers.hasTile(grid, x, y)) return;
+          const ring = new THREE.Mesh(geometry.padRing, material);
+          ring.rotation.x = -Math.PI / 2;
+          ring.scale.setScalar(scale);
+          ring.position.set(worldX(x), surfaceY + 0.17 + terrainLevel(x, y) * 0.3, worldZ(y));
+          root.add(ring);
+        };
+        if (activeMission.algorithmScene?.stations) {
+          if (activeMission.lessonNo === 36 && visual.range) activeMission.algorithmScene.stations
+            .filter(station => station.index < visual.range[0] || station.index > visual.range[1])
+            .forEach(station => mark(station.at.x, station.at.y, materials.padDark, 0.45));
+          if (activeMission.lessonNo === 34) activeMission.algorithmScene.stations
+            .filter(station => activeMission.algorithm.values[station.index]?.[1] === 0)
+            .forEach(station => mark(station.at.x, station.at.y, materials.gem, 0.68));
+          if (activeMission.lessonNo === 34 && Number.isInteger(visual.chosen)) {
+            const chosen = activeMission.algorithmScene.stations.find(station => station.index === visual.chosen);
+            if (chosen) mark(chosen.at.x, chosen.at.y, materials.algorithmVisited, 0.83);
+          }
+          (visual.route || []).forEach(index => {
+            const station = activeMission.algorithmScene.stations.find(item => item.index === index);
+            if (station) mark(station.at.x, station.at.y, materials.algorithmVisited, 0.7);
+          });
+          activeMission.algorithmScene.stations.filter(station => station.index === visual.focus)
+            .forEach(current => mark(current.at.x, current.at.y, materials.algorithmCurrent, 1.25));
+        } else if (activeMission.algorithm.mode === "graph") {
+          const width = activeMission.algorithm.grid[0].length;
+          const byId = (id, material, scale) => {
+            if (Number.isInteger(id)) mark(id % width, Math.floor(id / width), material, scale);
+          };
+          (visual.visited || []).forEach(id => byId(id, materials.algorithmVisited, 0.43));
+          (visual.frontier || []).forEach(id => byId(id, materials.padBlue, 0.62));
+          (visual.path || []).forEach(id => byId(id, materials.padViolet, 0.72));
+          byId(visual.current, materials.algorithmCurrent, 1.05);
+        }
       }
 
       const padStart = root.children.length;
@@ -7481,7 +7573,7 @@ window.addEventListener("unhandledrejection", (event) => {
     }
     if ((authUser || isLocalPreview) && courseView !== "lesson") {
       const requested = new URLSearchParams(window.location.search).get("lesson");
-      if (/^course-(?:0[1-9]|[12][0-9]|3[0-2])$/.test(requested || "")) selectMission(missionIndexById(requested));
+      if (/^course-(?:0[1-9]|[12][0-9]|3[0-9]|4[0-8])$/.test(requested || "")) selectMission(missionIndexById(requested));
     }
   });
 
@@ -7501,6 +7593,23 @@ window.addEventListener("unhandledrejection", (event) => {
       const action = button.dataset.lessonAction;
       if (action === "run" || action === "step") { runStructuredProgram(action === "run"); return; }
       if (action === "reset") { resetSimulation(); earlyNotice = "世界已复位，程序和学习记录保留。"; render(); return; }
+      if (action === "review-speed" && m.algorithm && structuredPlayback?.execution && !structuredPlayback.finished) {
+        structuredPlayback.speed = structuredPlayback.speed === 1 ? 2 : structuredPlayback.speed === 2 ? 4 : 1;
+        if (structuredPlayback.playing) {
+          window.clearInterval(runTimer);
+          runTimer = window.setInterval(advanceStructuredPlaybackFrame, 420 / structuredPlayback.speed);
+        }
+        render(); return;
+      }
+      if (action.startsWith("review-") && m.algorithm && structuredPlayback?.execution && !structuredPlayback.playing) {
+        const frames = structuredPlayback.execution.events.slice(0, structuredPlayback.index).filter(item => item.type === "report");
+        if (!frames.length) return;
+        const last = frames.length - 1;
+        const at = Number.isInteger(structuredPlayback.reviewIndex) ? structuredPlayback.reviewIndex : last;
+        structuredPlayback.reviewIndex = action === "review-first" ? 0 : action === "review-back" ? Math.max(0, at - 1)
+          : action === "review-next" ? Math.min(last, at + 1) : null;
+        render(); return;
+      }
       const adapter = window.CodeQuestStructuredLessons.get(m);
       const draft = adapter.draft(p);
       if (action === "select") programEditMode = null;
@@ -7570,7 +7679,7 @@ window.addEventListener("unhandledrejection", (event) => {
     } else if (["guided", "repair", "challenge", "next"].includes(action)) {
       if (action === p.phase) return;
       stopAutoRun();
-      early.switchChallenge(p, action === "next" ? p.phase : action, action === "next");
+      early.switchChallenge(p, action === "next" ? "challenge" : action, action === "next");
       if (m.early.v18) activeBoard = "main";
       const updated = mission();
       program = (updated.early.mainStarter || (updated.early.repairing ? updated.early.faulty : [])).slice();
